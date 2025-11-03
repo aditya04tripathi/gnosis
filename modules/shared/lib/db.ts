@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 console.log("MONGODB_URI:", process.env.MONGODB_URI);
 
 const MONGODB_URI: string =
-  process.env.MONGODB_URI || "mongodb:
+  process.env.MONGODB_URI || "mongodb://localhost:27017/saas-validator";
 
 interface MongooseCache {
   conn: Mongoose | null;

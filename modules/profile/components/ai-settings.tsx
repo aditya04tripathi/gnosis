@@ -198,7 +198,7 @@ export function AISettings({ user, groqModels }: AISettingsProps) {
               <CardDescription className="text-sm text-muted-foreground mb-2">
                 This API key works for all Groq models. Get your key from{" "}
                 <a
-                  href="https:
+                  href="https://console.groq.com/keys"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-primary hover:underline"

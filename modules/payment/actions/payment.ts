@@ -40,8 +40,8 @@ async function getPayPalAccessToken(): Promise<string> {
   }
 
   const baseUrl = isSandbox
-    ? "https:
-    : "https:
+    ? "https://api-m.sandbox.paypal.com"
+    : "https://api-m.paypal.com";
 
   const response = await fetch(`${baseUrl}/v1/oauth2/token`, {
     method: "POST",
@@ -66,8 +66,8 @@ async function getPayPalAccessToken(): Promise<string> {
 function getPayPalBaseUrl(): string {
   const isSandbox = process.env.PAYPAL_MODE === "sandbox";
   return isSandbox
-    ? "https:
-    : "https:
+    ? "https://api-m.sandbox.paypal.com"
+    : "https://api-m.paypal.com"
 }
 
 async function createPayPalSubscriptionPlan(
@@ -347,8 +347,8 @@ async function getPayPalSubscriptionUpdatePaymentUrl(
   }
 
   const baseUrl = isSandbox
-    ? "https:
-    : "https:
+    ? "https://www.sandbox.paypal.com"
+    : "https://www.paypal.com";
   return {
     approvalUrl: `${baseUrl}/myaccount/autopay/connect/${subscriptionId}?returnUrl=${encodeURIComponent(
       returnUrl,
@@ -638,7 +638,7 @@ export async function createSubscription(
       };
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http:
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
     const returnUrl = `${baseUrl}/billing/payment/return`;
     const cancelUrl = `${baseUrl}/billing/payment/cancel`;
 
@@ -735,7 +735,7 @@ export async function changePlanDirectly(
         ? SUBSCRIPTION_PLANS[planType].monthlyPrice
         : SUBSCRIPTION_PLANS[planType].yearlyPrice;
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http:
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
     const returnUrl = `${baseUrl}/billing/payment/return`;
     const cancelUrl = `${baseUrl}/billing/payment/cancel`;
 

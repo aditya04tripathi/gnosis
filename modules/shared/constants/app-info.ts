@@ -19,14 +19,14 @@ export const APP_INFO = {
   ],
   author: {
     name: "Aditya Tripathi",
-    url: "https:
+    url: "https://gnosis.up.railway.app",
   },
 } as const;
 
 export const HERO_SECTION = {
   announcement: {
     text: "Introducing Support for AI Models - Try for Free",
-    href: "https:
+    href: "https://gnosis.up.railway.app",
   },
   heading: "Validate Your Startup Ideas with AI",
   subheading:
@@ -34,7 +34,7 @@ export const HERO_SECTION = {
   cta: {
     primary: {
       text: "Start Building",
-      href: "https:
+      href: "https://gnosis.up.railway.app/auth/signup",
     },
   },
 } as const;

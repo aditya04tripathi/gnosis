@@ -7,7 +7,7 @@ const members = [
     name: "Aditya Tripathi",
     role: "Founder - CEO",
     avatar: "/AdityaTripathi.jpeg",
-    link: "https:
+    link: "https://github.com/aditya04tripathi",
   },
 ];
 
