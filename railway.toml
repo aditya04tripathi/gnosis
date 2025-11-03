@@ -1,0 +1,11 @@
+[build]
+builder = "NIXPACKS"
+watchPatterns = ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"]
+
+[deploy]
+startCommand = "pnpm start"
+healthcheckPath = "/"
+healthcheckTimeout = 100
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+

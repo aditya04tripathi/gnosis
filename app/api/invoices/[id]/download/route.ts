@@ -1,0 +1,201 @@
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import { auth } from "@/auth";
+import connectDB from "@/lib/db";
+import Invoice from "@/models/Invoice";
+import User from "@/models/User";
+
+export async function GET(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { id } = await params;
+    await connectDB();
+
+    // Find invoice and verify ownership
+    const invoice = await Invoice.findById(id).lean();
+    if (!invoice) {
+      return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
+    }
+
+    if (invoice.userId.toString() !== session.user.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    }
+
+    // Get user details
+    const user = await User.findById(session.user.id).lean();
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    // Create a new PDF document
+    const pdfDoc = await PDFDocument.create();
+
+    // Embed the Helvetica font (standard PDF font, no external files needed)
+    const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const helveticaBoldFont = await pdfDoc.embedFont(
+      StandardFonts.HelveticaBold,
+    );
+
+    // Add a page
+    const page = pdfDoc.addPage([612, 792]); // US Letter size
+    const { width, height } = page.getSize();
+    const margin = 50;
+    let yPosition = height - margin;
+
+    // Helper function to add text
+    const addText = (
+      text: string,
+      x: number,
+      y: number,
+      fontSize: number,
+      font = helveticaFont,
+      color = rgb(0, 0, 0),
+      options: { alignment?: "left" | "center" | "right" } = {},
+    ) => {
+      const { alignment = "left" } = options;
+      let xPos = x;
+      if (alignment === "center") {
+        const textWidth = font.widthOfTextAtSize(text, fontSize);
+        xPos = width / 2 - textWidth / 2;
+      } else if (alignment === "right") {
+        const textWidth = font.widthOfTextAtSize(text, fontSize);
+        xPos = width - margin - textWidth;
+      }
+      page.drawText(text, {
+        x: xPos,
+        y: y,
+        size: fontSize,
+        font: font,
+        color: color,
+      });
+    };
+
+    // Header
+    addText("INVOICE", 0, yPosition, 24, helveticaBoldFont, rgb(0, 0, 0), {
+      alignment: "center",
+    });
+    yPosition -= 40;
+
+    // Invoice details
+    addText(`Invoice Number: ${invoice.invoiceNumber}`, margin, yPosition, 10);
+    yPosition -= 15;
+    addText(
+      `Invoice Date: ${new Date(invoice.invoiceDate).toLocaleDateString(
+        "en-US",
+        {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        },
+      )}`,
+      margin,
+      yPosition,
+      10,
+    );
+    yPosition -= 15;
+    addText(`Status: ${invoice.status.toUpperCase()}`, margin, yPosition, 10);
+    yPosition -= 30;
+
+    // Bill To section
+    addText("Bill To:", margin, yPosition, 12, helveticaBoldFont);
+    yPosition -= 20;
+    addText(user.name || "Customer", margin, yPosition, 10);
+    yPosition -= 15;
+    addText(user.email || "", margin, yPosition, 10);
+    yPosition -= 30;
+
+    // Items section
+    addText("Items:", margin, yPosition, 12, helveticaBoldFont);
+    yPosition -= 25;
+
+    // Table header
+    addText("Description", margin, yPosition, 10, helveticaBoldFont);
+    addText("Amount", 0, yPosition, 10, helveticaBoldFont, rgb(0, 0, 0), {
+      alignment: "right",
+    });
+    yPosition -= 5;
+
+    // Draw line under header
+    page.drawLine({
+      start: { x: margin, y: yPosition },
+      end: { x: width - margin, y: yPosition },
+      thickness: 1,
+      color: rgb(0.7, 0.7, 0.7),
+    });
+    yPosition -= 20;
+
+    // Table row
+    const descriptionLines = invoice.description.match(/.{1,60}/g) || [
+      invoice.description,
+    ];
+    const firstLine = descriptionLines[0];
+    addText(firstLine, margin, yPosition, 10);
+    addText(
+      `${invoice.currency} ${invoice.amount.toFixed(2)}`,
+      0,
+      yPosition,
+      10,
+      helveticaFont,
+      rgb(0, 0, 0),
+      { alignment: "right" },
+    );
+
+    // Add remaining description lines if any
+    if (descriptionLines.length > 1) {
+      for (let i = 1; i < descriptionLines.length; i++) {
+        yPosition -= 15;
+        addText(descriptionLines[i], margin, yPosition, 10);
+      }
+    }
+
+    yPosition -= 30;
+
+    // Total
+    addText(
+      `Total: ${invoice.currency} ${invoice.amount.toFixed(2)}`,
+      0,
+      yPosition,
+      13,
+      helveticaBoldFont,
+      rgb(0, 0, 0),
+      { alignment: "right" },
+    );
+    yPosition -= 50;
+
+    // Footer
+    addText(
+      "This is an automated invoice generated by SaaS Help AI.",
+      0,
+      yPosition,
+      8,
+      helveticaFont,
+      rgb(0.4, 0.4, 0.4),
+      { alignment: "center" },
+    );
+
+    // Serialize the PDF to bytes
+    const pdfBytes = await pdfDoc.save();
+
+    // Return PDF as response
+    return new NextResponse(pdfBytes as unknown as BodyInit, {
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `attachment; filename="invoice-${invoice.invoiceNumber}.pdf"`,
+      },
+    });
+  } catch (error) {
+    console.error("PDF generation error:", error);
+    return NextResponse.json(
+      { error: "Failed to generate PDF" },
+      { status: 500 },
+    );
+  }
+}
