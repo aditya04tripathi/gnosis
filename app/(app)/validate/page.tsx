@@ -4,6 +4,7 @@ import { Loader2, Sparkles } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { VALIDATE } from "@/modules/shared/constants";
 import { validateStartupIdea } from "@/modules/validation/actions/validation";
 import { Button } from "@/modules/shared/components/ui/button";
 import { Label } from "@/modules/shared/components/ui/label";
@@ -15,7 +16,6 @@ function ValidateContent() {
   const [idea, setIdea] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Pre-fill idea from query parameter
   useEffect(() => {
     const ideaParam = searchParams.get("idea");
     if (ideaParam) {
@@ -25,10 +25,8 @@ function ValidateContent() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!idea.trim() || idea.trim().length < 10) {
-      toast.error(
-        "Please provide a detailed startup idea (at least 10 characters)",
-      );
+    if (!idea.trim() || idea.trim().length < VALIDATE.minLength) {
+      toast.error(VALIDATE.errorMessages.tooShort);
       return;
     }
 
@@ -71,11 +69,10 @@ function ValidateContent() {
             </div>
             <div className="space-y-2">
               <h1 className="text-2xl font-bold sm:text-3xl lg:text-4xl">
-                Validate Your Startup Idea
+                {VALIDATE.heading}
               </h1>
               <p className="text-sm text-muted-foreground sm:text-base">
-                Describe your startup idea and get AI-powered validation with
-                detailed feedback
+                {VALIDATE.description}
               </p>
             </div>
           </div>
@@ -89,16 +86,17 @@ function ValidateContent() {
               </Label>
               <Textarea
                 id="idea"
-                placeholder="Describe your startup idea in detail. Include what problem you're solving, your target audience, and how your solution works..."
+                placeholder={VALIDATE.placeholder}
                 value={idea}
                 onChange={(e) => setIdea(e.target.value)}
                 rows={10}
                 className="resize-none text-sm sm:text-base sm:min-h-[200px]"
                 required
-                minLength={10}
+                minLength={VALIDATE.minLength}
+                maxLength={VALIDATE.maxLength}
               />
               <p className="text-xs text-muted-foreground sm:text-sm">
-                {idea.length}/1000 characters (minimum 10 characters)
+                {idea.length}/{VALIDATE.maxLength} characters (minimum {VALIDATE.minLength} characters)
               </p>
             </div>
             <Button
@@ -110,12 +108,12 @@ function ValidateContent() {
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin sm:h-5 sm:w-5" />
-                  <span className="text-sm sm:text-base">Validating...</span>
+                  <span className="text-sm sm:text-base">{VALIDATE.buttonLoadingText}</span>
                 </>
               ) : (
                 <>
                   <Sparkles className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                  <span className="text-sm sm:text-base">Validate Idea</span>
+                  <span className="text-sm sm:text-base">{VALIDATE.buttonText}</span>
                 </>
               )}
             </Button>

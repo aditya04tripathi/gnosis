@@ -33,6 +33,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/modules/shared/components/ui/sidebar";
+import { APP_INFO } from "../constants";
 
 const mainMenuItems = [
   {
@@ -130,7 +131,7 @@ export function AppSidebarCustom({
       const result = await signOutAction();
       if (result.success) {
         toast.success("Signed out successfully");
-        router.push(result.redirectTo || "/auth/signin");
+        router.push(result.redirectTo);
       } else {
         toast.error("Failed to sign out");
         setIsSigningOut(false);
@@ -150,7 +151,7 @@ export function AppSidebarCustom({
             <SidebarMenuButton asChild size="lg">
               <Link href="/" className="flex items-center space-x-2">
                 <Zap className="h-6 w-6" />
-                <span className="font-bold text-lg">Startup Validator</span>
+                <span className="font-bold text-lg">{APP_INFO.name}</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

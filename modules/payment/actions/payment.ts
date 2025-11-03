@@ -7,7 +7,6 @@ import { deleteCache, getCache, setCache } from "@/modules/shared/lib/redis";
 import Invoice from "@/modules/shared/models/Invoice";
 import User from "@/modules/shared/models/User";
 
-// Types for better type safety with PayPal REST API patterns
 export type SubscriptionTier = "MONTHLY" | "YEARLY";
 export type PlanType = "BASIC" | "PRO";
 
@@ -31,9 +30,6 @@ export interface UserSubscriptionData {
   searchesResetAt: Date;
 }
 
-/**
- * Get PayPal access token using REST API
- */
 async function getPayPalAccessToken(): Promise<string> {
   const clientId = process.env.PAYPAL_CLIENT_ID;
   const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
@@ -44,8 +40,8 @@ async function getPayPalAccessToken(): Promise<string> {
   }
 
   const baseUrl = isSandbox
-    ? "https://api-m.sandbox.paypal.com"
-    : "https://api-m.paypal.com";
+    ? "https:
+    : "https:
 
   const response = await fetch(`${baseUrl}/v1/oauth2/token`, {
     method: "POST",
@@ -67,19 +63,13 @@ async function getPayPalAccessToken(): Promise<string> {
   return data.access_token;
 }
 
-/**
- * Get base URL for PayPal API
- */
 function getPayPalBaseUrl(): string {
   const isSandbox = process.env.PAYPAL_MODE === "sandbox";
   return isSandbox
-    ? "https://api-m.sandbox.paypal.com"
-    : "https://api-m.paypal.com";
+    ? "https:
+    : "https:
 }
 
-/**
- * Create a PayPal subscription plan via REST API
- */
 async function createPayPalSubscriptionPlan(
   amount: number,
   currency: string = "USD",
@@ -89,7 +79,6 @@ async function createPayPalSubscriptionPlan(
   const accessToken = await getPayPalAccessToken();
   const baseUrl = getPayPalBaseUrl();
 
-  // First, create a product
   const productResponse = await fetch(`${baseUrl}/v1/catalogs/products`, {
     method: "POST",
     headers: {
@@ -97,7 +86,7 @@ async function createPayPalSubscriptionPlan(
       Authorization: `Bearer ${accessToken}`,
     },
     body: JSON.stringify({
-      name: "Startup Validator Subscription",
+      name: "Gnosis Subscription",
       description: "AI-powered startup idea validation service",
       type: "SERVICE",
     }),
@@ -115,7 +104,6 @@ async function createPayPalSubscriptionPlan(
   const productData = await productResponse.json();
   const productId = productData.id;
 
-  // Create a billing plan
   const planResponse = await fetch(`${baseUrl}/v1/billing/plans`, {
     method: "POST",
     headers: {
@@ -138,7 +126,7 @@ async function createPayPalSubscriptionPlan(
           },
           tenure_type: "REGULAR",
           sequence: 1,
-          total_cycles: 0, // 0 means unlimited cycles
+          total_cycles: 0, 
           pricing_scheme: {
             fixed_price: {
               value: amount.toFixed(2),
@@ -172,9 +160,6 @@ async function createPayPalSubscriptionPlan(
   return { planId: planData.id };
 }
 
-/**
- * Create a PayPal subscription via REST API
- */
 async function createPayPalSubscription(
   planId: string,
   returnUrl: string,
@@ -204,7 +189,7 @@ async function createPayPalSubscription(
     application_context: {
       return_url: returnUrl,
       cancel_url: cancelUrl,
-      brand_name: "Startup Validator",
+      brand_name: "Gnosis",
       locale: "en-US",
       shipping_preference: "NO_SHIPPING",
       user_action: "SUBSCRIBE_NOW",
@@ -244,7 +229,6 @@ async function createPayPalSubscription(
   const data = await response.json();
   const subscriptionId = data.id;
 
-  // Find the approval URL
   const approveLink = data.links?.find(
     (link: { rel: string; href: string }) =>
       link.rel === "approve" || link.rel === "edit",
@@ -260,9 +244,6 @@ async function createPayPalSubscription(
   };
 }
 
-/**
- * Get PayPal subscription details via REST API
- */
 async function getPayPalSubscription(subscriptionId: string) {
   const accessToken = await getPayPalAccessToken();
   const baseUrl = getPayPalBaseUrl();
@@ -289,9 +270,6 @@ async function getPayPalSubscription(subscriptionId: string) {
   return response.json();
 }
 
-/**
- * Get PayPal plan details via REST API
- */
 async function getPayPalPlan(planId: string) {
   const accessToken = await getPayPalAccessToken();
   const baseUrl = getPayPalBaseUrl();
@@ -313,9 +291,6 @@ async function getPayPalPlan(planId: string) {
   return response.json();
 }
 
-/**
- * Suspend PayPal subscription via REST API
- */
 async function suspendPayPalSubscription(
   subscriptionId: string,
 ): Promise<{ success: boolean }> {
@@ -349,25 +324,20 @@ async function suspendPayPalSubscription(
   return { success: true };
 }
 
-/**
- * Get PayPal subscription update payment method URL via REST API
- */
 async function getPayPalSubscriptionUpdatePaymentUrl(
   subscriptionId: string,
   returnUrl: string,
 ): Promise<{ approvalUrl: string }> {
   const isSandbox = process.env.PAYPAL_MODE === "sandbox";
 
-  // Get subscription details first to find the edit link
   const subscription = await getPayPalSubscription(subscriptionId);
 
-  // PayPal provides an "edit" link in the subscription response for updating payment methods
   const editLink = subscription.links?.find(
     (link: { rel: string; href: string }) => link.rel === "edit",
   );
 
   if (editLink) {
-    // Append return URL to the edit link
+    
     const separator = editLink.href.includes("?") ? "&" : "?";
     return {
       approvalUrl: `${editLink.href}${separator}return_url=${encodeURIComponent(
@@ -376,10 +346,9 @@ async function getPayPalSubscriptionUpdatePaymentUrl(
     };
   }
 
-  // Fallback: Redirect to PayPal subscription management page
   const baseUrl = isSandbox
-    ? "https://www.sandbox.paypal.com"
-    : "https://www.paypal.com";
+    ? "https:
+    : "https:
   return {
     approvalUrl: `${baseUrl}/myaccount/autopay/connect/${subscriptionId}?returnUrl=${encodeURIComponent(
       returnUrl,
@@ -387,9 +356,6 @@ async function getPayPalSubscriptionUpdatePaymentUrl(
   };
 }
 
-/**
- * Get subscription transactions (billing history) via REST API
- */
 async function _getPayPalSubscriptionTransactions(
   subscriptionId: string,
   startTime?: string,
@@ -398,7 +364,6 @@ async function _getPayPalSubscriptionTransactions(
   const accessToken = await getPayPalAccessToken();
   const baseUrl = getPayPalBaseUrl();
 
-  // Build query parameters
   const params = new URLSearchParams();
   if (startTime) params.append("start_time", startTime);
   if (endTime) params.append("end_time", endTime);
@@ -419,7 +384,6 @@ async function _getPayPalSubscriptionTransactions(
       message: "Failed to get transactions",
     }));
 
-    // If subscription doesn't exist, return empty transactions
     if (errorData.name === "RESOURCE_NOT_FOUND") {
       console.log("Subscription not found, returning empty transactions");
       return { transactions: [] };
@@ -435,9 +399,6 @@ async function _getPayPalSubscriptionTransactions(
   return response.json();
 }
 
-/**
- * Format PayPal transaction into invoice format
- */
 export interface PayPalInvoice {
   id: string;
   date: string;
@@ -468,7 +429,6 @@ function _formatPayPalTransactionToInvoice(
   const transactionId = transaction.transaction_id || transaction.id || "";
   const date = transaction.time || new Date().toISOString();
 
-  // Map PayPal transaction status to invoice status
   let status: "paid" | "pending" | "failed" | "refunded" = "pending";
   const paypalStatus = transaction.status?.toUpperCase();
   if (paypalStatus === "COMPLETED" || paypalStatus === "SUCCESS") {
@@ -495,9 +455,6 @@ function _formatPayPalTransactionToInvoice(
   };
 }
 
-/**
- * Generate a tax invoice for subscription tier changes
- */
 async function generateTaxInvoice(
   userId: string,
   subscriptionTier: SubscriptionTier | "FREE",
@@ -514,7 +471,6 @@ async function generateTaxInvoice(
 
     const { SUBSCRIPTION_PLANS } = await import("@/modules/shared/constants");
 
-    // Calculate amount if not provided
     let invoiceAmount = amount;
     if (invoiceAmount === undefined) {
       if (subscriptionTier === "FREE") {
@@ -529,13 +485,12 @@ async function generateTaxInvoice(
       }
     }
 
-    // Build description based on change type
     let description = "";
     if (
       previousSubscriptionTier &&
       previousSubscriptionTier !== subscriptionTier
     ) {
-      // Plan change (upgrade or downgrade)
+      
       const previousPlanName =
         previousSubscriptionTier === "FREE"
           ? "Free"
@@ -546,17 +501,16 @@ async function generateTaxInvoice(
           : `${subscriptionPlan || ""} (${subscriptionTier})`;
       description = `Subscription change from ${previousPlanName} to ${newPlanName}`;
     } else if (subscriptionTier === "FREE") {
-      // Downgrade to free
+      
       description = "Subscription cancelled - Downgrade to Free plan";
     } else {
-      // New subscription
+      
       const planName = subscriptionPlan
         ? `${subscriptionPlan} Plan (${subscriptionTier})`
         : `${subscriptionTier} Subscription`;
       description = `New subscription: ${planName}`;
     }
 
-    // Generate invoice number before creating invoice
     const date = new Date();
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -566,7 +520,6 @@ async function generateTaxInvoice(
     const sequence = String(count + 1).padStart(4, "0");
     const invoiceNumber = `INV-${year}${month}-${sequence}`;
 
-    // Create invoice
     const invoice = new Invoice({
       userId,
       invoiceNumber,
@@ -586,15 +539,11 @@ async function generateTaxInvoice(
     await invoice.save();
     console.log(`Tax invoice generated: ${invoice.invoiceNumber}`);
   } catch (error) {
-    // Log error but don't fail the subscription change
+    
     console.error("Failed to generate tax invoice:", error);
   }
 }
 
-/**
- * Gets or creates a PayPal subscription plan for the specified tier and plan type.
- * Uses REST API only.
- */
 export async function getOrCreateSubscriptionPlan(
   tier: SubscriptionTier,
   planType: PlanType,
@@ -615,12 +564,11 @@ export async function getOrCreateSubscriptionPlan(
     const amount =
       tier === "MONTHLY" ? planConfig.monthlyPrice : planConfig.yearlyPrice;
 
-    // Check cache first to avoid redundant PayPal API calls
     const cacheKey = `paypal_plan:${planType}:${tier}`;
     const cachedPlan = await getCache<{ planId: string }>(cacheKey);
 
     if (cachedPlan?.planId) {
-      // Cache plan details for reverse lookup
+      
       await setCache(
         `paypal_plan_details:${cachedPlan.planId}`,
         { tier, planType, amount },
@@ -632,7 +580,6 @@ export async function getOrCreateSubscriptionPlan(
       };
     }
 
-    // Create a subscription plan via PayPal REST API
     const { planId } = await createPayPalSubscriptionPlan(
       amount,
       "USD",
@@ -640,9 +587,8 @@ export async function getOrCreateSubscriptionPlan(
       1,
     );
 
-    // Cache the plan ID (24 hour TTL)
     await setCache(cacheKey, { planId }, 24 * 60 * 60);
-    // Cache plan details for reverse lookup
+    
     await setCache(
       `paypal_plan_details:${planId}`,
       { tier, planType, amount },
@@ -665,10 +611,6 @@ export async function getOrCreateSubscriptionPlan(
   }
 }
 
-/**
- * Creates a PayPal subscription and returns approval URL for redirect.
- * Uses REST API only.
- */
 export async function createSubscription(
   tier: SubscriptionTier,
   planType: PlanType,
@@ -688,7 +630,6 @@ export async function createSubscription(
       return { error: "User not found", success: false };
     }
 
-    // Get or create subscription plan
     const planResult = await getOrCreateSubscriptionPlan(tier, planType);
     if (!planResult.success || !planResult.data?.planId) {
       return {
@@ -697,12 +638,10 @@ export async function createSubscription(
       };
     }
 
-    // Build return URLs - PayPal will automatically append subscription_id parameter
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http:
     const returnUrl = `${baseUrl}/billing/payment/return`;
     const cancelUrl = `${baseUrl}/billing/payment/cancel`;
 
-    // Create subscription via REST API
     const { subscriptionId, approvalUrl } = await createPayPalSubscription(
       planResult.data.planId,
       returnUrl,
@@ -711,14 +650,12 @@ export async function createSubscription(
       user.name || undefined,
     );
 
-    // Get amount for caching
     const { SUBSCRIPTION_PLANS } = await import("@/modules/shared/constants");
     const amount =
       tier === "MONTHLY"
         ? SUBSCRIPTION_PLANS[planType].monthlyPrice
         : SUBSCRIPTION_PLANS[planType].yearlyPrice;
 
-    // Cache subscription details for capture
     await setCache(
       `paypal_subscription:${subscriptionId}`,
       {
@@ -728,7 +665,7 @@ export async function createSubscription(
         amount,
         planId: planResult.data.planId,
       },
-      24 * 60 * 60, // 24 hours
+      24 * 60 * 60, 
     );
 
     return {
@@ -747,11 +684,6 @@ export async function createSubscription(
   }
 }
 
-/**
- * Changes user's subscription plan directly (for existing subscribers).
- * Uses REST API only. Note: PayPal subscriptions cannot be directly updated,
- * so this cancels the old subscription and creates a new one.
- */
 export async function changePlanDirectly(
   tier: SubscriptionTier,
   planType: PlanType,
@@ -769,7 +701,6 @@ export async function changePlanDirectly(
       return { error: "User not found", success: false };
     }
 
-    // Check if user has an active PayPal subscription
     if (!user.paypalSubscriptionId) {
       return {
         error:
@@ -778,23 +709,18 @@ export async function changePlanDirectly(
       };
     }
 
-    // For PayPal, we need to cancel the old subscription and create a new one
-    // Since PayPal doesn't support direct plan updates via PATCH
-    // First try to suspend the old subscription (if it exists)
     try {
       await suspendPayPalSubscription(user.paypalSubscriptionId);
     } catch (error) {
-      // If subscription doesn't exist or is already cancelled, that's fine
-      // We can still create a new subscription
+
       const errorMessage =
         error instanceof Error ? error.message : String(error);
       if (!errorMessage.includes("RESOURCE_NOT_FOUND")) {
         console.error("Failed to suspend old subscription:", error);
       }
-      // Continue anyway - subscription may already be cancelled or not exist
+      
     }
 
-    // Get or create the new subscription plan
     const planResult = await getOrCreateSubscriptionPlan(tier, planType);
     if (!planResult.success || !planResult.data?.planId) {
       return {
@@ -803,15 +729,13 @@ export async function changePlanDirectly(
       };
     }
 
-    // Get amount for caching
     const { SUBSCRIPTION_PLANS } = await import("@/modules/shared/constants");
     const amount =
       tier === "MONTHLY"
         ? SUBSCRIPTION_PLANS[planType].monthlyPrice
         : SUBSCRIPTION_PLANS[planType].yearlyPrice;
 
-    // Create new subscription
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http:
     const returnUrl = `${baseUrl}/billing/payment/return`;
     const cancelUrl = `${baseUrl}/billing/payment/cancel`;
 
@@ -823,7 +747,6 @@ export async function changePlanDirectly(
       user.name || undefined,
     );
 
-    // Cache subscription details
     await setCache(
       `paypal_subscription:${subscriptionId}`,
       {
@@ -836,11 +759,9 @@ export async function changePlanDirectly(
       24 * 60 * 60,
     );
 
-    // Store previous subscription info for invoice
     const previousSubscriptionTier = user.subscriptionTier;
     const previousSubscriptionPlan = user.subscriptionPlan;
 
-    // Update user with new subscription ID
     const daysUntilReset = tier === "YEARLY" ? 365 : 30;
     user.subscriptionTier = tier;
     user.subscriptionPlan = planType;
@@ -851,18 +772,16 @@ export async function changePlanDirectly(
     user.searchesUsed = 0;
     await user.save();
 
-    // Generate tax invoice for subscription change
     await generateTaxInvoice(
       session.user.id,
       tier,
       planType,
       previousSubscriptionTier as SubscriptionTier | "FREE",
       previousSubscriptionPlan,
-      undefined, // amount will be calculated
+      undefined, 
       subscriptionId,
     );
 
-    // Revalidate all relevant paths
     revalidatePath("/");
     revalidatePath("/pricing");
     revalidatePath("/dashboard");
@@ -892,10 +811,6 @@ export async function changePlanDirectly(
   }
 }
 
-/**
- * Captures and activates a PayPal subscription after user approval.
- * Called from PayPal return URL route handler.
- */
 export async function captureSubscription(
   subscriptionId: string,
   tier?: SubscriptionTier,
@@ -914,7 +829,6 @@ export async function captureSubscription(
   try {
     await connectDB();
 
-    // Get subscription details from cache (stored when subscription was created)
     const subscriptionDetails = await getCache<{
       userId: string;
       tier: SubscriptionTier;
@@ -923,20 +837,17 @@ export async function captureSubscription(
       planId: string;
     }>(`paypal_subscription:${subscriptionId}`);
 
-    // Verify subscription status with PayPal first
     const subscription = await getPayPalSubscription(subscriptionId);
 
-    // Extract tier and planType from subscription or cache
     let finalTier: SubscriptionTier | undefined =
       subscriptionDetails?.tier || tier;
     let finalPlanType: PlanType | undefined =
       subscriptionDetails?.planType || planType;
 
-    // If cache is missing, try to get details from PayPal plan
     if (!finalTier || !finalPlanType) {
       const planId = subscription.plan_id;
       if (planId) {
-        // Try to get plan details from cache first
+        
         const planDetails = await getCache<{
           tier: SubscriptionTier;
           planType: PlanType;
@@ -947,7 +858,7 @@ export async function captureSubscription(
           finalTier = planDetails.tier;
           finalPlanType = planDetails.planType;
         } else {
-          // If cache miss, fetch plan details from PayPal API
+          
           try {
             const plan = await getPayPalPlan(planId);
             const billingCycle = plan.billing_cycles?.[0];
@@ -955,16 +866,12 @@ export async function captureSubscription(
             const pricingScheme = billingCycle?.pricing_scheme;
             const amount = parseFloat(pricingScheme?.fixed_price?.value || "0");
 
-            // Extract tier from billing cycle frequency
             if (frequency?.interval_unit === "MONTH") {
               finalTier = "MONTHLY";
             } else if (frequency?.interval_unit === "YEAR") {
               finalTier = "YEARLY";
             }
 
-            // Determine planType from amount
-            // BASIC: $19/month or $190/year
-            // PRO: $49/month or $490/year
             if (!finalPlanType && amount > 0) {
               const { SUBSCRIPTION_PLANS } = await import("@/modules/shared/constants");
               if (finalTier === "MONTHLY") {
@@ -981,14 +888,13 @@ export async function captureSubscription(
                 }
               }
 
-              // If still not determined, log warning but default to BASIC as fallback
               if (!finalPlanType) {
                 console.warn(
                   `Could not determine plan type from amount: ${amount}, tier: ${finalTier}`,
                 );
                 finalPlanType = "BASIC";
               } else {
-                // Successfully determined planType from amount - cache it for future lookups
+                
                 await setCache(
                   `paypal_plan_details:${planId}`,
                   { tier: finalTier, planType: finalPlanType, amount },
@@ -996,7 +902,7 @@ export async function captureSubscription(
                 );
               }
             } else if (!finalPlanType) {
-              // No amount found, default to BASIC
+              
               console.warn(
                 "Could not determine plan type: no amount found in plan",
               );
@@ -1004,19 +910,18 @@ export async function captureSubscription(
             }
           } catch (error) {
             console.error("Failed to fetch plan details from PayPal:", error);
-            // Use defaults as fallback
+            
             finalTier = finalTier || "MONTHLY";
             finalPlanType = finalPlanType || "BASIC";
           }
         }
       } else {
-        // No plan ID, use defaults
+        
         finalTier = finalTier || "MONTHLY";
         finalPlanType = finalPlanType || "BASIC";
       }
     }
 
-    // Verify the subscription belongs to the current user if cached
     if (
       subscriptionDetails?.userId &&
       subscriptionDetails.userId !== session.user.id
@@ -1035,7 +940,6 @@ export async function captureSubscription(
       };
     }
 
-    // Ensure we have required values
     if (!finalTier || !finalPlanType) {
       return {
         error: "Could not determine subscription tier or plan type",
@@ -1048,14 +952,11 @@ export async function captureSubscription(
       return { error: "User not found", success: false };
     }
 
-    // Store previous subscription info for invoice
     const previousSubscriptionTier = user.subscriptionTier;
     const previousSubscriptionPlan = user.subscriptionPlan;
 
-    // Calculate reset date based on tier
     const daysUntilReset = finalTier === "YEARLY" ? 365 : 30;
 
-    // Update user subscription
     user.subscriptionTier = finalTier;
     user.subscriptionPlan = finalPlanType;
     user.paypalSubscriptionId = subscriptionId;
@@ -1065,21 +966,18 @@ export async function captureSubscription(
     user.searchesUsed = 0;
     await user.save();
 
-    // Generate tax invoice for new subscription
     await generateTaxInvoice(
       session.user.id,
       finalTier,
       finalPlanType,
       previousSubscriptionTier as SubscriptionTier | "FREE",
       previousSubscriptionPlan,
-      undefined, // amount will be calculated
+      undefined, 
       subscriptionId,
     );
 
-    // Clean up Redis cache
     await deleteCache(`paypal_subscription:${subscriptionId}`);
 
-    // Revalidate all relevant paths
     revalidatePath("/");
     revalidatePath("/pricing");
     revalidatePath("/dashboard");
@@ -1113,10 +1011,6 @@ export async function captureSubscription(
   }
 }
 
-/**
- * Downgrades user subscription to FREE plan and suspends PayPal subscription.
- * Uses REST API only.
- */
 export async function downgradeToFree(): Promise<
   PaymentActionResult<{ user: UserSubscriptionData }>
 > {
@@ -1133,44 +1027,39 @@ export async function downgradeToFree(): Promise<
       return { error: "User not found", success: false };
     }
 
-    // If user has an active PayPal subscription, suspend it
     if (user.paypalSubscriptionId) {
       try {
         await suspendPayPalSubscription(user.paypalSubscriptionId);
       } catch (error) {
         console.error("Failed to suspend PayPal subscription:", error);
-        // Continue with downgrade even if suspend fails
+        
       }
     }
 
-    // Store previous subscription info for invoice
     const previousSubscriptionTier = user.subscriptionTier;
     const previousSubscriptionPlan = user.subscriptionPlan;
 
-    // Update user to FREE plan
     user.subscriptionTier = "FREE";
     user.subscriptionPlan = undefined;
     user.paypalSubscriptionId = undefined;
     user.searchesResetAt = new Date(
-      Date.now() + 30 * 24 * 60 * 60 * 1000, // 30 days from now
+      Date.now() + 30 * 24 * 60 * 60 * 1000, 
     );
-    // Don't reset searchesUsed - let them keep what they've used
+    
     await user.save();
 
-    // Generate tax invoice for cancellation/downgrade (amount is 0)
     await generateTaxInvoice(
       session.user.id,
       "FREE",
       undefined,
       previousSubscriptionTier as SubscriptionTier | "FREE",
       previousSubscriptionPlan,
-      0, // No charge for downgrade
-      undefined, // No PayPal subscription ID for free plan
+      0, 
+      undefined, 
       undefined,
       "cancelled",
     );
 
-    // Revalidate all relevant paths
     revalidatePath("/");
     revalidatePath("/pricing");
     revalidatePath("/dashboard");
@@ -1203,24 +1092,16 @@ export async function downgradeToFree(): Promise<
   }
 }
 
-/**
- * Alias for captureSubscription - captures and activates a PayPal subscription.
- * Used by PayPal return URL route handler.
- */
 export async function capturePayment(subscriptionId: string): Promise<
   PaymentActionResult<{
     subscriptionId: string;
     user: UserSubscriptionData;
   }>
 > {
-  // Delegate to captureSubscription without tier/planType (will use cached values)
+  
   return captureSubscription(subscriptionId);
 }
 
-/**
- * Gets invoices for the current user from the database
- * Returns both database invoices and PayPal transactions
- */
 export async function getInvoices(): Promise<
   PaymentActionResult<{
     invoices: Array<{
@@ -1247,7 +1128,6 @@ export async function getInvoices(): Promise<
       return { error: "User not found", success: false };
     }
 
-    // Fetch invoices from database
     const dbInvoices = await Invoice.find({ userId: session.user.id })
       .sort({ invoiceDate: -1 })
       .lean();

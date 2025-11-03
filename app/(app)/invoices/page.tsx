@@ -19,7 +19,6 @@ export const metadata: Metadata = {
 export default async function InvoicesPage() {
   const session = await auth();
 
-  // Fetch invoices from PayPal
   const invoicesResult = session?.user
     ? await getInvoices()
     : { success: false as const, error: "Unauthorized" };
@@ -33,7 +32,7 @@ export default async function InvoicesPage() {
     <div className="flex h-full flex-col">
       <main className="flex-1">
         <div className="container mx-auto flex flex-col gap-8">
-          {/* Header */}
+          {}
           <div className="flex flex-col gap-4">
             <div>
               <h1 className="text-3xl font-bold tracking-tight">Invoices</h1>

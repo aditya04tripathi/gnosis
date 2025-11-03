@@ -39,7 +39,7 @@ export function PayPalButton({
 
     setIsProcessing(true);
     try {
-      // If user has a saved payment method, change plan directly
+      
       if (hasPaymentMethod) {
         const result = await changePlanDirectly(tier, planType);
         if (result.error || !result.success) {
@@ -54,7 +54,7 @@ export function PayPalButton({
         }
         setIsProcessing(false);
       } else {
-        // If no payment method, create new subscription via PayPal
+        
         const result = await createSubscription(tier, planType);
 
         if (result.error || !result.success) {
@@ -64,7 +64,7 @@ export function PayPalButton({
         }
 
         if (result.data?.approvalUrl) {
-          // Redirect to PayPal approval URL immediately
+          
           window.location.href = result.data.approvalUrl;
         } else {
           toast.error("No approval URL received from PayPal");

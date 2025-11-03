@@ -60,7 +60,7 @@ const UserSchema = new Schema<IUser>(
     },
     searchesResetAt: {
       type: Date,
-      default: () => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+      default: () => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), 
     },
     paypalSubscriptionId: {
       type: String,

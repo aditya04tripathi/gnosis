@@ -37,7 +37,6 @@ export async function validateStartupIdea(idea: string) {
   try {
     await connectDB();
 
-    // Rate limiting
     const rateLimitResult = await rateLimit(
       `validation:${session.user.id}`,
       RATE_LIMIT.VALIDATION.maxRequests,
@@ -52,7 +51,6 @@ export async function validateStartupIdea(idea: string) {
       };
     }
 
-    // Check search limit
     const user = await User.findById(session.user.id);
     if (!user) {
       return { error: "User not found" };
@@ -66,7 +64,6 @@ export async function validateStartupIdea(idea: string) {
       ];
     const now = new Date();
 
-    // Reset counter if needed
     if (now > user.searchesResetAt) {
       user.searchesUsed = 0;
       if (user.subscriptionTier === "FREE") {
@@ -105,17 +102,15 @@ export async function validateStartupIdea(idea: string) {
       };
     }
 
-    // Check cache
     const cacheKey = `validation:${Buffer.from(idea)
       .toString("base64")
       .slice(0, 50)}`;
     const cached = await getCache<ValidationResult>(cacheKey);
     if (cached) {
-      // Still increment user's search count
+      
       user.searchesUsed += 1;
       await user.save();
 
-      // Create validation record
       const validation = await Validation.create({
         userId: user._id,
         idea,
@@ -137,21 +132,17 @@ export async function validateStartupIdea(idea: string) {
       };
     }
 
-    // Generate validation
     const validationResult = await validateIdea(idea);
 
-    // Increment search count
     user.searchesUsed += 1;
     await user.save();
 
-    // Save validation
     const validation = await Validation.create({
       userId: user._id,
       idea,
       validationResult,
     });
 
-    // Cache result
     await setCache(cacheKey, validationResult, CACHE_TTL.VALIDATION);
 
     revalidatePath("/dashboard");
@@ -187,7 +178,6 @@ export async function generatePlan(validationId: string) {
       return { error: "Validation not found" };
     }
 
-    // Check if plan already exists
     let projectPlan = await ProjectPlan.findOne({
       validationId: validation._id,
     });
@@ -201,16 +191,13 @@ export async function generatePlan(validationId: string) {
       };
     }
 
-    // Generate alternative ideas
     const alternativeIdeas = await generateAlternativeIdeas(validation.idea);
 
-    // Generate project plan
     const plan = await generateProjectPlan(
       validation.idea,
       validation.validationResult,
     );
 
-    // Save project plan
     projectPlan = await ProjectPlan.create({
       validationId: validation._id,
       userId: validation.userId,
@@ -218,7 +205,6 @@ export async function generatePlan(validationId: string) {
       alternativeIdeas,
     });
 
-    // Update validation with project plan reference
     validation.projectPlanId = projectPlan._id as mongoose.Types.ObjectId;
     await validation.save();
 
@@ -257,7 +243,6 @@ export async function updateTaskStatus(
       return { error: "Project plan not found" };
     }
 
-    // Find and update task in ProjectPlan
     let taskFound = false;
     for (const phase of projectPlan.plan.phases) {
       const task = phase.tasks.find((t) => t.id === taskId);
@@ -274,7 +259,6 @@ export async function updateTaskStatus(
 
     await projectPlan.save();
 
-    // Update or create SCRUM board entry
     let scrumBoard = await ScrumBoard.findOne({ projectPlanId });
     if (!scrumBoard) {
       scrumBoard = new ScrumBoard({
@@ -287,7 +271,6 @@ export async function updateTaskStatus(
     scrumBoard.markModified("taskStatuses");
     await scrumBoard.save();
 
-    // Revalidate paths
     revalidatePath(`/project/${projectPlanId}`);
     revalidatePath("/dashboard");
     revalidatePath(`/validation/${projectPlan.validationId?.toString()}`);
@@ -316,7 +299,6 @@ export async function improveProjectPlan(
       return { error: "User not found" };
     }
 
-    // Check if user has remaining searches (use 0.5 credits)
     const searchesRemaining =
       user.subscriptionTier === "FREE"
         ? FREE_SEARCHES_LIMIT - user.searchesUsed
@@ -333,7 +315,6 @@ export async function improveProjectPlan(
       return { error: "Project plan not found" };
     }
 
-    // Use Groq to improve the plan
     const Groq = (await import("groq-sdk")).default;
     const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) {
@@ -378,7 +359,6 @@ export async function improveProjectPlan(
     const improvements =
       completion.choices[0]?.message?.content || "No improvements suggested.";
 
-    // Deduct 0.5 credits
     user.searchesUsed = (user.searchesUsed || 0) + 0.5;
     await user.save();
 
@@ -389,7 +369,7 @@ export async function improveProjectPlan(
     return {
       success: true,
       improvements,
-      updatedPlan: null, // Could be enhanced to actually update the plan
+      updatedPlan: null, 
       user: {
         searchesUsed: user.searchesUsed,
         subscriptionTier: user.subscriptionTier,

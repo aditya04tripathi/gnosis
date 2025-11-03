@@ -1,35 +1,17 @@
 import type { Metadata } from "next";
-import Footer from "@/modules/shared/components/footer";
-import { Navbar } from "@/modules/shared/components/navbar";
+import { LEGAL, METADATA } from "@/modules/shared/constants";
 
-export const metadata: Metadata = {
-  title: "Terms and Conditions",
-  description:
-    "Terms and Conditions for Startup Validator. Read our terms of service and usage agreement to understand your rights and responsibilities.",
-  keywords: [
-    "terms and conditions",
-    "terms of service",
-    "user agreement",
-    "legal",
-    "terms",
-  ],
-  openGraph: {
-    title: "Terms and Conditions | Startup Validator",
-    description: "Terms of service and usage agreement for Startup Validator.",
-    type: "website",
-  },
-};
+export const metadata: Metadata = METADATA.pages.terms;
 
 export default function TermsPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <Navbar />
+    <div className="pt-24 flex min-h-screen flex-col bg-background">
       <main className="flex-1">
         <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-4xl">
           <div className="mb-6 sm:mb-8">
             <h1 className="mb-2">Terms and Conditions</h1>
             <p className="text-muted-foreground text-sm sm:text-base">
-              Last updated: {new Date().toLocaleDateString()}
+              {LEGAL.terms.lastUpdated(new Date().toLocaleDateString())}
             </p>
           </div>
 
@@ -37,7 +19,7 @@ export default function TermsPage() {
             <div className="flex flex-col gap-2">
               <h2>Acceptance of Terms</h2>
               <p className="text-sm sm:text-base leading-relaxed">
-                By accessing and using Startup Validator (&quot;the
+                By accessing and using {LEGAL.terms.serviceName} (&quot;the
                 Service&quot;), you accept and agree to be bound by the terms
                 and provision of this agreement.
               </p>
@@ -46,8 +28,8 @@ export default function TermsPage() {
             <div className="flex flex-col gap-2">
               <h2>Description of Service</h2>
               <p className="text-sm sm:text-base leading-relaxed">
-                Startup Validator is an AI-powered platform that provides
-                startup idea validation, project planning, and business
+                {LEGAL.terms.serviceName} is an AI-powered platform that
+                provides startup idea validation, project planning, and business
                 insights. We offer various subscription plans with different
                 features and usage limits.
               </p>
@@ -84,8 +66,9 @@ export default function TermsPage() {
               <h2>Intellectual Property</h2>
               <p className="text-sm sm:text-base leading-relaxed">
                 All content, features, and functionality of the Service are
-                owned by Startup Validator and are protected by international
-                copyright, trademark, and other intellectual property laws.
+                owned by {LEGAL.terms.serviceName} and are protected by
+                international copyright, trademark, and other intellectual
+                property laws.
               </p>
             </div>
 
@@ -101,9 +84,9 @@ export default function TermsPage() {
             <div className="flex flex-col gap-2">
               <h2>Limitation of Liability</h2>
               <p className="text-sm sm:text-base leading-relaxed">
-                Startup Validator provides AI-generated suggestions and insights
-                for informational purposes only. We do not guarantee the
-                accuracy, completeness, or usefulness of any information
+                {LEGAL.terms.serviceName} provides AI-generated suggestions and
+                insights for informational purposes only. We do not guarantee
+                the accuracy, completeness, or usefulness of any information
                 provided. You use the Service at your own risk.
               </p>
             </div>
@@ -136,7 +119,6 @@ export default function TermsPage() {
           </div>
         </div>
       </main>
-      <Footer />
     </div>
   );
 }

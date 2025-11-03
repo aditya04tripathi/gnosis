@@ -1,6 +1,6 @@
 export interface ValidationResult {
   isValid: boolean;
-  score: number; // 0-100
+  score: number; 
   feedback: string;
   strengths: string[];
   weaknesses: string[];

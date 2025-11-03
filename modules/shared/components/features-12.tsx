@@ -3,6 +3,7 @@ import { Brain, GitBranch, LayoutGrid, Sparkles } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Image from "next/image";
 import { useState } from "react";
+import { FEATURES } from "@/modules/shared/constants";
 import {
   Accordion,
   AccordionContent,
@@ -10,6 +11,13 @@ import {
   AccordionTrigger,
 } from "@/modules/shared/components/ui/accordion";
 import { BorderBeam } from "./ui/border-beam";
+
+const iconMap = {
+  Brain,
+  GitBranch,
+  LayoutGrid,
+  Sparkles,
+};
 
 export default function Features() {
   type ImageKey = "item-1" | "item-2" | "item-3" | "item-4";
@@ -40,13 +48,9 @@ export default function Features() {
       <div className="mx-auto max-w-5xl space-y-8 px-6 md:space-y-16 lg:space-y-20 dark:[--color-border:color-mix(in_oklab,var(--color-foreground)_10%,transparent)]">
         <div className="relative z-10 mx-auto max-w-2xl space-y-6 text-center">
           <h2 className="text-balance text-4xl font-semibold lg:text-6xl">
-            Everything You Need to Validate & Build
+            {FEATURES.heading}
           </h2>
-          <p className="text-muted-foreground">
-            Powerful AI-driven tools to validate your startup ideas, create
-            comprehensive project plans, and manage your execution with visual
-            workflows.
-          </p>
+          <p className="text-muted-foreground">{FEATURES.description}</p>
         </div>
 
         <div className="grid gap-12 sm:px-12 md:grid-cols-2 lg:gap-20 lg:px-0">
@@ -56,58 +60,20 @@ export default function Features() {
             onValueChange={(value) => setActiveItem(value as ImageKey)}
             className="w-full"
           >
-            <AccordionItem value="item-1">
-              <AccordionTrigger>
-                <div className="flex items-center gap-2 text-base">
-                  <Brain className="size-4" />
-                  AI-Powered Validation
-                </div>
-              </AccordionTrigger>
-              <AccordionContent>
-                Get comprehensive AI analysis of your startup idea with detailed
-                feedback on strengths, weaknesses, market opportunities, and
-                actionable suggestions to improve your concept.
-              </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="item-2">
-              <AccordionTrigger>
-                <div className="flex items-center gap-2 text-base">
-                  <GitBranch className="size-4" />
-                  Interactive Flowcharts
-                </div>
-              </AccordionTrigger>
-              <AccordionContent>
-                Visualize your project workflow with interactive flowcharts that
-                show phases, tasks, and dependencies, making it easy to
-                understand your project structure at a glance.
-              </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="item-3">
-              <AccordionTrigger>
-                <div className="flex items-center gap-2 text-base">
-                  <LayoutGrid className="size-4" />
-                  SCRUM Task Management
-                </div>
-              </AccordionTrigger>
-              <AccordionContent>
-                Manage your project execution with drag-and-drop SCRUM boards,
-                track task progress, prioritize work, and keep your team aligned
-                with your startup goals.
-              </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="item-4">
-              <AccordionTrigger>
-                <div className="flex items-center gap-2 text-base">
-                  <Sparkles className="size-4" />
-                  Intelligent Project Planning
-                </div>
-              </AccordionTrigger>
-              <AccordionContent>
-                Automatically generate detailed project plans with phases,
-                tasks, timelines, and risk assessments. Use AI to improve and
-                refine your plans as your idea evolves.
-              </AccordionContent>
-            </AccordionItem>
+            {FEATURES.items.map((feature, index) => {
+              const Icon = iconMap[feature.icon as keyof typeof iconMap];
+              return (
+                <AccordionItem key={feature.title} value={`item-${index + 1}`}>
+                  <AccordionTrigger>
+                    <div className="flex items-center gap-2 text-base">
+                      {Icon && <Icon className="size-4" />}
+                      {feature.title}
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>{feature.description}</AccordionContent>
+                </AccordionItem>
+              );
+            })}
           </Accordion>
 
           <div className="bg-background relative flex overflow-hidden rounded-3xl border p-2">
@@ -124,7 +90,7 @@ export default function Features() {
                 >
                   <Image
                     src={images[activeItem].image}
-                    className="size-full object-cover object-left-top dark:mix-blend-lighten"
+                    className="size-full object-cover object-top-left dark:mix-blend-lighten"
                     alt={images[activeItem].alt}
                     width={1207}
                     height={929}

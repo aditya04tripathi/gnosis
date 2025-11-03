@@ -5,7 +5,7 @@ import connectDB from "@/modules/shared/lib/db";
 import User from "@/modules/shared/models/User";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  trustHost: true, // Trust the host (required for Railway/production deployments)
+  trustHost: true, 
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -44,7 +44,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
   session: {
     strategy: "jwt",
-    maxAge: 7 * 24 * 60 * 60, // 7 days
+    maxAge: 7 * 24 * 60 * 60, 
   },
   callbacks: {
     async jwt({ token, user }) {

@@ -61,7 +61,10 @@ export async function signUp(formData: FormData) {
   }
 }
 
-export async function signInAction(formData: FormData) {
+export async function signInAction(
+  formData: FormData,
+  callbackUrl: string = "/dashboard",
+) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
 
@@ -79,7 +82,7 @@ export async function signInAction(formData: FormData) {
     revalidatePath("/");
     revalidatePath("/dashboard");
     revalidatePath("/pricing");
-    return { success: true, redirectTo: "/dashboard" };
+    return { success: true, redirectTo: callbackUrl };
   } catch (error) {
     console.error("Sign in error:", error);
     return { error: "Invalid email or password" };

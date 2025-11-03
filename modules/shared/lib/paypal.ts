@@ -1,3 +1,5 @@
+import { APP_INFO } from "../constants";
+
 async function getPayPalAccessToken(): Promise<string> {
   const clientId = process.env.PAYPAL_CLIENT_ID;
   const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
@@ -8,15 +10,15 @@ async function getPayPalAccessToken(): Promise<string> {
   }
 
   const baseUrl = isSandbox
-    ? "https://api-m.sandbox.paypal.com"
-    : "https://api-m.paypal.com";
+    ? "https:
+    : "https:
 
   const response = await fetch(`${baseUrl}/v1/oauth2/token`, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
       Authorization: `Basic ${Buffer.from(
-        `${clientId}:${clientSecret}`,
+        `${clientId}:${clientSecret}`
       ).toString("base64")}`,
     },
     body: "grant_type=client_credentials",
@@ -34,15 +36,14 @@ export async function createPayPalOrder(
   amount: number,
   currency: string = "USD",
   returnUrl: string,
-  cancelUrl: string,
+  cancelUrl: string
 ): Promise<{ orderId: string; approvalUrl: string }> {
   const accessToken = await getPayPalAccessToken();
   const isSandbox = process.env.PAYPAL_MODE === "sandbox";
   const baseUrl = isSandbox
-    ? "https://api-m.sandbox.paypal.com"
-    : "https://api-m.paypal.com";
+    ? "https:
+    : "https:
 
-  // Step 1: Create order without payment_source (multi-step flow)
   const createOrderResponse = await fetch(`${baseUrl}/v2/checkout/orders`, {
     method: "POST",
     headers: {
@@ -72,14 +73,13 @@ export async function createPayPalOrder(
     }
     console.error("PayPal create order error:", errorData);
     throw new Error(
-      `PayPal order creation failed: ${JSON.stringify(errorData)}`,
+      `PayPal order creation failed: ${JSON.stringify(errorData)}`
     );
   }
 
   const orderData = await createOrderResponse.json();
   const orderId = orderData.id;
 
-  // Step 2: Confirm payment source to get approval URL
   const confirmResponse = await fetch(
     `${baseUrl}/v2/checkout/orders/${orderId}/confirm-payment-source`,
     {
@@ -93,7 +93,7 @@ export async function createPayPalOrder(
           paypal: {
             experience_context: {
               payment_method_preference: "IMMEDIATE_PAYMENT_REQUIRED",
-              brand_name: "Startup Validator",
+              brand_name: APP_INFO.name,
               locale: "en-US",
               landing_page: "LOGIN",
               shipping_preference: "NO_SHIPPING",
@@ -104,7 +104,7 @@ export async function createPayPalOrder(
           },
         },
       }),
-    },
+    }
   );
 
   if (!confirmResponse.ok) {
@@ -117,24 +117,23 @@ export async function createPayPalOrder(
     }
     console.error("PayPal confirm payment source error:", errorData);
     throw new Error(
-      `PayPal payment source confirmation failed: ${JSON.stringify(errorData)}`,
+      `PayPal payment source confirmation failed: ${JSON.stringify(errorData)}`
     );
   }
 
   const confirmData = await confirmResponse.json();
 
-  // Find the approval URL in the links array
   const approveLink = confirmData.links?.find(
     (link: { rel: string; href: string }) =>
-      link.rel === "payer-action" || link.rel === "approve",
+      link.rel === "payer-action" || link.rel === "approve"
   );
 
   if (!approveLink) {
-    // Try getting from the order details if not in links
+    
     const orderDetails = await getPayPalOrder(orderId);
     const orderApproveLink = orderDetails.links?.find(
       (link: { rel: string; href: string }) =>
-        link.rel === "payer-action" || link.rel === "approve",
+        link.rel === "payer-action" || link.rel === "approve"
     );
     if (orderApproveLink) {
       return {
@@ -152,13 +151,13 @@ export async function createPayPalOrder(
 }
 
 export async function capturePayPalOrder(
-  orderId: string,
+  orderId: string
 ): Promise<{ success: boolean; transactionId?: string }> {
   const accessToken = await getPayPalAccessToken();
   const isSandbox = process.env.PAYPAL_MODE === "sandbox";
   const baseUrl = isSandbox
-    ? "https://api-m.sandbox.paypal.com"
-    : "https://api-m.paypal.com";
+    ? "https:
+    : "https:
 
   const response = await fetch(
     `${baseUrl}/v2/checkout/orders/${orderId}/capture`,
@@ -169,7 +168,7 @@ export async function capturePayPalOrder(
         Authorization: `Bearer ${accessToken}`,
       },
       body: JSON.stringify({}),
-    },
+    }
   );
 
   if (!response.ok) {
@@ -197,8 +196,8 @@ export async function getPayPalOrder(orderId: string) {
   const accessToken = await getPayPalAccessToken();
   const isSandbox = process.env.PAYPAL_MODE === "sandbox";
   const baseUrl = isSandbox
-    ? "https://api-m.sandbox.paypal.com"
-    : "https://api-m.paypal.com";
+    ? "https:
+    : "https:
 
   const response = await fetch(`${baseUrl}/v2/checkout/orders/${orderId}`, {
     method: "GET",
@@ -214,20 +213,18 @@ export async function getPayPalOrder(orderId: string) {
   return response.json();
 }
 
-// PayPal Subscriptions API functions
 export async function createPayPalSubscriptionPlan(
   amount: number,
   currency: string = "USD",
   intervalUnit: "MONTH" | "YEAR",
-  intervalCount: number = 1,
+  intervalCount: number = 1
 ): Promise<{ planId: string }> {
   const accessToken = await getPayPalAccessToken();
   const isSandbox = process.env.PAYPAL_MODE === "sandbox";
   const baseUrl = isSandbox
-    ? "https://api-m.sandbox.paypal.com"
-    : "https://api-m.paypal.com";
+    ? "https:
+    : "https:
 
-  // First, create a product
   const productResponse = await fetch(`${baseUrl}/v1/catalogs/products`, {
     method: "POST",
     headers: {
@@ -235,7 +232,7 @@ export async function createPayPalSubscriptionPlan(
       Authorization: `Bearer ${accessToken}`,
     },
     body: JSON.stringify({
-      name: "Startup Validator Subscription",
+      name: `${APP_INFO.name} Subscription`,
       description: "AI-powered startup idea validation service",
       type: "SERVICE",
     }),
@@ -246,14 +243,13 @@ export async function createPayPalSubscriptionPlan(
       message: "Failed to create product",
     }));
     throw new Error(
-      `PayPal product creation failed: ${JSON.stringify(errorData)}`,
+      `PayPal product creation failed: ${JSON.stringify(errorData)}`
     );
   }
 
   const productData = await productResponse.json();
   const productId = productData.id;
 
-  // Create a billing plan
   const planResponse = await fetch(`${baseUrl}/v1/billing/plans`, {
     method: "POST",
     headers: {
@@ -276,7 +272,7 @@ export async function createPayPalSubscriptionPlan(
           },
           tenure_type: "REGULAR",
           sequence: 1,
-          total_cycles: 0, // 0 means unlimited cycles
+          total_cycles: 0, 
           pricing_scheme: {
             fixed_price: {
               value: amount.toFixed(2),
@@ -302,7 +298,7 @@ export async function createPayPalSubscriptionPlan(
       message: "Failed to create plan",
     }));
     throw new Error(
-      `PayPal plan creation failed: ${JSON.stringify(errorData)}`,
+      `PayPal plan creation failed: ${JSON.stringify(errorData)}`
     );
   }
 
@@ -318,13 +314,13 @@ export async function createPayPalSubscription(
   returnUrl: string,
   cancelUrl: string,
   email?: string,
-  name?: string,
+  name?: string
 ): Promise<{ subscriptionId: string; approvalUrl: string }> {
   const accessToken = await getPayPalAccessToken();
   const isSandbox = process.env.PAYPAL_MODE === "sandbox";
   const baseUrl = isSandbox
-    ? "https://api-m.sandbox.paypal.com"
-    : "https://api-m.paypal.com";
+    ? "https:
+    : "https:
 
   const subscriptionPayload: {
     plan_id: string;
@@ -345,7 +341,7 @@ export async function createPayPalSubscription(
     application_context: {
       return_url: returnUrl,
       cancel_url: cancelUrl,
-      brand_name: "Startup Validator",
+      brand_name: APP_INFO.name,
       locale: "en-US",
       shipping_preference: "NO_SHIPPING",
       user_action: "SUBSCRIBE_NOW",
@@ -378,17 +374,16 @@ export async function createPayPalSubscription(
     }));
     console.error("PayPal subscription creation error:", errorData);
     throw new Error(
-      `PayPal subscription creation failed: ${JSON.stringify(errorData)}`,
+      `PayPal subscription creation failed: ${JSON.stringify(errorData)}`
     );
   }
 
   const data = await response.json();
   const subscriptionId = data.id;
 
-  // Find the approval URL
   const approveLink = data.links?.find(
     (link: { rel: string; href: string }) =>
-      link.rel === "approve" || link.rel === "edit",
+      link.rel === "approve" || link.rel === "edit"
   );
 
   if (!approveLink) {
@@ -405,8 +400,8 @@ export async function getPayPalSubscription(subscriptionId: string) {
   const accessToken = await getPayPalAccessToken();
   const isSandbox = process.env.PAYPAL_MODE === "sandbox";
   const baseUrl = isSandbox
-    ? "https://api-m.sandbox.paypal.com"
-    : "https://api-m.paypal.com";
+    ? "https:
+    : "https:
 
   const response = await fetch(
     `${baseUrl}/v1/billing/subscriptions/${subscriptionId}`,
@@ -415,7 +410,7 @@ export async function getPayPalSubscription(subscriptionId: string) {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
-    },
+    }
   );
 
   if (!response.ok) {
@@ -423,7 +418,7 @@ export async function getPayPalSubscription(subscriptionId: string) {
       message: "Failed to get subscription",
     }));
     throw new Error(
-      `Failed to get PayPal subscription: ${JSON.stringify(errorData)}`,
+      `Failed to get PayPal subscription: ${JSON.stringify(errorData)}`
     );
   }
 
@@ -432,13 +427,13 @@ export async function getPayPalSubscription(subscriptionId: string) {
 
 export async function updatePayPalSubscription(
   subscriptionId: string,
-  newPlanId: string,
+  newPlanId: string
 ): Promise<{ success: boolean }> {
   const accessToken = await getPayPalAccessToken();
   const isSandbox = process.env.PAYPAL_MODE === "sandbox";
   const baseUrl = isSandbox
-    ? "https://api-m.sandbox.paypal.com"
-    : "https://api-m.paypal.com";
+    ? "https:
+    : "https:
 
   const response = await fetch(
     `${baseUrl}/v1/billing/subscriptions/${subscriptionId}`,
@@ -457,7 +452,7 @@ export async function updatePayPalSubscription(
           },
         },
       ]),
-    },
+    }
   );
 
   if (!response.ok) {
@@ -466,7 +461,7 @@ export async function updatePayPalSubscription(
     }));
     console.error("PayPal subscription update error:", errorData);
     throw new Error(
-      `PayPal subscription update failed: ${JSON.stringify(errorData)}`,
+      `PayPal subscription update failed: ${JSON.stringify(errorData)}`
     );
   }
 
@@ -474,13 +469,13 @@ export async function updatePayPalSubscription(
 }
 
 export async function suspendPayPalSubscription(
-  subscriptionId: string,
+  subscriptionId: string
 ): Promise<{ success: boolean }> {
   const accessToken = await getPayPalAccessToken();
   const isSandbox = process.env.PAYPAL_MODE === "sandbox";
   const baseUrl = isSandbox
-    ? "https://api-m.sandbox.paypal.com"
-    : "https://api-m.paypal.com";
+    ? "https:
+    : "https:
 
   const response = await fetch(
     `${baseUrl}/v1/billing/subscriptions/${subscriptionId}/suspend`,
@@ -494,7 +489,7 @@ export async function suspendPayPalSubscription(
       body: JSON.stringify({
         reason: "User requested cancellation",
       }),
-    },
+    }
   );
 
   if (!response.ok) {
@@ -502,14 +497,13 @@ export async function suspendPayPalSubscription(
       message: "Failed to suspend subscription",
     }));
 
-    // If subscription doesn't exist, that's okay - we can proceed anyway
     if (errorData.name === "RESOURCE_NOT_FOUND") {
       console.log("Subscription not found, proceeding anyway");
       return { success: true };
     }
 
     throw new Error(
-      `PayPal subscription suspension failed: ${JSON.stringify(errorData)}`,
+      `PayPal subscription suspension failed: ${JSON.stringify(errorData)}`
     );
   }
 
@@ -518,55 +512,47 @@ export async function suspendPayPalSubscription(
 
 export async function getPayPalSubscriptionUpdatePaymentUrl(
   subscriptionId: string,
-  returnUrl: string,
+  returnUrl: string
 ): Promise<{ approvalUrl: string }> {
   const isSandbox = process.env.PAYPAL_MODE === "sandbox";
 
-  // Get subscription details first to find the edit link
   const subscription = await getPayPalSubscription(subscriptionId);
 
-  // PayPal provides an "edit" link in the subscription response for updating payment methods
   const editLink = subscription.links?.find(
-    (link: { rel: string; href: string }) => link.rel === "edit",
+    (link: { rel: string; href: string }) => link.rel === "edit"
   );
 
   if (editLink) {
-    // Append return URL to the edit link
+    
     const separator = editLink.href.includes("?") ? "&" : "?";
     return {
       approvalUrl: `${editLink.href}${separator}return_url=${encodeURIComponent(
-        returnUrl,
+        returnUrl
       )}`,
     };
   }
 
-  // Fallback: Redirect to PayPal subscription management page
-  // Users can update payment method through PayPal's customer portal
   const baseUrl = isSandbox
-    ? "https://www.sandbox.paypal.com"
-    : "https://www.paypal.com";
+    ? "https:
+    : "https:
   return {
     approvalUrl: `${baseUrl}/myaccount/autopay/connect/${subscriptionId}?returnUrl=${encodeURIComponent(
-      returnUrl,
+      returnUrl
     )}`,
   };
 }
 
-/**
- * Get subscription transactions (billing history) for a PayPal subscription
- */
 export async function getPayPalSubscriptionTransactions(
   subscriptionId: string,
   startTime?: string,
-  endTime?: string,
+  endTime?: string
 ) {
   const accessToken = await getPayPalAccessToken();
   const isSandbox = process.env.PAYPAL_MODE === "sandbox";
   const baseUrl = isSandbox
-    ? "https://api-m.sandbox.paypal.com"
-    : "https://api-m.paypal.com";
+    ? "https:
+    : "https:
 
-  // Build query parameters
   const params = new URLSearchParams();
   if (startTime) params.append("start_time", startTime);
   if (endTime) params.append("end_time", endTime);
@@ -579,7 +565,7 @@ export async function getPayPalSubscriptionTransactions(
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
-    },
+    }
   );
 
   if (!response.ok) {
@@ -588,17 +574,14 @@ export async function getPayPalSubscriptionTransactions(
     }));
     throw new Error(
       `Failed to get PayPal subscription transactions: ${JSON.stringify(
-        errorData,
-      )}`,
+        errorData
+      )}`
     );
   }
 
   return response.json();
 }
 
-/**
- * Format PayPal transaction into invoice format
- */
 export interface PayPalInvoice {
   id: string;
   date: string;
@@ -622,14 +605,13 @@ export function formatPayPalTransactionToInvoice(
     status?: string;
     description?: string;
   },
-  planDescription: string,
+  planDescription: string
 ): PayPalInvoice {
   const amount = parseFloat(transaction.amount?.value || "0");
   const currency = transaction.amount?.currency_code || "USD";
   const transactionId = transaction.transaction_id || transaction.id || "";
   const date = transaction.time || new Date().toISOString();
 
-  // Map PayPal transaction status to invoice status
   let status: "paid" | "pending" | "failed" | "refunded" = "pending";
   const paypalStatus = transaction.status?.toUpperCase();
   if (paypalStatus === "COMPLETED" || paypalStatus === "SUCCESS") {

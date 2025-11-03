@@ -118,7 +118,6 @@ export async function updatePassword(formData: {
       return { error: "User not found" };
     }
 
-    // Verify current password
     const isCurrentPasswordValid = await bcrypt.compare(
       currentPassword,
       user.password,
@@ -128,7 +127,6 @@ export async function updatePassword(formData: {
       return { error: "Current password is incorrect" };
     }
 
-    // Hash and update new password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     user.password = hashedPassword;
     await user.save();
@@ -170,7 +168,6 @@ export async function updateAPIKeys(formData: FormData) {
       };
     }
 
-    // Only update keys that have values or are empty strings (to clear them)
     if (gemini !== null) {
       user.apiKeys.gemini = gemini.trim() || undefined;
     }

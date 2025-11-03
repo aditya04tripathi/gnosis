@@ -1,3 +1,5 @@
+export * from "./app-info";
+
 export const FREE_SEARCHES_LIMIT = 5;
 
 export const SUBSCRIPTION_PLANS = {
@@ -40,19 +42,19 @@ export const SUBSCRIPTION_PLANS = {
 
 export const RATE_LIMIT = {
   VALIDATION: {
-    windowMs: 60 * 60 * 1000, // 1 hour
+    windowMs: 60 * 60 * 1000, 
     maxRequests: 10,
   },
   API: {
-    windowMs: 15 * 60 * 1000, // 15 minutes
+    windowMs: 15 * 60 * 1000, 
     maxRequests: 100,
   },
 } as const;
 
 export const CACHE_TTL = {
-  VALIDATION: 60 * 60, // 1 hour
-  USER: 5 * 60, // 5 minutes
-  PROJECT: 30 * 60, // 30 minutes
+  VALIDATION: 60 * 60, 
+  USER: 5 * 60, 
+  PROJECT: 30 * 60, 
 } as const;
 
 export const JWT_CONFIG = {

@@ -9,15 +9,14 @@ const getRedisClient = () => {
     const client = new Redis(process.env.REDIS_URL, {
       maxRetriesPerRequest: 3,
       enableReadyCheck: true,
-      retryStrategy: () => null, // Don't retry on connection failure
-      lazyConnect: true, // Don't connect immediately
-      // Connection timeout
+      retryStrategy: () => null, 
+      lazyConnect: true, 
+      
       connectTimeout: 10000,
-      // Keep alive to detect connection issues
+      
       keepAlive: 30000,
     });
 
-    // Handle errors - log in development, silent in production
     client.on("error", (error) => {
       if (process.env.NODE_ENV === "development") {
         console.warn("[Redis] Connection error:", error.message);
@@ -30,7 +29,6 @@ const getRedisClient = () => {
       }
     });
 
-    // Attempt connection, but don't fail if it doesn't work
     client.connect().catch((error) => {
       if (process.env.NODE_ENV === "development") {
         console.warn("[Redis] Failed to connect:", error.message);
@@ -39,7 +37,7 @@ const getRedisClient = () => {
 
     return client;
   } catch (_error) {
-    // Redis connection failed, return null to disable Redis features
+    
     if (process.env.NODE_ENV === "development") {
       console.warn("[Redis] Client creation failed");
     }
@@ -49,18 +47,13 @@ const getRedisClient = () => {
 
 export const redis = getRedisClient();
 
-/**
- * Check if Redis is available and ready for operations
- */
 async function isRedisReady(): Promise<boolean> {
   if (!redis) return false;
 
-  // Check connection status
   if (redis.status !== "ready" && redis.status !== "connect") {
     return false;
   }
 
-  // Try to ping Redis to verify connection is actually working
   try {
     await redis.ping();
     return true;
@@ -113,10 +106,6 @@ export async function deleteCache(key: string): Promise<void> {
   }
 }
 
-/**
- * Rate limiting using Redis with atomic operations
- * Fixes race condition by using Lua script for atomic increment + expire
- */
 export async function rateLimit(
   identifier: string,
   maxRequests: number,
@@ -142,8 +131,7 @@ export async function rateLimit(
   }
 
   try {
-    // Use Lua script for atomic operation to prevent race conditions
-    // This ensures incr and expire happen atomically
+
     const luaScript = `
       local current = redis.call('incr', KEYS[1])
       if current == 1 then
@@ -172,7 +160,7 @@ export async function rateLimit(
     if (process.env.NODE_ENV === "development") {
       console.warn("[Redis] rateLimit error:", error);
     }
-    // Fallback to allowing the request if Redis fails
+    
     return {
       allowed: true,
       remaining: maxRequests,

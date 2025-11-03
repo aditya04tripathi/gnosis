@@ -46,7 +46,7 @@ export default function Pricing({
           toast.error(result.error || "Failed to downgrade plan");
         } else if (result.data?.user) {
           toast.success("Successfully downgraded to Free plan");
-          // Refresh the page to show updated plan
+          
           router.refresh();
         }
       } catch {
@@ -63,8 +63,8 @@ export default function Pricing({
 
   const yearlyPrices = {
     FREE: 0,
-    BASIC: 190, // ~17% savings (19 * 10 months)
-    PRO: 490, // ~17% savings (49 * 10 months = 490)
+    BASIC: 190, 
+    PRO: 490, 
   };
 
   const features = {
@@ -101,7 +101,7 @@ export default function Pricing({
             between monthly and yearly billing.
           </p>
 
-          {/* Billing Toggle */}
+          {}
           <div className="flex items-center justify-center gap-4">
             <Label
               htmlFor="billing-toggle"
@@ -127,7 +127,7 @@ export default function Pricing({
         </div>
 
         <div className="mt-8 grid gap-6 md:mt-20 md:grid-cols-3">
-          {/* Free Plan */}
+          {}
           <Card
             className={`flex flex-col ${currentPlan === "FREE" && !onHomePage ? "ring-2 ring-primary border-primary" : ""}`}
           >
@@ -177,7 +177,7 @@ export default function Pricing({
             )}
           </Card>
 
-          {/* Basic Plan */}
+          {}
           <Card
             className={`relative flex flex-col  ${currentPlan === "BASIC" && !onHomePage ? "ring-2 ring-primary border-primary" : ""}`}
           >
@@ -230,7 +230,7 @@ export default function Pricing({
             )}
           </Card>
 
-          {/* Pro Plan */}
+          {}
           <Card
             className={`flex flex-col ${currentPlan === "PRO" && !onHomePage ? "ring-2 ring-primary border-primary" : ""}`}
           >

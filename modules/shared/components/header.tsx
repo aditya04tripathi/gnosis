@@ -3,6 +3,7 @@ import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 import { Button } from "@/modules/shared/components/ui/button";
+import { APP_INFO } from "@/modules/shared/constants";
 import { cn } from "@/modules/shared/lib/utils";
 
 const menuItems = [
@@ -39,7 +40,7 @@ export const HeroHeader = () => {
           <div className="relative flex flex-wrap items-center justify-between gap-6 py-3 lg:gap-0 lg:py-4">
             <div className="flex w-full justify-between lg:w-auto">
               <Link href="/" aria-label="home" className="text-xl font-bold">
-                Startup Validator
+                {APP_INFO.name}
               </Link>
 
               <button

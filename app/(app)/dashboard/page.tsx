@@ -24,17 +24,16 @@ import {
   CardTitle,
 } from "@/modules/shared/components/ui/card";
 import {
+  DASHBOARD,
   FREE_SEARCHES_LIMIT,
+  METADATA,
   SUBSCRIPTION_PLANS,
 } from "@/modules/shared/constants";
 import connectDB from "@/modules/shared/lib/db";
 import User from "@/modules/shared/models/User";
 import Validation from "@/modules/shared/models/Validation";
 
-export const metadata: Metadata = {
-  title: "Dashboard",
-  description: "View and manage your startup idea validations",
-};
+export const metadata: Metadata = METADATA.pages.dashboard;
 
 export default async function DashboardPage({
   searchParams,
@@ -66,7 +65,6 @@ export default async function DashboardPage({
     .limit(10)
     .lean();
 
-  // Get plan info - FREE is in SUBSCRIPTION_PLANS, otherwise use subscriptionPlan
   const plan = user.subscriptionPlan
     ? SUBSCRIPTION_PLANS[user.subscriptionPlan]
     : SUBSCRIPTION_PLANS.FREE;
@@ -79,7 +77,7 @@ export default async function DashboardPage({
     <div className="flex h-full flex-col">
       <main className="flex-1">
         <div className="container mx-auto flex flex-col gap-8">
-          {/* Payment Success Message */}
+          {}
           {paymentSuccess && (
             <Alert className="border-primary bg-primary/10">
               <CheckCircle2 className="h-4 w-4 text-primary" />
@@ -93,28 +91,28 @@ export default async function DashboardPage({
             </Alert>
           )}
 
-          {/* Header */}
+          {}
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+              <h1 className="text-3xl font-bold tracking-tight">{DASHBOARD.title}</h1>
               <p className="text-muted-foreground">
-                Manage your startup validations
+                {DASHBOARD.description}
               </p>
             </div>
             <Button asChild>
               <Link href="/validate">
                 <Plus className="mr-2 h-4 w-4" />
-                New Validation
+                {DASHBOARD.newValidation}
               </Link>
             </Button>
           </div>
 
-          {/* Stats */}
+          {}
           <div className="grid gap-4 md:grid-cols-3">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Searches Remaining
+                  {DASHBOARD.stats.searchesRemaining}
                 </CardTitle>
                 <Zap className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
@@ -122,29 +120,29 @@ export default async function DashboardPage({
                 <div className="text-2xl font-bold">{searchesRemaining}</div>
                 <p className="text-xs text-muted-foreground">
                   {user.subscriptionTier === "FREE"
-                    ? `of ${FREE_SEARCHES_LIMIT} free searches`
-                    : `of ${plan.searchesPerMonth} monthly searches`}
+                    ? DASHBOARD.stats.ofFreeSearches(FREE_SEARCHES_LIMIT)
+                    : DASHBOARD.stats.ofMonthlySearches(plan.searchesPerMonth)}
                 </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Total Validations
+                  {DASHBOARD.stats.totalValidations}
                 </CardTitle>
                 <FileText className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{validations.length}</div>
                 <p className="text-xs text-muted-foreground">
-                  All time validations
+                  {DASHBOARD.stats.allTimeValidations}
                 </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Subscription
+                  {DASHBOARD.stats.subscription}
                 </CardTitle>
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
@@ -156,7 +154,7 @@ export default async function DashboardPage({
                       href="/pricing"
                       className="text-primary hover:underline"
                     >
-                      Upgrade to unlock more
+                      {DASHBOARD.stats.upgradeText}
                     </Link>
                   )}
                 </p>
@@ -164,7 +162,7 @@ export default async function DashboardPage({
             </Card>
           </div>
 
-          {/* Recent Validations */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle>Recent Validations</CardTitle>
@@ -176,14 +174,14 @@ export default async function DashboardPage({
               {validations.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
                   <AlertCircle className="mb-4 h-12 w-12 text-muted-foreground" />
-                  <h3 className="text-lg font-semibold">No validations yet</h3>
+                  <h3 className="text-lg font-semibold">{DASHBOARD.emptyState.title}</h3>
                   <p className="mb-4 text-sm text-muted-foreground">
-                    Start validating your startup ideas
+                    {DASHBOARD.emptyState.description}
                   </p>
                   <Button asChild>
                     <Link href="/validate">
                       <Plus className="mr-2 h-4 w-4" />
-                      Create First Validation
+                      {DASHBOARD.emptyState.cta}
                     </Link>
                   </Button>
                 </div>

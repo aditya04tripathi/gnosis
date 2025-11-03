@@ -1,5 +1,6 @@
 import { Home, User } from "lucide-react";
 import Link from "next/link";
+import { APP_INFO } from "@/modules/shared/constants";
 import { auth } from "@/modules/shared/lib/auth";
 import { Avatar, AvatarFallback } from "@/modules/shared/components/ui/avatar";
 import { Button } from "@/modules/shared/components/ui/button";
@@ -19,7 +20,7 @@ export async function Navbar() {
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link href="/" className="text-xl font-bold">
-          Startup Validator
+          {APP_INFO.name}
         </Link>
 
         <div className="flex items-center gap-4">

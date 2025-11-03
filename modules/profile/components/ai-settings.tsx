@@ -140,7 +140,7 @@ export function AISettings({ user, groqModels }: AISettingsProps) {
         </CardContent>
       </Card>
 
-      {/* Usage Information */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle>Usage & Limits</CardTitle>
@@ -171,7 +171,7 @@ export function AISettings({ user, groqModels }: AISettingsProps) {
         </CardContent>
       </Card>
 
-      {/* API Keys */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -198,7 +198,7 @@ export function AISettings({ user, groqModels }: AISettingsProps) {
               <CardDescription className="text-sm text-muted-foreground mb-2">
                 This API key works for all Groq models. Get your key from{" "}
                 <a
-                  href="https://console.groq.com/keys"
+                  href="https:
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-primary hover:underline"

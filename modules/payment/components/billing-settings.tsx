@@ -67,27 +67,7 @@ export function BillingSettings({ user }: BillingSettingsProps) {
           )}
         </CardContent>
       </Card>
-      {/* 
-      <Card>
-        <CardHeader>
-          <CardTitle>Billing History</CardTitle>
-          <CardDescription>
-            View your past invoices and payments
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col items-center justify-center py-8 text-center">
-            <p className="text-sm text-muted-foreground mb-4">
-              No billing history yet
-            </p>
-            {user.subscriptionTier !== "FREE" && (
-              <Button variant="outline" size="sm">
-                View All Invoices
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card> */}
+      {}
     </div>
   );
 }

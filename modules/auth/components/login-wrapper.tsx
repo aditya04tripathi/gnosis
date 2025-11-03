@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { AUTH } from "@/modules/shared/constants";
 import { signInAction } from "@/modules/auth/actions/auth";
 import { LogoIcon } from "@/modules/shared/components/logo";
 import { Button } from "@/modules/shared/components/ui/button";
@@ -13,6 +14,7 @@ import { Separator } from "@/modules/shared/components/ui/separator";
 
 export default function LoginWrapper() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -20,13 +22,15 @@ export default function LoginWrapper() {
     setIsLoading(true);
 
     const formData = new FormData(e.currentTarget);
+    const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+    
     try {
-      const result = await signInAction(formData);
+      const result = await signInAction(formData, callbackUrl);
       if (result.error) {
         toast.error(result.error);
       } else if (result.success) {
         toast.success("Signed in successfully!");
-        router.push(result.redirectTo || "/dashboard");
+        router.push(result.redirectTo || callbackUrl);
       }
     } catch {
       toast.error("An unexpected error occurred");
@@ -44,15 +48,15 @@ export default function LoginWrapper() {
               <LogoIcon />
             </Link>
             <h1 className="mb-1 mt-4 text-xl font-semibold">
-              Sign In to Startup Validator
+              {AUTH.signIn.title}
             </h1>
-            <p>Welcome back! Sign in to continue</p>
+            <p>{AUTH.signIn.subtitle}</p>
           </div>
 
           <div className="my-6 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
             <Separator className="border-dashed" />
             <span className="text-muted-foreground text-xs">
-              Or continue With
+              {AUTH.orText}
             </span>
             <Separator className="border-dashed" />
           </div>
@@ -85,7 +89,7 @@ export default function LoginWrapper() {
             </div>
 
             <Button className="w-full" type="submit" disabled={isLoading}>
-              {isLoading ? "Signing in..." : "Continue"}
+              {isLoading ? AUTH.signIn.buttonLoadingText : AUTH.signIn.buttonText}
             </Button>
           </div>
         </div>

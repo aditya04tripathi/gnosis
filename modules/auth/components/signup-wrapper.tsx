@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { AUTH } from "@/modules/shared/constants";
 import { signUp } from "@/modules/auth/actions/auth";
 import { LogoIcon } from "@/modules/shared/components/logo";
 import { Button } from "@/modules/shared/components/ui/button";
@@ -44,17 +45,15 @@ export default function SignUpWrapper() {
               <LogoIcon />
             </Link>
             <h1 className="mb-1 mt-4 text-xl font-semibold">
-              Create a Startup Validator Account
+              {AUTH.signUp.title}
             </h1>
-            <p>
-              Welcome! Create an account to get started with 5 free validations
-            </p>
+            <p>{AUTH.signUp.subtitle}</p>
           </div>
 
           <div className="my-6 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
             <Separator className="border-dashed" />
             <span className="text-muted-foreground text-xs">
-              Or continue With
+              {AUTH.orText}
             </span>
             <Separator className="border-dashed" />
           </div>
@@ -99,12 +98,12 @@ export default function SignUpWrapper() {
                 disabled={isLoading}
               />
               <p className="text-xs text-muted-foreground">
-                Must be at least 8 characters
+                {AUTH.signUp.passwordHint}
               </p>
             </div>
 
             <Button className="w-full" type="submit" disabled={isLoading}>
-              {isLoading ? "Creating account..." : "Continue"}
+              {isLoading ? AUTH.signUp.buttonLoadingText : AUTH.signUp.buttonText}
             </Button>
           </div>
         </div>

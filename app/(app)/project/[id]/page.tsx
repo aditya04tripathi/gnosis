@@ -4,7 +4,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/modules/shared/lib/auth";
 import { ProjectBoards } from "@/modules/project/components/project-boards";
-// import Validation from "@/modules/shared/models/Validation";
+
 import { ProjectFlowchart } from "@/modules/project/components/project-flowchart";
 import { ProjectHeader } from "@/modules/project/components/project-header";
 import { Badge } from "@/modules/shared/components/ui/badge";
@@ -64,16 +64,13 @@ export default async function ProjectPage({
     redirect("/dashboard");
   }
 
-  // Serialize MongoDB ObjectIds to plain objects for client components
   const serializedPlan = JSON.parse(JSON.stringify(projectPlan.plan));
-
-  // const validation = await Validation.findById(projectPlan.validationId).lean();
 
   return (
     <div className="flex h-full flex-col">
       <main className="flex-1">
         <div className="container mx-auto flex flex-col gap-8">
-          {/* Header */}
+          {}
           <div className="flex flex-col gap-4">
             <Link href="/dashboard">
               <Button variant="ghost">← Back to Dashboard</Button>
@@ -84,7 +81,7 @@ export default async function ProjectPage({
             </p>
           </div>
 
-          {/* Project Summary */}
+          {}
           <div className="grid gap-4 md:grid-cols-3">
             <Card>
               <CardHeader>
@@ -133,7 +130,7 @@ export default async function ProjectPage({
             </Card>
           </div>
 
-          {/* Alternative Ideas */}
+          {}
           {projectPlan.alternativeIdeas &&
             projectPlan.alternativeIdeas.length > 0 && (
               <Card>
@@ -187,7 +184,7 @@ export default async function ProjectPage({
               </Card>
             )}
 
-          {/* Main Content Tabs */}
+          {}
           <Tabs defaultValue="flowchart" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger

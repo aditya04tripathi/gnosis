@@ -1,10 +1,10 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { AnimatedGroup } from "@/modules/shared/components/ui/animated-group";
-import { Button } from "@/modules/shared/components/ui/button";
-import { TextEffect } from "@/modules/shared/components/ui/text-effect";
-import { HeroHeader } from "./header";
+import { HERO_SECTION } from "@/modules/shared/constants";
+import { AnimatedGroup } from "./ui/animated-group";
+import { Button } from "./ui/button";
+import { TextEffect } from "./ui/text-effect";
 
 const transitionVariants = {
   item: {
@@ -28,9 +28,15 @@ const transitionVariants = {
 
 export default function HeroSection() {
   return (
-    <>
-      <HeroHeader />
-      <main className="overflow-hidden">
+    <div className="overflow-hidden">
+        <div
+          aria-hidden
+          className="absolute inset-0 isolate hidden opacity-65 contain-strict lg:block"
+        >
+          <div className="w-140 h-320 -translate-y-87.5 absolute left-0 top-0 -rotate-45 rounded-full bg-[radial-gradient(68.54%_68.72%_at_55.02%_31.46%,hsla(0,0%,88%,.08)_0,hsla(0,0%,60%,.02)_50%,transparent_80%)] dark:bg-[radial-gradient(68.54%_68.72%_at_55.02%_31.46%,hsla(0,0%,45%,.08)_0,hsla(0,0%,25%,.02)_50%,transparent_80%)]" />
+          <div className="h-320 absolute left-0 top-0 w-60 -rotate-45 rounded-full bg-[radial-gradient(50%_50%_at_50%_50%,hsla(0,0%,88%,.06)_0,hsla(0,0%,60%,.02)_80%,transparent_100%)] dark:bg-[radial-gradient(50%_50%_at_50%_50%,hsla(0,0%,45%,.06)_0,hsla(0,0%,25%,.02)_80%,transparent_100%)] [translate:5%_-50%]" />
+          <div className="h-320 -translate-y-87.5 absolute left-0 top-0 w-60 -rotate-45 bg-[radial-gradient(50%_50%_at_50%_50%,hsla(0,0%,88%,.04)_0,hsla(0,0%,60%,.02)_80%,transparent_100%)] dark:bg-[radial-gradient(50%_50%_at_50%_50%,hsla(0,0%,45%,.04)_0,hsla(0,0%,25%,.02)_80%,transparent_100%)]" />
+        </div>
         <section>
           <div className="relative pt-24 md:pt-36">
             <AnimatedGroup
@@ -58,10 +64,10 @@ export default function HeroSection() {
                   },
                 },
               }}
-              className="mask-b-from-35% mask-b-to-90% absolute inset-0 top-0 -z-20"
+              className="mask-b-from-35% mask-b-to-90% absolute inset-0 top-56 -z-20 lg:top-32"
             >
               <Image
-                src="https://ik.imagekit.io/lrigu76hy/tailark/night-background.jpg?updatedAt=1745733451120"
+                src="https:
                 alt="background"
                 className="hidden size-full dark:block"
                 width="3276"
@@ -71,20 +77,20 @@ export default function HeroSection() {
 
             <div
               aria-hidden
-              className="absolute inset-0 -z-10 size-full [background:radial-gradient(125%_125%_at_50%_100%,transparent_0%,hsl(var(--background))_75%)]"
+              className="absolute inset-0 -z-10 size-full bg-background [background:radial-gradient(125%_125%_at_50%_100%,transparent_0%,var(--color-background)_75%)]"
             />
 
             <div className="mx-auto max-w-7xl px-6">
-              <div className="text-center sm:mx-auto lg:mr-auto lg:mt-0">
+              <div className="text-center sm:mx-auto lg:mr-auto lg:mt-0 pt-24 md:pt-32">
                 <AnimatedGroup variants={transitionVariants}>
                   <Link
-                    href="/validate"
-                    className="hover:bg-background hover:border-t-border bg-muted group mx-auto flex w-fit items-center gap-4 rounded-full border p-1 pl-4 shadow-md shadow-black/5 transition-colors duration-300 border-t-border/5"
+                    href={HERO_SECTION.announcement.href}
+                    className="hover:bg-muted/50 bg-muted/80 group mx-auto flex w-fit items-center gap-4 rounded-full border border-border/50 p-1 pl-4 shadow-md backdrop-blur-sm transition-colors duration-300"
                   >
-                    <span className="text-foreground text-sm">
-                      AI-Powered Startup Idea Validation
+                    <span className="text-foreground text-sm font-medium">
+                      {HERO_SECTION.announcement.text}
                     </span>
-                    <span className="block h-4 w-0.5 border-l bg-foreground/20 border-border"></span>
+                    <span className="block h-4 w-0.5 border-l border-border/50 bg-muted"></span>
 
                     <div className="bg-background group-hover:bg-muted size-6 overflow-hidden rounded-full duration-500">
                       <div className="flex w-12 -translate-x-1/2 duration-500 ease-in-out group-hover:translate-x-0">
@@ -105,7 +111,7 @@ export default function HeroSection() {
                   as="h1"
                   className="mx-auto mt-8 max-w-4xl text-balance text-5xl max-md:font-semibold md:text-7xl lg:mt-16 xl:text-[5.25rem]"
                 >
-                  Validate Your Startup Ideas with AI
+                  {HERO_SECTION.heading}
                 </TextEffect>
                 <TextEffect
                   per="line"
@@ -115,8 +121,7 @@ export default function HeroSection() {
                   as="p"
                   className="mx-auto mt-8 max-w-2xl text-balance text-lg"
                 >
-                  Get detailed feedback, project plans, and actionable insights
-                  to bring your startup idea to life.
+                  {HERO_SECTION.subheading}
                 </TextEffect>
 
                 <AnimatedGroup
@@ -142,8 +147,10 @@ export default function HeroSection() {
                       size="lg"
                       className="rounded-xl px-5 text-base"
                     >
-                      <Link href="/validate">
-                        <span className="text-nowrap">Validate Your Idea</span>
+                      <Link href={HERO_SECTION.cta.primary.href}>
+                        <span className="text-nowrap">
+                          {HERO_SECTION.cta.primary.text}
+                        </span>
                       </Link>
                     </Button>
                   </div>
@@ -165,16 +172,16 @@ export default function HeroSection() {
               }}
             >
               <div className="mask-b-from-55% relative -mr-56 mt-8 overflow-hidden px-2 sm:mr-0 sm:mt-12 md:mt-20">
-                <div className="inset-shadow-2xs ring-background inset-shadow-foreground/20 bg-background relative mx-auto max-w-6xl overflow-hidden rounded-2xl border p-4 shadow-lg shadow-black/15 ring-1">
+                <div className="inset-shadow-2xs ring-background dark:inset-shadow-white/20 bg-background relative mx-auto max-w-6xl overflow-hidden rounded-2xl border border-border p-4 shadow-lg ring-1">
                   <Image
-                    className="bg-background aspect-15/8 relative hidden rounded-2xl border border-border/25 dark:block"
+                    className="bg-background aspect-15/8 relative hidden rounded-2xl dark:block"
                     src="/mail2.png"
                     alt="app screen"
                     width="2700"
                     height="1440"
                   />
                   <Image
-                    className="bg-background aspect-15/8 relative rounded-2xl border border-border/25 dark:hidden"
+                    className="z-2 border-border/25 aspect-15/8 relative rounded-2xl border dark:hidden"
                     src="/mail2-light.png"
                     alt="app screen"
                     width="2700"
@@ -185,7 +192,6 @@ export default function HeroSection() {
             </AnimatedGroup>
           </div>
         </section>
-      </main>
-    </>
+    </div>
   );
 }

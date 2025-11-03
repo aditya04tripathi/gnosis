@@ -78,12 +78,11 @@ const nodeTypes: NodeTypes = {
 function FlowchartContent({ plan }: ProjectFlowchartProps) {
   const { fitView } = useReactFlow();
 
-  // Get theme colors from CSS variables
   const [primaryColor, setPrimaryColor] = useState("hsl(var(--primary))");
   const [borderColor, setBorderColor] = useState("hsl(var(--border))");
 
   useEffect(() => {
-    // Get computed CSS variable values
+    
     const root = document.documentElement;
     const computedPrimary = getComputedStyle(root)
       .getPropertyValue("--primary")
@@ -92,7 +91,6 @@ function FlowchartContent({ plan }: ProjectFlowchartProps) {
       .getPropertyValue("--border")
       .trim();
 
-    // Convert to hex if needed (if it's already hex, use it; if hsl, parse it)
     if (computedPrimary) {
       setPrimaryColor(computedPrimary);
     }
@@ -111,20 +109,18 @@ function FlowchartContent({ plan }: ProjectFlowchartProps) {
 
     console.log("Creating flowchart with phases:", plan.phases.length);
 
-    // Constants for layout - accounting for node sizes
-    const NODE_MIN_HEIGHT = 100; // Min node height (matches inline style)
-    const NODE_AVG_WIDTH = 200; // Average node width for spacing calculations
+    const NODE_MIN_HEIGHT = 100; 
+    const NODE_AVG_WIDTH = 200; 
     const CENTER_X = 600;
-    const PHASE_TO_START_SPACING = 180; // Space between start and first phase
-    const PHASE_TO_TASK_SPACING = 160; // Space between phase and its tasks
-    const TASK_TO_NEXT_PHASE_SPACING = 220; // Space between last task and next phase
-    const TASK_HORIZONTAL_SPACING = 280; // Horizontal spacing between tasks (accounts for node width + gap)
-    const TASK_VERTICAL_SPACING = 160; // Vertical spacing between task rows
-    const ROW_OFFSET = 120; // Horizontal offset for alternating rows
+    const PHASE_TO_START_SPACING = 180; 
+    const PHASE_TO_TASK_SPACING = 160; 
+    const TASK_TO_NEXT_PHASE_SPACING = 220; 
+    const TASK_HORIZONTAL_SPACING = 280; 
+    const TASK_VERTICAL_SPACING = 160; 
+    const ROW_OFFSET = 120; 
     const START_Y = 50;
-    const MAX_TASKS_PER_ROW = 4; // Maximum tasks per row to prevent overcrowding
+    const MAX_TASKS_PER_ROW = 4; 
 
-    // Start node - centered
     nodes.push({
       id: "start",
       type: "start",
@@ -134,9 +130,8 @@ function FlowchartContent({ plan }: ProjectFlowchartProps) {
 
     let currentY = START_Y + NODE_MIN_HEIGHT + PHASE_TO_START_SPACING;
 
-    // Process phases and tasks with better layout
     plan.phases.forEach((phase) => {
-      // Phase node - centered
+      
       const phaseX = CENTER_X - NODE_AVG_WIDTH / 2;
       const phaseY = currentY;
 
@@ -151,9 +146,8 @@ function FlowchartContent({ plan }: ProjectFlowchartProps) {
         },
       });
 
-      // Calculate task layout - arrange tasks in rows below phase
       if (phase.tasks.length === 0) {
-        // If no tasks, just add spacing for next phase
+        
         currentY = phaseY + NODE_MIN_HEIGHT + TASK_TO_NEXT_PHASE_SPACING;
         return;
       }
@@ -169,11 +163,9 @@ function FlowchartContent({ plan }: ProjectFlowchartProps) {
           phase.tasks.length - row * MAX_TASKS_PER_ROW,
         );
 
-        // Calculate row width and center it
         const rowWidth = (tasksInThisRow - 1) * TASK_HORIZONTAL_SPACING;
         const rowCenterX = CENTER_X - rowWidth / 2 - NODE_AVG_WIDTH / 2;
 
-        // Apply horizontal offset for alternating rows (stagger effect)
         const rowOffset = row % 2 === 1 ? ROW_OFFSET : -ROW_OFFSET;
         const rowStartX = rowCenterX + rowOffset;
 
@@ -197,7 +189,6 @@ function FlowchartContent({ plan }: ProjectFlowchartProps) {
         });
       });
 
-      // Calculate next phase Y position based on last task row
       const lastTaskRow = taskRows - 1;
       const maxTaskY =
         firstTaskY +
@@ -206,7 +197,6 @@ function FlowchartContent({ plan }: ProjectFlowchartProps) {
       currentY = maxTaskY + TASK_TO_NEXT_PHASE_SPACING;
     });
 
-    // End node - centered
     const endY = currentY;
     nodes.push({
       id: "end",
@@ -219,7 +209,7 @@ function FlowchartContent({ plan }: ProjectFlowchartProps) {
   }, [plan]);
 
   const initialEdges = useMemo(() => {
-    // Use default color for initial edges - will be updated when colors load
+    
     const defaultColor = "hsl(var(--primary))";
     const edges: Edge[] = [];
 
@@ -227,7 +217,6 @@ function FlowchartContent({ plan }: ProjectFlowchartProps) {
       return edges;
     }
 
-    // Connect start to first phase
     if (plan.phases.length > 0) {
       edges.push({
         id: "start-phase0",
@@ -238,15 +227,13 @@ function FlowchartContent({ plan }: ProjectFlowchartProps) {
       });
     }
 
-    // Connect phases to their tasks and create main flow
     plan.phases.forEach((phase, phaseIndex) => {
-      // Connect phase to first task of each row (to reduce edge clutter)
+      
       const MAX_TASKS_PER_ROW = 4;
       const firstTaskInEachRow = phase.tasks.filter(
         (_, index) => index % MAX_TASKS_PER_ROW === 0,
       );
 
-      // Connect phase to first tasks of rows
       firstTaskInEachRow.forEach((task) => {
         edges.push({
           id: `${phase.id}-${task.id}`,
@@ -256,7 +243,6 @@ function FlowchartContent({ plan }: ProjectFlowchartProps) {
         });
       });
 
-      // Connect tasks within same row sequentially
       phase.tasks.forEach((task, taskIndex) => {
         const row = Math.floor(taskIndex / MAX_TASKS_PER_ROW);
         const col = taskIndex % MAX_TASKS_PER_ROW;
@@ -265,7 +251,6 @@ function FlowchartContent({ plan }: ProjectFlowchartProps) {
           phase.tasks.length - row * MAX_TASKS_PER_ROW,
         );
 
-        // Connect to next task in same row
         if (col < tasksInRow - 1) {
           const nextTask = phase.tasks[taskIndex + 1];
           edges.push({
@@ -276,7 +261,6 @@ function FlowchartContent({ plan }: ProjectFlowchartProps) {
           });
         }
 
-        // Connect last task of a row to first task of next row (if exists)
         if (
           col === tasksInRow - 1 &&
           row < Math.ceil(phase.tasks.length / MAX_TASKS_PER_ROW) - 1
@@ -293,12 +277,10 @@ function FlowchartContent({ plan }: ProjectFlowchartProps) {
         }
       });
 
-      // Connect last task of current phase to next phase
       if (phaseIndex < plan.phases.length - 1 && phase.tasks.length > 0) {
         const nextPhase = plan.phases[phaseIndex + 1];
         const lastTask = phase.tasks[phase.tasks.length - 1];
 
-        // Connect to next phase node
         edges.push({
           id: `${lastTask.id}-${nextPhase.id}`,
           source: lastTask.id,
@@ -308,7 +290,6 @@ function FlowchartContent({ plan }: ProjectFlowchartProps) {
         });
       }
 
-      // Handle dependencies between phases
       if (phase.dependencies.length > 0) {
         phase.dependencies.forEach((depId) => {
           const depPhase = plan.phases.find((p) => p.id === depId);
@@ -335,7 +316,6 @@ function FlowchartContent({ plan }: ProjectFlowchartProps) {
       }
     });
 
-    // Connect last phase's last task to end
     if (plan.phases.length > 0) {
       const lastPhase = plan.phases[plan.phases.length - 1];
       if (lastPhase.tasks.length > 0) {
@@ -348,7 +328,7 @@ function FlowchartContent({ plan }: ProjectFlowchartProps) {
           animated: true,
         });
       } else {
-        // If no tasks, connect phase directly to end
+        
         edges.push({
           id: `${lastPhase.id}-end`,
           source: lastPhase.id,
@@ -365,7 +345,6 @@ function FlowchartContent({ plan }: ProjectFlowchartProps) {
   const [nodes, , onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
-  // Update edge colors when theme colors are loaded
   useEffect(() => {
     setEdges((currentEdges) =>
       currentEdges.map((edge) => {
@@ -389,7 +368,6 @@ function FlowchartContent({ plan }: ProjectFlowchartProps) {
     [setEdges],
   );
 
-  // Fit view after nodes are rendered
   useEffect(() => {
     if (nodes.length > 0) {
       const timeoutId = setTimeout(() => {

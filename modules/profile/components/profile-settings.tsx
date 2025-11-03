@@ -93,7 +93,7 @@ export function ProfileSettings({ user }: ProfileSettingsProps) {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Avatar */}
+            {}
             <div className="flex items-center gap-6">
               <Avatar className="h-20 w-20">
                 <AvatarFallback className="text-2xl">
@@ -115,7 +115,7 @@ export function ProfileSettings({ user }: ProfileSettingsProps) {
             </div>
 
             <div className="grid gap-6 md:grid-cols-2">
-              {/* Name */}
+              {}
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
                 <Input
@@ -127,7 +127,7 @@ export function ProfileSettings({ user }: ProfileSettingsProps) {
                 />
               </div>
 
-              {/* Email */}
+              {}
               <div className="space-y-2">
                 <Label htmlFor="email">Email Address</Label>
                 <Input
@@ -152,7 +152,7 @@ export function ProfileSettings({ user }: ProfileSettingsProps) {
         </CardContent>
       </Card>
 
-      {/* Danger Zone */}
+      {}
       <Card className="border-destructive">
         <CardHeader>
           <CardTitle className="text-destructive">Danger Zone</CardTitle>

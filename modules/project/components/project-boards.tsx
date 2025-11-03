@@ -194,11 +194,11 @@ export function ProjectBoards({ projectPlanId, plan }: ProjectBoardsProps) {
     taskId: string,
     newStatus: "TODO" | "IN_PROGRESS" | "DONE" | "BLOCKED",
   ) => {
-    // Only update if status actually changed
+    
     const allTasks = plan.phases.flatMap((p) => p.tasks);
     const currentTask = allTasks.find((t) => t.id === taskId);
     if (currentTask && currentTask.status === newStatus) {
-      return; // No change needed
+      return; 
     }
 
     try {
@@ -225,22 +225,19 @@ export function ProjectBoards({ projectPlanId, plan }: ProjectBoardsProps) {
   };
 
   const handleDragOver = (_event: DragOverEvent) => {
-    // This handler helps with collision detection feedback
+    
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
 
-    // Reset dragging state first
     setActiveId(null);
     setDraggingTask(null);
 
-    // If not dropped on anything, do nothing
     if (!over) {
       return;
     }
 
-    // If dropped on itself, do nothing
     if (active.id === over.id) {
       return;
     }
@@ -248,7 +245,6 @@ export function ProjectBoards({ projectPlanId, plan }: ProjectBoardsProps) {
     const taskId = active.id as string;
     const overId = over.id as string;
 
-    // Check if dropped on a status column (droppable id) first
     if (
       overId === "scrum-TODO" ||
       overId === "scrum-IN_PROGRESS" ||
@@ -259,33 +255,29 @@ export function ProjectBoards({ projectPlanId, plan }: ProjectBoardsProps) {
         | "IN_PROGRESS"
         | "DONE";
 
-      // Only update if status is different
       const allTasks = plan.phases.flatMap((p) => p.tasks);
       const currentTask = allTasks.find((t) => t.id === taskId);
       if (currentTask && currentTask.status === newStatus) {
-        return; // Already in this status
+        return; 
       }
 
       await handleStatusChange(taskId, newStatus);
       return;
     }
 
-    // Check if dropped on another task (get its status)
     const allTasks = plan.phases.flatMap((p) => p.tasks);
     const targetTask = allTasks.find((t) => t.id === overId);
     if (targetTask && targetTask.id !== taskId) {
-      // Only update if status is different
+      
       const currentTask = allTasks.find((t) => t.id === taskId);
       if (currentTask && currentTask.status === targetTask.status) {
-        return; // Already in this status
+        return; 
       }
 
       await handleStatusChange(taskId, targetTask.status);
       return;
     }
 
-    // If dropped on empty space within a column, check parent element
-    // This handles cases where the drop happens in empty areas
     if (over.data.current) {
       const columnStatus = over.data.current.columnStatus as
         | "TODO"

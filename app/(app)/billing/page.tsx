@@ -29,7 +29,6 @@ export default async function BillingPage() {
     return null;
   }
 
-  // Fetch top 2 invoices
   const invoicesResult = session?.user
     ? await getInvoices()
     : { success: false as const, error: "Unauthorized" };
@@ -44,7 +43,7 @@ export default async function BillingPage() {
     <div className="flex h-full flex-col">
       <main className="flex-1">
         <div className="container mx-auto flex flex-col gap-8">
-          {/* Header */}
+          {}
           <div className="flex flex-col gap-4">
             <div>
               <h1 className="text-3xl font-bold tracking-tight">Billing</h1>
@@ -61,7 +60,7 @@ export default async function BillingPage() {
             }}
           />
 
-          {/* Recent Invoices */}
+          {}
           {topInvoices.length > 0 && (
             <Card>
               <CardHeader>

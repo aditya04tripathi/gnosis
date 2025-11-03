@@ -73,7 +73,7 @@ export default async function ValidationPage({
     <div className="flex h-full flex-col">
       <main className="flex-1">
         <div className="container mx-auto flex flex-col gap-8">
-          {/* Header */}
+          {}
           <div className="flex flex-col gap-4">
             <Link href="/dashboard">
               <Button variant="ghost">← Back to Dashboard</Button>
@@ -88,7 +88,7 @@ export default async function ValidationPage({
             </div>
           </div>
 
-          {/* Idea */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle>Your Idea</CardTitle>
@@ -98,7 +98,7 @@ export default async function ValidationPage({
             </CardContent>
           </Card>
 
-          {/* Validation Result */}
+          {}
           <div className="grid gap-6 md:grid-cols-2">
             <Card>
               <CardHeader>
@@ -147,7 +147,7 @@ export default async function ValidationPage({
             </Card>
           </div>
 
-          {/* Feedback */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle>Detailed Feedback</CardTitle>
@@ -198,7 +198,7 @@ export default async function ValidationPage({
             </CardContent>
           </Card>
 
-          {/* Market Analysis */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -237,7 +237,7 @@ export default async function ValidationPage({
             </CardContent>
           </Card>
 
-          {/* Generate Project Plan */}
+          {}
           {!projectPlan && (
             <Card>
               <CardHeader>
@@ -252,7 +252,7 @@ export default async function ValidationPage({
             </Card>
           )}
 
-          {/* Project Plan Link */}
+          {}
           {projectPlan && (
             <Card>
               <CardHeader>

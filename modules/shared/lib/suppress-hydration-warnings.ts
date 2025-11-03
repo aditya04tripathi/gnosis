@@ -1,10 +1,5 @@
 "use client";
 
-/**
- * Suppresses React hydration warnings in the console
- * This is a workaround for known issues with nested paragraph tags
- * and other hydration mismatches that don't affect functionality
- */
 export function suppressHydrationWarnings() {
   if (typeof window === "undefined") return;
 
@@ -14,7 +9,6 @@ export function suppressHydrationWarnings() {
   console.error = (...args: unknown[]) => {
     const message = args[0];
 
-    // Suppress hydration warnings
     if (
       typeof message === "string" &&
       (message.includes("hydration") ||
@@ -25,7 +19,6 @@ export function suppressHydrationWarnings() {
       return;
     }
 
-    // Suppress React warnings about nested p tags (multiple formats)
     if (
       typeof message === "string" &&
       (message.includes("<p> cannot be a descendant of <p>") ||
@@ -35,7 +28,6 @@ export function suppressHydrationWarnings() {
       return;
     }
 
-    // Also check if the error object contains hydration-related messages
     if (
       args.some(
         (arg) =>
@@ -54,7 +46,6 @@ export function suppressHydrationWarnings() {
   console.warn = (...args: unknown[]) => {
     const message = args[0];
 
-    // Suppress hydration warnings
     if (
       typeof message === "string" &&
       (message.includes("hydration") ||
@@ -68,7 +59,6 @@ export function suppressHydrationWarnings() {
   };
 }
 
-// Auto-initialize when imported
 if (typeof window !== "undefined") {
   suppressHydrationWarnings();
 }

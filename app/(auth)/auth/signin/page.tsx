@@ -1,16 +1,14 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { METADATA } from "@/modules/shared/constants";
 import LoginWrapper from "@/modules/auth/components/login-wrapper";
 
-export const metadata: Metadata = {
-  title: "Sign In | Startup Validator",
-  description:
-    "Sign in to your Startup Validator account to validate your startup ideas",
-  openGraph: {
-    title: "Sign In | Startup Validator",
-    description: "Sign in to your Startup Validator account",
-  },
-};
+export const metadata: Metadata = METADATA.pages.signIn;
 
 export default function SignInPage() {
-  return <LoginWrapper />;
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LoginWrapper />
+    </Suspense>
+  );
 }

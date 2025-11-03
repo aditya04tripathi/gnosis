@@ -1,35 +1,17 @@
 import type { Metadata } from "next";
-import Footer from "@/modules/shared/components/footer";
-import { Navbar } from "@/modules/shared/components/navbar";
+import { LEGAL, METADATA } from "@/modules/shared/constants";
 
-export const metadata: Metadata = {
-  title: "Privacy Policy",
-  description:
-    "Privacy Policy for Startup Validator. Learn how we collect, use, and protect your personal data. Your privacy and data security are our priorities.",
-  keywords: [
-    "privacy policy",
-    "data protection",
-    "privacy",
-    "GDPR",
-    "data security",
-  ],
-  openGraph: {
-    title: "Privacy Policy | Startup Validator",
-    description: "Learn how we protect your personal data and privacy.",
-    type: "website",
-  },
-};
+export const metadata: Metadata = METADATA.pages.privacy;
 
 export default function PrivacyPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <Navbar />
+    <div className="pt-24 flex min-h-screen flex-col bg-background">
       <main className="flex-1">
         <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-4xl">
           <div className="mb-6 sm:mb-8">
             <h1 className="mb-2">Privacy Policy</h1>
             <p className="text-muted-foreground text-sm sm:text-base">
-              Last updated: {new Date().toLocaleDateString()}
+              {LEGAL.privacy.lastUpdated(new Date().toLocaleDateString())}
             </p>
           </div>
 
@@ -37,10 +19,11 @@ export default function PrivacyPage() {
             <div className="flex flex-col gap-2">
               <h2>Introduction</h2>
               <p className="text-sm sm:text-base leading-relaxed">
-                Welcome to Startup Validator. We respect your privacy and are
-                committed to protecting your personal data. This privacy policy
-                will inform you about how we look after your personal data when
-                you visit our website and tell you about your privacy rights.
+                Welcome to {LEGAL.privacy.companyName}. We respect your privacy
+                and are committed to protecting your personal data. This privacy
+                policy will inform you about how we look after your personal
+                data when you visit our website and tell you about your privacy
+                rights.
               </p>
             </div>
 
@@ -194,7 +177,6 @@ export default function PrivacyPage() {
           </div>
         </div>
       </main>
-      <Footer />
     </div>
   );
 }

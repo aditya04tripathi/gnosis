@@ -58,7 +58,6 @@ What would you like to improve? You can ask me to:
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when messages change
   useEffect(() => {
     if (scrollAreaRef.current && messages.length > 0) {
       const viewport = scrollAreaRef.current.querySelector(

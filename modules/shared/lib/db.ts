@@ -4,14 +4,13 @@ import mongoose from "mongoose";
 console.log("MONGODB_URI:", process.env.MONGODB_URI);
 
 const MONGODB_URI: string =
-  process.env.MONGODB_URI || "mongodb://localhost:27017/startup-validator";
+  process.env.MONGODB_URI || "mongodb:
 
 interface MongooseCache {
   conn: Mongoose | null;
   promise: Promise<Mongoose> | null;
 }
 
-// Global cache for mongoose connection
 const globalForMongoose = globalThis as unknown as {
   mongooseCache: MongooseCache | undefined;
 };
