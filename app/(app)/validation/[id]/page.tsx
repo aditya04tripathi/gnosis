@@ -73,7 +73,6 @@ export default async function ValidationPage({
     <div className="flex h-full flex-col">
       <main className="flex-1">
         <div className="container mx-auto flex flex-col gap-8">
-          {}
           <div className="flex flex-col gap-4">
             <Link href="/dashboard">
               <Button variant="ghost">← Back to Dashboard</Button>
@@ -86,23 +85,23 @@ export default async function ValidationPage({
             </div>
           </div>
 
-          {}
           <Card>
             <CardHeader>
-              <CardTitle>Your Idea</CardTitle>
+              <CardTitle>
+                <h3>Your Idea</h3>
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="whitespace-pre-wrap text-sm">{validation.idea}</p>
             </CardContent>
           </Card>
 
-          {}
           <div className="grid gap-6 md:grid-cols-2">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <TrendingUp className="h-5 w-5" />
-                  Validation Score
+                  <h3>Validation Score</h3>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -134,7 +133,7 @@ export default async function ValidationPage({
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Target className="h-5 w-5" />
-                  Recommended Billing Period
+                  <h3>Recommended Billing Period</h3>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -145,24 +144,25 @@ export default async function ValidationPage({
             </Card>
           </div>
 
-          {}
           <Card>
             <CardHeader>
-              <CardTitle>Detailed Feedback</CardTitle>
+              <CardTitle>
+                <h3>Detailed Feedback</h3>
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <h3>Feedback</h3>
+                <h5>Feedback</h5>
                 <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                   {validation.validationResult.feedback}
                 </p>
               </div>
               <Separator />
               <div>
-                <h3 className="flex items-center gap-2">
+                <h5 className="flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-primary" />
                   Strengths
-                </h3>
+                </h5>
                 <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
                   {validation.validationResult.strengths.map(
                     (strength: string) => (
@@ -173,10 +173,10 @@ export default async function ValidationPage({
               </div>
               <Separator />
               <div>
-                <h3 className="flex items-center gap-2">
+                <h5 className="flex items-center gap-2">
                   <XCircle className="h-4 w-4 text-destructive" />
                   Weaknesses
-                </h3>
+                </h5>
                 <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
                   {validation.validationResult.weaknesses.map(
                     (weakness: string) => (
@@ -187,10 +187,10 @@ export default async function ValidationPage({
               </div>
               <Separator />
               <div>
-                <h3 className="flex items-center gap-2">
+                <h5 className="flex items-center gap-2">
                   <Lightbulb className="h-4 w-4 text-accent-foreground" />
                   Suggestions
-                </h3>
+                </h5>
                 <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
                   {validation.validationResult.suggestions.map(
                     (suggestion: string) => (
@@ -202,34 +202,33 @@ export default async function ValidationPage({
             </CardContent>
           </Card>
 
-          {}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Sparkles className="h-5 w-5" />
-                Market Analysis
+                <h3>Market Analysis</h3>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <h3>Analysis</h3>
+                <h5>Analysis</h5>
                 <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                   {validation.validationResult.marketAnalysis}
                 </p>
               </div>
               <Separator />
               <div>
-                <h3 className="flex items-center gap-2">
+                <h5 className="flex items-center gap-2">
                   <Users className="h-4 w-4" />
                   Target Audience
-                </h3>
+                </h5>
                 <p className="text-sm text-muted-foreground">
                   {validation.validationResult.targetAudience}
                 </p>
               </div>
               <Separator />
               <div>
-                <h3>Competition</h3>
+                <h5>Competition</h5>
                 <div className="flex flex-wrap gap-2">
                   {validation.validationResult.competition.map(
                     (comp: string) => (
@@ -243,11 +242,12 @@ export default async function ValidationPage({
             </CardContent>
           </Card>
 
-          {}
           {!projectPlan && (
             <Card>
               <CardHeader>
-                <CardTitle>Generate Project Plan</CardTitle>
+                <CardTitle>
+                  <h3>Generate Project Plan</h3>
+                </CardTitle>
                 <CardDescription>
                   Get a detailed project plan with phases, tasks, and flowcharts
                 </CardDescription>
@@ -258,7 +258,6 @@ export default async function ValidationPage({
             </Card>
           )}
 
-          {}
           {projectPlan && (
             <Card>
               <CardHeader>

@@ -1,7 +1,5 @@
 "use client";
-import { Brain, GitBranch, LayoutGrid, Sparkles } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import Image from "next/image";
 import { useState } from "react";
 import {
   Accordion,
@@ -10,37 +8,9 @@ import {
   AccordionTrigger,
 } from "@/modules/shared/components/ui/accordion";
 import { FEATURES } from "@/modules/shared/constants";
-import { BorderBeam } from "./ui/border-beam";
-
-const iconMap = {
-  Brain,
-  GitBranch,
-  LayoutGrid,
-  Sparkles,
-};
 
 export default function Features() {
-  type ImageKey = "item-1" | "item-2" | "item-3" | "item-4";
-  const [activeItem, setActiveItem] = useState<ImageKey>("item-1");
-
-  const images = {
-    "item-1": {
-      image: "/mail2.png",
-      alt: "AI-powered validation dashboard",
-    },
-    "item-2": {
-      image: "/mail2.png",
-      alt: "Interactive flowchart visualization",
-    },
-    "item-3": {
-      image: "/mail2.png",
-      alt: "SCRUM task management board",
-    },
-    "item-4": {
-      image: "/mail2.png",
-      alt: "Project planning interface",
-    },
-  };
+  const [activeItem, setActiveItem] = useState<number>(0);
 
   return (
     <section className="py-12 md:py-20 lg:py-32">
@@ -54,17 +24,17 @@ export default function Features() {
         <div className="grid gap-8 sm:gap-12 sm:px-6 md:px-12 md:grid-cols-2 lg:gap-20 lg:px-0">
           <Accordion
             type="single"
-            value={activeItem}
-            onValueChange={(value) => setActiveItem(value as ImageKey)}
+            value={activeItem.toString()}
+            onValueChange={(value) => setActiveItem(Number(value))}
             className="w-full"
           >
             {FEATURES.items.map((feature, index) => {
-              const Icon = iconMap[feature.icon as keyof typeof iconMap];
+              const IconComponent = feature.icon;
               return (
-                <AccordionItem key={feature.title} value={`item-${index + 1}`}>
+                <AccordionItem key={feature.title} value={index.toString()}>
                   <AccordionTrigger>
                     <div className="flex items-center gap-2 text-base">
-                      {Icon && <Icon className="size-4" />}
+                      {IconComponent && <IconComponent className="size-4" />}
                       {feature.title}
                     </div>
                   </AccordionTrigger>
@@ -79,20 +49,19 @@ export default function Features() {
             <div className="aspect-76/59 bg-background relative w-[calc(3/4*100%+3rem)] rounded-2xl">
               <AnimatePresence mode="wait">
                 <motion.div
-                  key={`${activeItem}-id`}
+                  key={activeItem.toString()}
                   initial={{ opacity: 0, y: 6, scale: 0.98 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 6, scale: 0.98 }}
                   transition={{ duration: 0.2 }}
-                  className="size-full overflow-hidden rounded-2xl border bg-card shadow-md"
+                  className="size-full overflow-hidden rounded-2xl border bg-card shadow-md flex items-center justify-center p-12"
                 >
-                  <Image
-                    src={images[activeItem].image}
-                    className="size-full object-cover object-top-left dark:mix-blend-lighten"
-                    alt={images[activeItem].alt}
-                    width={1207}
-                    height={929}
-                  />
+                  {(() => {
+                    const IconComponent = FEATURES.items[activeItem].icon;
+                    return IconComponent ? (
+                      <IconComponent className="p-10 size-20 md:size-64 text-muted-foreground dark:mix-blend-lighten" />
+                    ) : null;
+                  })()}
                 </motion.div>
               </AnimatePresence>
             </div>

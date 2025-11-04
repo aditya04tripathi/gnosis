@@ -76,21 +76,28 @@ function TaskItem({ task, isDragging }: TaskItemProps) {
     >
       <div className="space-y-2">
         <div className="flex items-start justify-between">
-          <h4 className="flex-1">{task.title}</h4>
-          <Badge
-            variant={
-              task.priority === "HIGH"
-                ? "destructive"
-                : task.priority === "MEDIUM"
-                  ? "default"
-                  : "secondary"
-            }
-            className="text-xs ml-2"
-          >
-            {task.priority}
-          </Badge>
+          <h6 className="flex-1 flex justify-between items-center gap-2">
+            {task.title}
+            <Badge
+              variant={
+                task.priority === "HIGH"
+                  ? "destructive"
+                  : task.priority === "MEDIUM"
+                    ? "default"
+                    : "secondary"
+              }
+              className="text-xs"
+            >
+              {task.priority}
+            </Badge>
+          </h6>
         </div>
-        <p className="text-xs text-muted-foreground line-clamp-2">
+
+        <p className="text-xs text-muted-foreground">
+          <span className="font-bold text-foreground">Phase: </span>
+          {task.phaseName}
+        </p>
+        <p className="text-muted-foreground text-xs line-clamp-2">
           {task.description}
         </p>
         <div className="flex flex-wrap gap-1">
@@ -100,7 +107,6 @@ function TaskItem({ task, isDragging }: TaskItemProps) {
             </Badge>
           ))}
         </div>
-        <p className="text-xs text-muted-foreground">Phase: {task.phaseName}</p>
       </div>
     </Card>
   );
@@ -143,8 +149,10 @@ function DroppableColumn({
       }`}
     >
       <CardHeader className="shrink-0">
-        <CardTitle className="font-bold">
-          {status.replace("_", " ")} ({tasks.length})
+        <CardTitle>
+          <h4>
+            {status.replace("_", " ")} ({tasks.length})
+          </h4>
         </CardTitle>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col min-h-0 px-6">

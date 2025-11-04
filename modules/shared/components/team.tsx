@@ -13,7 +13,7 @@ const members = [
 
 export default function TeamSection() {
   return (
-    <section className="bg-background py-16 md:py-32">
+    <section className="bg-background">
       <div className="container mx-auto border-t px-6">
         <span className="text-caption -ml-6 -mt-3.5 block w-max bg-background px-6">
           ABOUT

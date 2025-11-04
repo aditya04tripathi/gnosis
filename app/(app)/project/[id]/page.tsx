@@ -2,9 +2,7 @@ import { LayoutGrid, Lightbulb, Workflow } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { auth } from "@/modules/shared/lib/auth";
 import { ProjectBoards } from "@/modules/project/components/project-boards";
-
 import { ProjectFlowchart } from "@/modules/project/components/project-flowchart";
 import { ProjectHeader } from "@/modules/project/components/project-header";
 import { Badge } from "@/modules/shared/components/ui/badge";
@@ -13,6 +11,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/modules/shared/components/ui/card";
@@ -22,6 +21,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/modules/shared/components/ui/tabs";
+import { auth } from "@/modules/shared/lib/auth";
 import connectDB from "@/modules/shared/lib/db";
 import ProjectPlan from "@/modules/shared/models/ProjectPlan";
 
@@ -70,7 +70,6 @@ export default async function ProjectPage({
     <div className="flex h-full flex-col">
       <main className="flex-1">
         <div className="container mx-auto flex flex-col gap-8">
-          {}
           <div className="flex flex-col gap-4">
             <Link href="/dashboard">
               <Button variant="ghost">← Back to Dashboard</Button>
@@ -81,36 +80,35 @@ export default async function ProjectPage({
             </p>
           </div>
 
-          {}
           <div className="grid gap-4 md:grid-cols-3">
             <Card>
               <CardHeader>
                 <CardTitle>
-                  Estimated Duration
+                  <h4>Estimated Duration</h4>
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-bold">
-                  {projectPlan.plan.estimatedDuration}
-                </p>
-              </CardContent>
+              <CardContent>{projectPlan.plan.estimatedDuration}</CardContent>
             </Card>
             <Card>
               <CardHeader>
                 <CardTitle>
-                  Estimated Cost
+                  <h4>Estimated Cost</h4>
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-bold">
-                  {projectPlan.plan.estimatedCost}
-                </p>
-              </CardContent>
+              <CardContent>{projectPlan.plan.estimatedCost}</CardContent>
             </Card>
-            <Card>
+            <Card
+              className={
+                projectPlan.plan.riskLevel === "LOW"
+                  ? "bg-primary"
+                  : projectPlan.plan.riskLevel === "MEDIUM"
+                    ? "bg-secondary"
+                    : "bg-destructive"
+              }
+            >
               <CardHeader>
                 <CardTitle>
-                  Risk Level
+                  <h4>Risk Level</h4>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -122,7 +120,6 @@ export default async function ProjectPage({
                         ? "secondary"
                         : "destructive"
                   }
-                  className="text-lg"
                 >
                   {projectPlan.plan.riskLevel}
                 </Badge>
@@ -130,14 +127,13 @@ export default async function ProjectPage({
             </Card>
           </div>
 
-          {}
           {projectPlan.alternativeIdeas &&
             projectPlan.alternativeIdeas.length > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Lightbulb className="h-5 w-5" />
-                    Alternative Ideas
+                    <h4>Alternative Ideas</h4>
                   </CardTitle>
                   <CardDescription>
                     Other startup ideas inspired by your concept
@@ -149,34 +145,33 @@ export default async function ProjectPage({
                       <Card key={idea.title}>
                         <CardHeader>
                           <CardTitle>
-                            {idea.title}
+                            <h4>{idea.title}</h4>
                           </CardTitle>
-                          <CardDescription>{idea.description}</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-2">
-                            <Badge variant="outline">
-                              Score: {idea.score}/100
-                            </Badge>
+                          <CardDescription>
                             <p className="text-sm text-muted-foreground">
                               {idea.reasoning}
                             </p>
-                            <Button
-                              asChild
-                              variant="outline"
-                              size="sm"
-                              className="w-full mt-4"
-                            >
-                              <Link
-                                href={`/validate?idea=${encodeURIComponent(
-                                  idea.description || idea.title,
-                                )}`}
-                              >
-                                Validate This Idea
-                              </Link>
-                            </Button>
-                          </div>
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="flex grow">
+                          {idea.description}
                         </CardContent>
+                        <CardFooter>
+                          <Button
+                            asChild
+                            variant="outline"
+                            size="sm"
+                            className="w-full mt-4"
+                          >
+                            <Link
+                              href={`/validate?idea=${encodeURIComponent(
+                                idea.description || idea.title,
+                              )}`}
+                            >
+                              Validate This Idea ({idea.score}/100)
+                            </Link>
+                          </Button>
+                        </CardFooter>
                       </Card>
                     ))}
                   </div>
@@ -184,7 +179,6 @@ export default async function ProjectPage({
               </Card>
             )}
 
-          {}
           <Tabs defaultValue="flowchart" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger
@@ -202,13 +196,15 @@ export default async function ProjectPage({
             <TabsContent value="flowchart" className="mt-6">
               <Card className="overflow-hidden">
                 <CardHeader>
-                  <CardTitle>Project Flowchart</CardTitle>
+                  <CardTitle>
+                    <h4>Project Flowchart</h4>
+                  </CardTitle>
                   <CardDescription>
                     Visual representation of your project phases and
                     dependencies
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="p-0">
+                <CardContent className="px-5">
                   <ProjectFlowchart plan={serializedPlan} />
                 </CardContent>
               </Card>
@@ -217,7 +213,7 @@ export default async function ProjectPage({
               <Card>
                 <CardHeader>
                   <CardTitle>
-                    SCRUM Boards
+                    <h4>SCRUM Boards</h4>
                   </CardTitle>
                   <CardDescription>
                     Manage your project tasks with SCRUM boards

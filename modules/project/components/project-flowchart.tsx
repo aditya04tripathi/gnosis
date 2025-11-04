@@ -82,7 +82,6 @@ function FlowchartContent({ plan }: ProjectFlowchartProps) {
   const [borderColor, setBorderColor] = useState("hsl(var(--border))");
 
   useEffect(() => {
-    
     const root = document.documentElement;
     const computedPrimary = getComputedStyle(root)
       .getPropertyValue("--primary")
@@ -109,17 +108,17 @@ function FlowchartContent({ plan }: ProjectFlowchartProps) {
 
     console.log("Creating flowchart with phases:", plan.phases.length);
 
-    const NODE_MIN_HEIGHT = 100; 
-    const NODE_AVG_WIDTH = 200; 
+    const NODE_MIN_HEIGHT = 100;
+    const NODE_AVG_WIDTH = 200;
     const CENTER_X = 600;
-    const PHASE_TO_START_SPACING = 180; 
-    const PHASE_TO_TASK_SPACING = 160; 
-    const TASK_TO_NEXT_PHASE_SPACING = 220; 
-    const TASK_HORIZONTAL_SPACING = 280; 
-    const TASK_VERTICAL_SPACING = 160; 
-    const ROW_OFFSET = 120; 
+    const PHASE_TO_START_SPACING = 180;
+    const PHASE_TO_TASK_SPACING = 160;
+    const TASK_TO_NEXT_PHASE_SPACING = 220;
+    const TASK_HORIZONTAL_SPACING = 280;
+    const TASK_VERTICAL_SPACING = 160;
+    const ROW_OFFSET = 120;
     const START_Y = 50;
-    const MAX_TASKS_PER_ROW = 4; 
+    const MAX_TASKS_PER_ROW = 4;
 
     nodes.push({
       id: "start",
@@ -131,7 +130,6 @@ function FlowchartContent({ plan }: ProjectFlowchartProps) {
     let currentY = START_Y + NODE_MIN_HEIGHT + PHASE_TO_START_SPACING;
 
     plan.phases.forEach((phase) => {
-      
       const phaseX = CENTER_X - NODE_AVG_WIDTH / 2;
       const phaseY = currentY;
 
@@ -147,7 +145,6 @@ function FlowchartContent({ plan }: ProjectFlowchartProps) {
       });
 
       if (phase.tasks.length === 0) {
-        
         currentY = phaseY + NODE_MIN_HEIGHT + TASK_TO_NEXT_PHASE_SPACING;
         return;
       }
@@ -209,7 +206,6 @@ function FlowchartContent({ plan }: ProjectFlowchartProps) {
   }, [plan]);
 
   const initialEdges = useMemo(() => {
-    
     const defaultColor = "hsl(var(--primary))";
     const edges: Edge[] = [];
 
@@ -228,7 +224,6 @@ function FlowchartContent({ plan }: ProjectFlowchartProps) {
     }
 
     plan.phases.forEach((phase, phaseIndex) => {
-      
       const MAX_TASKS_PER_ROW = 4;
       const firstTaskInEachRow = phase.tasks.filter(
         (_, index) => index % MAX_TASKS_PER_ROW === 0,
@@ -328,7 +323,6 @@ function FlowchartContent({ plan }: ProjectFlowchartProps) {
           animated: true,
         });
       } else {
-        
         edges.push({
           id: `${lastPhase.id}-end`,
           source: lastPhase.id,
@@ -402,6 +396,7 @@ function FlowchartContent({ plan }: ProjectFlowchartProps) {
       style={{ minHeight: "600px", minWidth: "100%" }}
     >
       <ReactFlow
+        colorMode="dark"
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
@@ -427,9 +422,12 @@ function FlowchartContent({ plan }: ProjectFlowchartProps) {
         defaultViewport={{ x: 0, y: 0, zoom: 1 }}
         proOptions={{ hideAttribution: true }}
       >
-        <Background gap={20} size={1} color={borderColor} />
+        <Background gap={20} size={1} color="hsl(var(--border))" />
         <Controls />
-        <MiniMap nodeColor={primaryColor} />
+        <MiniMap
+          color="hsl(var(--background))"
+          nodeColor="hsl(var(--primary))"
+        />
       </ReactFlow>
     </div>
   );

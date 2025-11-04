@@ -90,12 +90,12 @@ export default function Pricing({
   };
 
   return (
-    <section className="container mx-auto px-5">
+    <section className="container mx-auto">
       <div className="w-full">
         {!onHomePage && (
           <div>
             <h1>Pricing</h1>
-            <p className="text-muted-foreground text-base sm:text-lg">
+            <p className="text-muted-foreground">
               Choose the perfect plan for your startup validation needs. Switch
               between monthly and yearly billing.
             </p>

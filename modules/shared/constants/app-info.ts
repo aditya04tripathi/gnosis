@@ -1,3 +1,5 @@
+import { Brain, GitBranch, LayoutGrid, Sparkles } from "lucide-react";
+
 export const APP_INFO = {
   name: "Gnosis",
   fullName: "Gnosis - AI-Powered Startup Validation",
@@ -48,25 +50,25 @@ export const FEATURES = {
       title: "AI-Powered Validation",
       description:
         "Get comprehensive AI analysis of your startup idea with detailed feedback on strengths, weaknesses, market opportunities, and actionable suggestions to improve your concept.",
-      icon: "Brain",
+      icon: Brain,
     },
     {
       title: "Interactive Flowcharts",
       description:
         "Visualize your project workflow with interactive flowcharts that show phases, tasks, and dependencies, making it easy to understand your project structure at a glance.",
-      icon: "GitBranch",
+      icon: GitBranch,
     },
     {
       title: "SCRUM Task Management",
       description:
         "Manage your project execution with drag-and-drop SCRUM boards, track task progress, prioritize work, and keep your team aligned with your startup goals.",
-      icon: "LayoutGrid",
+      icon: LayoutGrid,
     },
     {
       title: "Intelligent Project Planning",
       description:
         "Automatically generate detailed project plans with phases, tasks, timelines, and risk assessments. Use AI to improve and refine your plans as your idea evolves.",
-      icon: "Sparkles",
+      icon: Sparkles,
     },
   ],
 } as const;
