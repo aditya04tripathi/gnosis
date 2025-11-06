@@ -31,11 +31,31 @@ export interface UserSubscriptionData {
 }
 
 async function getPayPalAccessToken(): Promise<string> {
-  const clientId = process.env.PAYPAL_CLIENT_ID;
-  const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
-  const isSandbox = process.env.PAYPAL_MODE === "sandbox";
+  console.log("[getPayPalAccessToken] Starting token request", {
+    timestamp: new Date().toISOString(),
+  });
+
+  const isSandbox = process.env.NEXT_PUBLIC_PAYPAL_MODE === "sandbox";
+  const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
+  const clientSecret = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_SECRET;
+
+  console.log("[getPayPalAccessToken] Environment check", {
+    hasClientId: !!clientId,
+    clientIdLength: clientId?.length,
+    clientIdPrefix: clientId ? `${clientId.substring(0, 10)}...` : "N/A",
+    hasClientSecret: !!clientSecret,
+    clientSecretLength: clientSecret?.length,
+    isSandbox,
+    paypalMode: process.env.NEXT_PUBLIC_PAYPAL_MODE,
+    timestamp: new Date().toISOString(),
+  });
 
   if (!clientId || !clientSecret) {
+    console.error("[getPayPalAccessToken] Missing credentials", {
+      hasClientId: !!clientId,
+      hasClientSecret: !!clientSecret,
+      timestamp: new Date().toISOString(),
+    });
     throw new Error("PayPal credentials not configured");
   }
 
@@ -43,38 +63,115 @@ async function getPayPalAccessToken(): Promise<string> {
     ? "https://api-m.sandbox.paypal.com"
     : "https://api-m.paypal.com";
 
-  const response = await fetch(`${baseUrl}/v1/oauth2/token`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      Authorization: `Basic ${Buffer.from(
-        `${clientId}:${clientSecret}`,
-      ).toString("base64")}`,
-    },
-    body: "grant_type=client_credentials",
+  console.log("[getPayPalAccessToken] Making request", {
+    baseUrl,
+    endpoint: `${baseUrl}/v1/oauth2/token`,
+    isSandbox,
+    timestamp: new Date().toISOString(),
   });
 
-  if (!response.ok) {
-    const errorText = await response.text().catch(() => "Unknown error");
-    throw new Error(`Failed to get PayPal access token: ${errorText}`);
-  }
+  const authHeader = `Basic ${Buffer.from(
+    `${clientId}:${clientSecret}`
+  ).toString("base64")}`;
 
-  const data = await response.json();
-  return data.access_token;
+  console.log("[getPayPalAccessToken] Request details", {
+    method: "POST",
+    url: `${baseUrl}/v1/oauth2/token`,
+    hasAuthHeader: !!authHeader,
+    authHeaderLength: authHeader.length,
+    authHeaderPrefix: authHeader.substring(0, 20),
+    timestamp: new Date().toISOString(),
+  });
+
+  try {
+    const response = await fetch(`${baseUrl}/v1/oauth2/token`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Accept-Language": "en_US",
+        "Content-Type": "application/x-www-form-urlencoded",
+        Authorization: authHeader,
+      },
+      body: "grant_type=client_credentials",
+    });
+
+    console.log("[getPayPalAccessToken] Response received", {
+      ok: response.ok,
+      status: response.status,
+      statusText: response.statusText,
+      headers: Object.fromEntries(response.headers.entries()),
+      timestamp: new Date().toISOString(),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => "Unknown error");
+      console.error("[getPayPalAccessToken] Request failed", {
+        status: response.status,
+        statusText: response.statusText,
+        errorText,
+        errorTextParsed: (() => {
+          try {
+            return JSON.parse(errorText);
+          } catch {
+            return errorText;
+          }
+        })(),
+        baseUrl,
+        isSandbox,
+        timestamp: new Date().toISOString(),
+      });
+      throw new Error(`Failed to get PayPal access token: ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log("[getPayPalAccessToken] Token received", {
+      hasAccessToken: !!data.access_token,
+      accessTokenLength: data.access_token?.length,
+      accessTokenPrefix: data.access_token
+        ? `${data.access_token.substring(0, 20)}...`
+        : "N/A",
+      tokenType: data.token_type,
+      expiresIn: data.expires_in,
+      fullResponse: data,
+      timestamp: new Date().toISOString(),
+    });
+
+    if (!data.access_token) {
+      console.error("[getPayPalAccessToken] No access token in response", {
+        data,
+        timestamp: new Date().toISOString(),
+      });
+      throw new Error("No access token in PayPal response");
+    }
+
+    return data.access_token;
+  } catch (error) {
+    console.error("[getPayPalAccessToken] Exception occurred", {
+      error,
+      errorMessage: error instanceof Error ? error.message : String(error),
+      errorStack: error instanceof Error ? error.stack : undefined,
+      baseUrl,
+      isSandbox,
+      hasClientId: !!clientId,
+      hasClientSecret: !!clientSecret,
+      timestamp: new Date().toISOString(),
+    });
+    throw error;
+  }
 }
 
 function getPayPalBaseUrl(): string {
-  const isSandbox = process.env.PAYPAL_MODE === "sandbox";
+  const isSandbox = process.env.NEXT_PUBLIC_PAYPAL_MODE === "sandbox";
   return isSandbox
     ? "https://api-m.sandbox.paypal.com"
-    : "https://api-m.paypal.com"
+    : "https://api-m.paypal.com";
 }
 
 async function createPayPalSubscriptionPlan(
   amount: number,
   currency: string = "USD",
   intervalUnit: "MONTH" | "YEAR",
-  intervalCount: number = 1,
+  intervalCount: number = 1
 ): Promise<{ planId: string }> {
   const accessToken = await getPayPalAccessToken();
   const baseUrl = getPayPalBaseUrl();
@@ -97,7 +194,7 @@ async function createPayPalSubscriptionPlan(
       message: "Failed to create product",
     }));
     throw new Error(
-      `PayPal product creation failed: ${JSON.stringify(errorData)}`,
+      `PayPal product creation failed: ${JSON.stringify(errorData)}`
     );
   }
 
@@ -126,7 +223,7 @@ async function createPayPalSubscriptionPlan(
           },
           tenure_type: "REGULAR",
           sequence: 1,
-          total_cycles: 0, 
+          total_cycles: 0,
           pricing_scheme: {
             fixed_price: {
               value: amount.toFixed(2),
@@ -152,7 +249,7 @@ async function createPayPalSubscriptionPlan(
       message: "Failed to create plan",
     }));
     throw new Error(
-      `PayPal plan creation failed: ${JSON.stringify(errorData)}`,
+      `PayPal plan creation failed: ${JSON.stringify(errorData)}`
     );
   }
 
@@ -165,7 +262,7 @@ async function createPayPalSubscription(
   returnUrl: string,
   cancelUrl: string,
   email?: string,
-  name?: string,
+  name?: string
 ): Promise<{ subscriptionId: string; approvalUrl: string }> {
   const accessToken = await getPayPalAccessToken();
   const baseUrl = getPayPalBaseUrl();
@@ -222,7 +319,7 @@ async function createPayPalSubscription(
     }));
     console.error("PayPal subscription creation error:", errorData);
     throw new Error(
-      `PayPal subscription creation failed: ${JSON.stringify(errorData)}`,
+      `PayPal subscription creation failed: ${JSON.stringify(errorData)}`
     );
   }
 
@@ -231,7 +328,7 @@ async function createPayPalSubscription(
 
   const approveLink = data.links?.find(
     (link: { rel: string; href: string }) =>
-      link.rel === "approve" || link.rel === "edit",
+      link.rel === "approve" || link.rel === "edit"
   );
 
   if (!approveLink) {
@@ -255,7 +352,7 @@ async function getPayPalSubscription(subscriptionId: string) {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
-    },
+    }
   );
 
   if (!response.ok) {
@@ -263,7 +360,7 @@ async function getPayPalSubscription(subscriptionId: string) {
       message: "Failed to get subscription",
     }));
     throw new Error(
-      `Failed to get PayPal subscription: ${JSON.stringify(errorData)}`,
+      `Failed to get PayPal subscription: ${JSON.stringify(errorData)}`
     );
   }
 
@@ -292,7 +389,7 @@ async function getPayPalPlan(planId: string) {
 }
 
 async function suspendPayPalSubscription(
-  subscriptionId: string,
+  subscriptionId: string
 ): Promise<{ success: boolean }> {
   const accessToken = await getPayPalAccessToken();
   const baseUrl = getPayPalBaseUrl();
@@ -309,7 +406,7 @@ async function suspendPayPalSubscription(
       body: JSON.stringify({
         reason: "User requested cancellation",
       }),
-    },
+    }
   );
 
   if (!response.ok) {
@@ -317,7 +414,7 @@ async function suspendPayPalSubscription(
       message: "Failed to suspend subscription",
     }));
     throw new Error(
-      `PayPal subscription suspension failed: ${JSON.stringify(errorData)}`,
+      `PayPal subscription suspension failed: ${JSON.stringify(errorData)}`
     );
   }
 
@@ -326,22 +423,21 @@ async function suspendPayPalSubscription(
 
 async function getPayPalSubscriptionUpdatePaymentUrl(
   subscriptionId: string,
-  returnUrl: string,
+  returnUrl: string
 ): Promise<{ approvalUrl: string }> {
-  const isSandbox = process.env.PAYPAL_MODE === "sandbox";
+  const isSandbox = process.env.NEXT_PUBLIC_PAYPAL_MODE === "sandbox";
 
   const subscription = await getPayPalSubscription(subscriptionId);
 
   const editLink = subscription.links?.find(
-    (link: { rel: string; href: string }) => link.rel === "edit",
+    (link: { rel: string; href: string }) => link.rel === "edit"
   );
 
   if (editLink) {
-    
     const separator = editLink.href.includes("?") ? "&" : "?";
     return {
       approvalUrl: `${editLink.href}${separator}return_url=${encodeURIComponent(
-        returnUrl,
+        returnUrl
       )}`,
     };
   }
@@ -351,7 +447,7 @@ async function getPayPalSubscriptionUpdatePaymentUrl(
     : "https://www.paypal.com";
   return {
     approvalUrl: `${baseUrl}/myaccount/autopay/connect/${subscriptionId}?returnUrl=${encodeURIComponent(
-      returnUrl,
+      returnUrl
     )}`,
   };
 }
@@ -359,7 +455,7 @@ async function getPayPalSubscriptionUpdatePaymentUrl(
 async function _getPayPalSubscriptionTransactions(
   subscriptionId: string,
   startTime?: string,
-  endTime?: string,
+  endTime?: string
 ) {
   const accessToken = await getPayPalAccessToken();
   const baseUrl = getPayPalBaseUrl();
@@ -376,7 +472,7 @@ async function _getPayPalSubscriptionTransactions(
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
-    },
+    }
   );
 
   if (!response.ok) {
@@ -391,8 +487,8 @@ async function _getPayPalSubscriptionTransactions(
 
     throw new Error(
       `Failed to get PayPal subscription transactions: ${JSON.stringify(
-        errorData,
-      )}`,
+        errorData
+      )}`
     );
   }
 
@@ -422,7 +518,7 @@ function _formatPayPalTransactionToInvoice(
     status?: string;
     description?: string;
   },
-  planDescription: string,
+  planDescription: string
 ): PayPalInvoice {
   const amount = parseFloat(transaction.amount?.value || "0");
   const currency = transaction.amount?.currency_code || "USD";
@@ -464,7 +560,7 @@ async function generateTaxInvoice(
   amount?: number,
   paypalSubscriptionId?: string,
   paypalTransactionId?: string,
-  status: "paid" | "pending" | "cancelled" | "refunded" = "paid",
+  status: "paid" | "pending" | "cancelled" | "refunded" = "paid"
 ): Promise<void> {
   try {
     await connectDB();
@@ -490,7 +586,6 @@ async function generateTaxInvoice(
       previousSubscriptionTier &&
       previousSubscriptionTier !== subscriptionTier
     ) {
-      
       const previousPlanName =
         previousSubscriptionTier === "FREE"
           ? "Free"
@@ -501,10 +596,8 @@ async function generateTaxInvoice(
           : `${subscriptionPlan || ""} (${subscriptionTier})`;
       description = `Subscription change from ${previousPlanName} to ${newPlanName}`;
     } else if (subscriptionTier === "FREE") {
-      
       description = "Subscription cancelled - Downgrade to Free plan";
     } else {
-      
       const planName = subscriptionPlan
         ? `${subscriptionPlan} Plan (${subscriptionTier})`
         : `${subscriptionTier} Subscription`;
@@ -539,14 +632,13 @@ async function generateTaxInvoice(
     await invoice.save();
     console.log(`Tax invoice generated: ${invoice.invoiceNumber}`);
   } catch (error) {
-    
     console.error("Failed to generate tax invoice:", error);
   }
 }
 
 export async function getOrCreateSubscriptionPlan(
   tier: SubscriptionTier,
-  planType: PlanType,
+  planType: PlanType
 ): Promise<PaymentActionResult<{ planId: string }>> {
   const session = await auth();
   if (!session?.user) {
@@ -568,11 +660,10 @@ export async function getOrCreateSubscriptionPlan(
     const cachedPlan = await getCache<{ planId: string }>(cacheKey);
 
     if (cachedPlan?.planId) {
-      
       await setCache(
         `paypal_plan_details:${cachedPlan.planId}`,
         { tier, planType, amount },
-        24 * 60 * 60,
+        24 * 60 * 60
       );
       return {
         success: true,
@@ -584,15 +675,15 @@ export async function getOrCreateSubscriptionPlan(
       amount,
       "USD",
       tier === "MONTHLY" ? "MONTH" : "YEAR",
-      1,
+      1
     );
 
     await setCache(cacheKey, { planId }, 24 * 60 * 60);
-    
+
     await setCache(
       `paypal_plan_details:${planId}`,
       { tier, planType, amount },
-      24 * 60 * 60,
+      24 * 60 * 60
     );
 
     return {
@@ -613,7 +704,7 @@ export async function getOrCreateSubscriptionPlan(
 
 export async function createSubscription(
   tier: SubscriptionTier,
-  planType: PlanType,
+  planType: PlanType
 ): Promise<
   PaymentActionResult<{ approvalUrl: string; subscriptionId: string }>
 > {
@@ -647,7 +738,7 @@ export async function createSubscription(
       returnUrl,
       cancelUrl,
       user.email || undefined,
-      user.name || undefined,
+      user.name || undefined
     );
 
     const { SUBSCRIPTION_PLANS } = await import("@/modules/shared/constants");
@@ -665,7 +756,7 @@ export async function createSubscription(
         amount,
         planId: planResult.data.planId,
       },
-      24 * 60 * 60, 
+      24 * 60 * 60
     );
 
     return {
@@ -686,7 +777,7 @@ export async function createSubscription(
 
 export async function changePlanDirectly(
   tier: SubscriptionTier,
-  planType: PlanType,
+  planType: PlanType
 ): Promise<PaymentActionResult<{ user: UserSubscriptionData }>> {
   const session = await auth();
   if (!session?.user) {
@@ -712,13 +803,11 @@ export async function changePlanDirectly(
     try {
       await suspendPayPalSubscription(user.paypalSubscriptionId);
     } catch (error) {
-
       const errorMessage =
         error instanceof Error ? error.message : String(error);
       if (!errorMessage.includes("RESOURCE_NOT_FOUND")) {
         console.error("Failed to suspend old subscription:", error);
       }
-      
     }
 
     const planResult = await getOrCreateSubscriptionPlan(tier, planType);
@@ -744,7 +833,7 @@ export async function changePlanDirectly(
       returnUrl,
       cancelUrl,
       user.email || undefined,
-      user.name || undefined,
+      user.name || undefined
     );
 
     await setCache(
@@ -756,7 +845,7 @@ export async function changePlanDirectly(
         amount,
         planId: planResult.data.planId,
       },
-      24 * 60 * 60,
+      24 * 60 * 60
     );
 
     const previousSubscriptionTier = user.subscriptionTier;
@@ -767,7 +856,7 @@ export async function changePlanDirectly(
     user.subscriptionPlan = planType;
     user.paypalSubscriptionId = subscriptionId;
     user.searchesResetAt = new Date(
-      Date.now() + daysUntilReset * 24 * 60 * 60 * 1000,
+      Date.now() + daysUntilReset * 24 * 60 * 60 * 1000
     );
     user.searchesUsed = 0;
     await user.save();
@@ -778,8 +867,8 @@ export async function changePlanDirectly(
       planType,
       previousSubscriptionTier as SubscriptionTier | "FREE",
       previousSubscriptionPlan,
-      undefined, 
-      subscriptionId,
+      undefined,
+      subscriptionId
     );
 
     revalidatePath("/");
@@ -814,7 +903,7 @@ export async function changePlanDirectly(
 export async function captureSubscription(
   subscriptionId: string,
   tier?: SubscriptionTier,
-  planType?: PlanType,
+  planType?: PlanType
 ): Promise<
   PaymentActionResult<{
     subscriptionId: string;
@@ -847,7 +936,6 @@ export async function captureSubscription(
     if (!finalTier || !finalPlanType) {
       const planId = subscription.plan_id;
       if (planId) {
-        
         const planDetails = await getCache<{
           tier: SubscriptionTier;
           planType: PlanType;
@@ -858,7 +946,6 @@ export async function captureSubscription(
           finalTier = planDetails.tier;
           finalPlanType = planDetails.planType;
         } else {
-          
           try {
             const plan = await getPayPalPlan(planId);
             const billingCycle = plan.billing_cycles?.[0];
@@ -873,7 +960,9 @@ export async function captureSubscription(
             }
 
             if (!finalPlanType && amount > 0) {
-              const { SUBSCRIPTION_PLANS } = await import("@/modules/shared/constants");
+              const { SUBSCRIPTION_PLANS } = await import(
+                "@/modules/shared/constants"
+              );
               if (finalTier === "MONTHLY") {
                 if (amount === SUBSCRIPTION_PLANS.PRO.monthlyPrice) {
                   finalPlanType = "PRO";
@@ -890,33 +979,30 @@ export async function captureSubscription(
 
               if (!finalPlanType) {
                 console.warn(
-                  `Could not determine plan type from amount: ${amount}, tier: ${finalTier}`,
+                  `Could not determine plan type from amount: ${amount}, tier: ${finalTier}`
                 );
                 finalPlanType = "BASIC";
               } else {
-                
                 await setCache(
                   `paypal_plan_details:${planId}`,
                   { tier: finalTier, planType: finalPlanType, amount },
-                  24 * 60 * 60,
+                  24 * 60 * 60
                 );
               }
             } else if (!finalPlanType) {
-              
               console.warn(
-                "Could not determine plan type: no amount found in plan",
+                "Could not determine plan type: no amount found in plan"
               );
               finalPlanType = "BASIC";
             }
           } catch (error) {
             console.error("Failed to fetch plan details from PayPal:", error);
-            
+
             finalTier = finalTier || "MONTHLY";
             finalPlanType = finalPlanType || "BASIC";
           }
         }
       } else {
-        
         finalTier = finalTier || "MONTHLY";
         finalPlanType = finalPlanType || "BASIC";
       }
@@ -961,7 +1047,7 @@ export async function captureSubscription(
     user.subscriptionPlan = finalPlanType;
     user.paypalSubscriptionId = subscriptionId;
     user.searchesResetAt = new Date(
-      Date.now() + daysUntilReset * 24 * 60 * 60 * 1000,
+      Date.now() + daysUntilReset * 24 * 60 * 60 * 1000
     );
     user.searchesUsed = 0;
     await user.save();
@@ -972,8 +1058,8 @@ export async function captureSubscription(
       finalPlanType,
       previousSubscriptionTier as SubscriptionTier | "FREE",
       previousSubscriptionPlan,
-      undefined, 
-      subscriptionId,
+      undefined,
+      subscriptionId
     );
 
     await deleteCache(`paypal_subscription:${subscriptionId}`);
@@ -1032,7 +1118,6 @@ export async function downgradeToFree(): Promise<
         await suspendPayPalSubscription(user.paypalSubscriptionId);
       } catch (error) {
         console.error("Failed to suspend PayPal subscription:", error);
-        
       }
     }
 
@@ -1042,10 +1127,8 @@ export async function downgradeToFree(): Promise<
     user.subscriptionTier = "FREE";
     user.subscriptionPlan = undefined;
     user.paypalSubscriptionId = undefined;
-    user.searchesResetAt = new Date(
-      Date.now() + 30 * 24 * 60 * 60 * 1000, 
-    );
-    
+    user.searchesResetAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
     await user.save();
 
     await generateTaxInvoice(
@@ -1054,10 +1137,10 @@ export async function downgradeToFree(): Promise<
       undefined,
       previousSubscriptionTier as SubscriptionTier | "FREE",
       previousSubscriptionPlan,
-      0, 
-      undefined, 
+      0,
       undefined,
-      "cancelled",
+      undefined,
+      "cancelled"
     );
 
     revalidatePath("/");
@@ -1098,7 +1181,6 @@ export async function capturePayment(subscriptionId: string): Promise<
     user: UserSubscriptionData;
   }>
 > {
-  
   return captureSubscription(subscriptionId);
 }
 

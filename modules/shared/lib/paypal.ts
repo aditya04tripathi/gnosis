@@ -1,9 +1,9 @@
 import { APP_INFO } from "../constants";
 
 async function getPayPalAccessToken(): Promise<string> {
-  const clientId = process.env.PAYPAL_CLIENT_ID;
+  const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
   const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
-  const isSandbox = process.env.PAYPAL_MODE === "sandbox";
+  const isSandbox = process.env.NEXT_PUBLIC_PAYPAL_MODE === "sandbox";
 
   if (!clientId || !clientSecret) {
     throw new Error("PayPal credentials not configured");
@@ -11,7 +11,7 @@ async function getPayPalAccessToken(): Promise<string> {
 
   const baseUrl = isSandbox
     ? "https://api-m.sandbox.paypal.com"
-    : "https://api-m.paypal.com"
+    : "https://api-m.paypal.com";
 
   const response = await fetch(`${baseUrl}/v1/oauth2/token`, {
     method: "POST",
@@ -39,10 +39,10 @@ export async function createPayPalOrder(
   cancelUrl: string
 ): Promise<{ orderId: string; approvalUrl: string }> {
   const accessToken = await getPayPalAccessToken();
-  const isSandbox = process.env.PAYPAL_MODE === "sandbox";
+  const isSandbox = process.env.NEXT_PUBLIC_PAYPAL_MODE === "sandbox";
   const baseUrl = isSandbox
     ? "https://api-m.sandbox.paypal.com"
-    : "https://api-m.paypal.com"
+    : "https://api-m.paypal.com";
 
   const createOrderResponse = await fetch(`${baseUrl}/v2/checkout/orders`, {
     method: "POST",
@@ -129,7 +129,6 @@ export async function createPayPalOrder(
   );
 
   if (!approveLink) {
-    
     const orderDetails = await getPayPalOrder(orderId);
     const orderApproveLink = orderDetails.links?.find(
       (link: { rel: string; href: string }) =>
@@ -154,10 +153,10 @@ export async function capturePayPalOrder(
   orderId: string
 ): Promise<{ success: boolean; transactionId?: string }> {
   const accessToken = await getPayPalAccessToken();
-  const isSandbox = process.env.PAYPAL_MODE === "sandbox";
+  const isSandbox = process.env.NEXT_PUBLIC_PAYPAL_MODE === "sandbox";
   const baseUrl = isSandbox
     ? "https://api-m.sandbox.paypal.com"
-    : "https://api-m.paypal.com"
+    : "https://api-m.paypal.com";
 
   const response = await fetch(
     `${baseUrl}/v2/checkout/orders/${orderId}/capture`,
@@ -194,10 +193,10 @@ export async function capturePayPalOrder(
 
 export async function getPayPalOrder(orderId: string) {
   const accessToken = await getPayPalAccessToken();
-  const isSandbox = process.env.PAYPAL_MODE === "sandbox";
+  const isSandbox = process.env.NEXT_PUBLIC_PAYPAL_MODE === "sandbox";
   const baseUrl = isSandbox
     ? "https://api-m.sandbox.paypal.com"
-    : "https://api-m.paypal.com"
+    : "https://api-m.paypal.com";
 
   const response = await fetch(`${baseUrl}/v2/checkout/orders/${orderId}`, {
     method: "GET",
@@ -220,10 +219,10 @@ export async function createPayPalSubscriptionPlan(
   intervalCount: number = 1
 ): Promise<{ planId: string }> {
   const accessToken = await getPayPalAccessToken();
-  const isSandbox = process.env.PAYPAL_MODE === "sandbox";
+  const isSandbox = process.env.NEXT_PUBLIC_PAYPAL_MODE === "sandbox";
   const baseUrl = isSandbox
     ? "https://api-m.sandbox.paypal.com"
-    : "https://api-m.paypal.com"
+    : "https://api-m.paypal.com";
 
   const productResponse = await fetch(`${baseUrl}/v1/catalogs/products`, {
     method: "POST",
@@ -272,7 +271,7 @@ export async function createPayPalSubscriptionPlan(
           },
           tenure_type: "REGULAR",
           sequence: 1,
-          total_cycles: 0, 
+          total_cycles: 0,
           pricing_scheme: {
             fixed_price: {
               value: amount.toFixed(2),
@@ -317,10 +316,10 @@ export async function createPayPalSubscription(
   name?: string
 ): Promise<{ subscriptionId: string; approvalUrl: string }> {
   const accessToken = await getPayPalAccessToken();
-  const isSandbox = process.env.PAYPAL_MODE === "sandbox";
+  const isSandbox = process.env.NEXT_PUBLIC_PAYPAL_MODE === "sandbox";
   const baseUrl = isSandbox
     ? "https://api-m.sandbox.paypal.com"
-    : "https://api-m.paypal.com"
+    : "https://api-m.paypal.com";
 
   const subscriptionPayload: {
     plan_id: string;
@@ -398,10 +397,10 @@ export async function createPayPalSubscription(
 
 export async function getPayPalSubscription(subscriptionId: string) {
   const accessToken = await getPayPalAccessToken();
-  const isSandbox = process.env.PAYPAL_MODE === "sandbox";
+  const isSandbox = process.env.NEXT_PUBLIC_PAYPAL_MODE === "sandbox";
   const baseUrl = isSandbox
     ? "https://api-m.sandbox.paypal.com"
-    : "https://api-m.paypal.com"
+    : "https://api-m.paypal.com";
 
   const response = await fetch(
     `${baseUrl}/v1/billing/subscriptions/${subscriptionId}`,
@@ -430,10 +429,10 @@ export async function updatePayPalSubscription(
   newPlanId: string
 ): Promise<{ success: boolean }> {
   const accessToken = await getPayPalAccessToken();
-  const isSandbox = process.env.PAYPAL_MODE === "sandbox";
+  const isSandbox = process.env.NEXT_PUBLIC_PAYPAL_MODE === "sandbox";
   const baseUrl = isSandbox
     ? "https://api-m.sandbox.paypal.com"
-    : "https://api-m.paypal.com"
+    : "https://api-m.paypal.com";
 
   const response = await fetch(
     `${baseUrl}/v1/billing/subscriptions/${subscriptionId}`,
@@ -472,10 +471,10 @@ export async function suspendPayPalSubscription(
   subscriptionId: string
 ): Promise<{ success: boolean }> {
   const accessToken = await getPayPalAccessToken();
-  const isSandbox = process.env.PAYPAL_MODE === "sandbox";
+  const isSandbox = process.env.NEXT_PUBLIC_PAYPAL_MODE === "sandbox";
   const baseUrl = isSandbox
     ? "https://api-m.sandbox.paypal.com"
-    : "https://api-m.paypal.com"
+    : "https://api-m.paypal.com";
 
   const response = await fetch(
     `${baseUrl}/v1/billing/subscriptions/${subscriptionId}/suspend`,
@@ -514,7 +513,7 @@ export async function getPayPalSubscriptionUpdatePaymentUrl(
   subscriptionId: string,
   returnUrl: string
 ): Promise<{ approvalUrl: string }> {
-  const isSandbox = process.env.PAYPAL_MODE === "sandbox";
+  const isSandbox = process.env.NEXT_PUBLIC_PAYPAL_MODE === "sandbox";
 
   const subscription = await getPayPalSubscription(subscriptionId);
 
@@ -523,7 +522,6 @@ export async function getPayPalSubscriptionUpdatePaymentUrl(
   );
 
   if (editLink) {
-    
     const separator = editLink.href.includes("?") ? "&" : "?";
     return {
       approvalUrl: `${editLink.href}${separator}return_url=${encodeURIComponent(
@@ -534,7 +532,7 @@ export async function getPayPalSubscriptionUpdatePaymentUrl(
 
   const baseUrl = isSandbox
     ? "https://api-m.sandbox.paypal.com"
-    : "https://api-m.paypal.com"
+    : "https://api-m.paypal.com";
   return {
     approvalUrl: `${baseUrl}/myaccount/autopay/connect/${subscriptionId}?returnUrl=${encodeURIComponent(
       returnUrl
@@ -548,10 +546,10 @@ export async function getPayPalSubscriptionTransactions(
   endTime?: string
 ) {
   const accessToken = await getPayPalAccessToken();
-  const isSandbox = process.env.PAYPAL_MODE === "sandbox";
+  const isSandbox = process.env.NEXT_PUBLIC_PAYPAL_MODE === "sandbox";
   const baseUrl = isSandbox
     ? "https://api-m.sandbox.paypal.com"
-    : "https://api-m.paypal.com"
+    : "https://api-m.paypal.com";
 
   const params = new URLSearchParams();
   if (startTime) params.append("start_time", startTime);

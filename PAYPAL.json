@@ -1,0 +1,136 @@
+{
+  "Product": {
+    "id": "PROD-0DE13737CR102582D",
+    "name": "Gnosis Subscription",
+    "description": "AI-powered startup idea validation service",
+    "create_time": "2025-11-06T05:09:02Z",
+    "links": [
+      {
+        "href": "https://api.sandbox.paypal.com/v1/catalogs/products/PROD-0DE13737CR102582D",
+        "rel": "self",
+        "method": "GET"
+      },
+      {
+        "href": "https://api.sandbox.paypal.com/v1/catalogs/products/PROD-0DE13737CR102582D",
+        "rel": "edit",
+        "method": "PATCH"
+      }
+    ]
+  },
+  "MonthlyBasic": {
+    "id": "P-2WN91335K8579980LNEGC3QY",
+    "product_id": "PROD-0DE13737CR102582D",
+    "name": "Monthly Subscription Plan",
+    "status": "ACTIVE",
+    "description": "Recurring monthly subscription",
+    "usage_type": "LICENSED",
+    "create_time": "2025-11-06T05:10:27Z",
+    "links": [
+      {
+        "href": "https://api.sandbox.paypal.com/v1/billing/plans/P-2WN91335K8579980LNEGC3QY",
+        "rel": "self",
+        "method": "GET",
+        "encType": "application/json"
+      },
+      {
+        "href": "https://api.sandbox.paypal.com/v1/billing/plans/P-2WN91335K8579980LNEGC3QY",
+        "rel": "edit",
+        "method": "PATCH",
+        "encType": "application/json"
+      },
+      {
+        "href": "https://api.sandbox.paypal.com/v1/billing/plans/P-2WN91335K8579980LNEGC3QY/deactivate",
+        "rel": "self",
+        "method": "POST",
+        "encType": "application/json"
+      }
+    ]
+  },
+  "YearlyBasic": {
+    "id": "P-7WN14411SF8446000NEGC3XA",
+    "product_id": "PROD-0DE13737CR102582D",
+    "name": "Yearly Subscription Plan",
+    "status": "ACTIVE",
+    "description": "Recurring yearly subscription",
+    "usage_type": "LICENSED",
+    "create_time": "2025-11-06T05:10:52Z",
+    "links": [
+      {
+        "href": "https://api.sandbox.paypal.com/v1/billing/plans/P-7WN14411SF8446000NEGC3XA",
+        "rel": "self",
+        "method": "GET",
+        "encType": "application/json"
+      },
+      {
+        "href": "https://api.sandbox.paypal.com/v1/billing/plans/P-7WN14411SF8446000NEGC3XA",
+        "rel": "edit",
+        "method": "PATCH",
+        "encType": "application/json"
+      },
+      {
+        "href": "https://api.sandbox.paypal.com/v1/billing/plans/P-7WN14411SF8446000NEGC3XA/deactivate",
+        "rel": "self",
+        "method": "POST",
+        "encType": "application/json"
+      }
+    ]
+  },
+  "MonthlyPro": {
+    "id": "P-0H077415K60996514NEGC35A",
+    "product_id": "PROD-0DE13737CR102582D",
+    "name": "Monthly Subscription Plan",
+    "status": "ACTIVE",
+    "description": "Recurring monthly subscription",
+    "usage_type": "LICENSED",
+    "create_time": "2025-11-06T05:11:16Z",
+    "links": [
+      {
+        "href": "https://api.sandbox.paypal.com/v1/billing/plans/P-0H077415K60996514NEGC35A",
+        "rel": "self",
+        "method": "GET",
+        "encType": "application/json"
+      },
+      {
+        "href": "https://api.sandbox.paypal.com/v1/billing/plans/P-0H077415K60996514NEGC35A",
+        "rel": "edit",
+        "method": "PATCH",
+        "encType": "application/json"
+      },
+      {
+        "href": "https://api.sandbox.paypal.com/v1/billing/plans/P-0H077415K60996514NEGC35A/deactivate",
+        "rel": "self",
+        "method": "POST",
+        "encType": "application/json"
+      }
+    ]
+  },
+  "YearlyPro": {
+    "id": "P-27K5933436582525CNEGC4CY",
+    "product_id": "PROD-0DE13737CR102582D",
+    "name": "Yearly Subscription Plan",
+    "status": "ACTIVE",
+    "description": "Recurring yearly subscription",
+    "usage_type": "LICENSED",
+    "create_time": "2025-11-06T05:11:39Z",
+    "links": [
+      {
+        "href": "https://api.sandbox.paypal.com/v1/billing/plans/P-27K5933436582525CNEGC4CY",
+        "rel": "self",
+        "method": "GET",
+        "encType": "application/json"
+      },
+      {
+        "href": "https://api.sandbox.paypal.com/v1/billing/plans/P-27K5933436582525CNEGC4CY",
+        "rel": "edit",
+        "method": "PATCH",
+        "encType": "application/json"
+      },
+      {
+        "href": "https://api.sandbox.paypal.com/v1/billing/plans/P-27K5933436582525CNEGC4CY/deactivate",
+        "rel": "self",
+        "method": "POST",
+        "encType": "application/json"
+      }
+    ]
+  }
+}

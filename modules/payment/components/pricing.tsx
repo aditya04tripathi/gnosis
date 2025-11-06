@@ -1,5 +1,6 @@
 "use client";
 
+import { PayPalButtons } from "@paypal/react-paypal-js";
 import { Check } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -21,16 +22,16 @@ import { Separator } from "@/modules/shared/components/ui/separator";
 import { Switch } from "@/modules/shared/components/ui/switch";
 import { PayPalButton } from "./paypal-button";
 
+// import { PayPalButton } from "./paypal-button";
+
 interface PricingProps {
   currentPlan?: string;
   onHomePage?: boolean;
-  hasPaymentMethod?: boolean;
 }
 
 export default function Pricing({
   currentPlan = "FREE",
   onHomePage = false,
-  hasPaymentMethod = false,
 }: PricingProps) {
   const router = useRouter();
   const [isMonthly, setIsMonthly] = useState(true);
@@ -203,10 +204,13 @@ export default function Pricing({
                     Current Plan
                   </Button>
                 ) : (
+                  // <PayPalButton
+                  //   tier={isMonthly ? "MONTHLY" : "YEARLY"}
+                  //   planType="BASIC"
+                  // />
                   <PayPalButton
                     tier={isMonthly ? "MONTHLY" : "YEARLY"}
                     planType="BASIC"
-                    hasPaymentMethod={hasPaymentMethod}
                   />
                 )}
               </CardFooter>
@@ -257,8 +261,7 @@ export default function Pricing({
                 ) : (
                   <PayPalButton
                     tier={isMonthly ? "MONTHLY" : "YEARLY"}
-                    planType="PRO"
-                    hasPaymentMethod={hasPaymentMethod}
+                    planType="BASIC"
                   />
                 )}
               </CardFooter>
