@@ -49,10 +49,6 @@ export default function PrivacyPage() {
                   <strong>Usage Data:</strong> includes information about how
                   you use our website and services
                 </li>
-                <li>
-                  <strong>Payment Data:</strong> includes payment information
-                  processed securely through PayPal
-                </li>
               </ul>
             </div>
 
@@ -122,7 +118,6 @@ export default function PrivacyPage() {
                 We may employ third-party companies and services for:
               </p>
               <ul className="list-disc list-inside space-y-2 ml-4 text-sm sm:text-base">
-                <li>Payment processing (PayPal)</li>
                 <li>Authentication and security services</li>
                 <li>Analytics and performance monitoring</li>
               </ul>
