@@ -3,8 +3,6 @@
 import {
   BarChart3,
   Bell,
-  CreditCard,
-  DollarSign,
   FileCheck,
   FileText,
   LayoutDashboard,
@@ -48,33 +46,6 @@ const mainMenuItems = [
     label: "Validate Idea",
     icon: Search,
     href: "/validate",
-  },
-];
-
-const billingMenuItems = [
-  {
-    id: "billing",
-    label: "Billing",
-    icon: CreditCard,
-    href: "/billing",
-  },
-  {
-    id: "pricing",
-    label: "Pricing",
-    icon: DollarSign,
-    href: "/pricing",
-  },
-  {
-    id: "invoices",
-    label: "Invoices",
-    icon: FileText,
-    href: "/invoices",
-  },
-  {
-    id: "usage",
-    label: "Usage",
-    icon: BarChart3,
-    href: "/usage",
   },
 ];
 
@@ -169,31 +140,6 @@ export function AppSidebarCustom({
                   const isActive =
                     pathname === item.href ||
                     pathname?.startsWith(item.href + "/");
-                  return (
-                    <SidebarMenuItem key={item.id}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={isActive}
-                        tooltip={item.label}
-                      >
-                        <Link href={item.href}>
-                          <Icon />
-                          <span>{item.label}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                })}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-          <SidebarGroup>
-            <SidebarGroupLabel>Billing</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {billingMenuItems.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = pathname?.startsWith(item.href) || false;
                   return (
                     <SidebarMenuItem key={item.id}>
                       <SidebarMenuButton

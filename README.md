@@ -8,10 +8,7 @@ An AI-powered startup idea validation platform built with Next.js 16, featuring 
 - 📊 **Project Planning**: Generate comprehensive project plans with phases, tasks, and timelines
 - 📈 **Flowcharts**: Interactive visual flowcharts using xyflow to visualize project workflows
 - 📋 **SCRUM Boards**: Toggleable task management boards for project execution
-- 💰 **Subscription Plans**: Free (5 searches), Basic, Pro with monthly or yearly billing options
 - 🔐 **Authentication**: Secure JWT-based authentication with NextAuth
-- ⚡ **Rate Limiting**: Built-in rate limiting with Redis
-- 💾 **Caching**: Redis caching for improved performance
 - 🎨 **Modern UI**: Built with Shadcn UI, Tailark, and MagicUI components
 
 ## Tech Stack
@@ -19,10 +16,8 @@ An AI-powered startup idea validation platform built with Next.js 16, featuring 
 - **Framework**: Next.js 16
 - **UI**: Shadcn UI, Tailark, MagicUI
 - **Database**: MongoDB with Mongoose
-- **Caching**: Redis (ioredis)
 - **Authentication**: NextAuth.js v5 (JWT)
 - **AI**: Groq SDK
-- **Payments**: PayPal
 - **Visualization**: @xyflow/react (React Flow)
 
 ## Getting Started
@@ -32,7 +27,6 @@ An AI-powered startup idea validation platform built with Next.js 16, featuring 
 - Node.js 18+
 - pnpm (or npm/yarn)
 - MongoDB instance
-- Redis instance
 - Groq API key
 
 ### Installation
@@ -61,16 +55,8 @@ NEXTAUTH_URL=http://localhost:3000
 # MongoDB
 MONGODB_URI=mongodb://localhost:27017/startup-validator
 
-# Redis
-REDIS_URL=redis://localhost:6379
-
 # Groq AI
 GROQ_API_KEY=your-groq-api-key-here
-
-# PayPal (for production)
-PAYPAL_CLIENT_ID=your-paypal-client-id
-PAYPAL_CLIENT_SECRET=your-paypal-client-secret
-PAYPAL_MODE=sandbox
 ```
 
 4. Run the development server:
@@ -104,7 +90,6 @@ pnpm dev
 ├── constants/           # Application constants
 ├── lib/                 # Utility libraries
 │   ├── db.ts           # MongoDB connection
-│   ├── redis.ts       # Redis client
 │   └── groq.ts        # Groq AI integration
 ├── models/             # Mongoose models
 │   ├── User.ts
@@ -129,7 +114,6 @@ pnpm dev
   - Market analysis
   - Competition analysis
   - Target audience insights
-  - Recommended billing period (monthly or yearly)
 
 ### Project Planning
 
@@ -166,16 +150,12 @@ pnpm dev
 
 ## Environment Variables
 
-| Variable               | Description                         | Required                        |
-| ---------------------- | ----------------------------------- | ------------------------------- |
-| `NEXTAUTH_SECRET`      | Secret key for NextAuth JWT signing | Yes                             |
-| `NEXTAUTH_URL`         | Base URL of your application        | Yes                             |
-| `MONGODB_URI`          | MongoDB connection string           | Yes                             |
-| `REDIS_URL`            | Redis connection string             | No (optional, disables caching) |
-| `GROQ_API_KEY`         | Groq API key for LLM                | Yes                             |
-| `PAYPAL_CLIENT_ID`     | PayPal client ID                    | Yes (for payments)              |
-| `PAYPAL_CLIENT_SECRET` | PayPal client secret                | Yes (for payments)              |
-| `PAYPAL_MODE`          | PayPal mode (sandbox/live)          | Yes                             |
+| Variable          | Description                         | Required |
+| ----------------- | ----------------------------------- | -------- |
+| `NEXTAUTH_SECRET` | Secret key for NextAuth JWT signing | Yes      |
+| `NEXTAUTH_URL`    | Base URL of your application        | Yes      |
+| `MONGODB_URI`     | MongoDB connection string           | Yes      |
+| `GROQ_API_KEY`    | Groq API key for LLM                | Yes      |
 
 ## Deployment
 
@@ -189,38 +169,34 @@ pnpm dev
 ### Railway Deployment
 
 1. **Create a Railway project:**
+
    - Go to [railway.app](https://railway.app) and create a new project
    - Connect your GitHub repository
    - Railway will auto-detect it's a Next.js app
 
 2. **Add MongoDB service:**
+
    - In your Railway project, click "New" → "Database" → "MongoDB"
    - Railway will automatically provide `MONGODB_URI` environment variable
 
-3. **Add Redis service (optional):**
-   - Click "New" → "Database" → "Redis"  
-   - Railway will automatically provide `REDIS_URL` environment variable
-   - The app works without Redis, but caching will be disabled
+3. **Set environment variables:**
 
-4. **Set environment variables:**
    - Go to your main service → "Variables" tab
    - Add the following required variables:
      ```bash
      NEXTAUTH_SECRET=your-secret-key-here
      NEXTAUTH_URL=https://your-app.up.railway.app
      GROQ_API_KEY=your-groq-api-key-here
-     PAYPAL_CLIENT_ID=your-paypal-client-id
-     PAYPAL_CLIENT_SECRET=your-paypal-client-secret
-     PAYPAL_MODE=sandbox  # Use 'sandbox' for testing, 'live' for production
      ```
    - Generate `NEXTAUTH_SECRET` using: `openssl rand -base64 32`
    - **Important**: Update `NEXTAUTH_URL` after first deployment with your actual Railway domain
 
-5. **Link MongoDB to your service:**
+4. **Link MongoDB to your service:**
+
    - In your main service variables, link `MONGODB_URI` from the MongoDB service
    - Railway should auto-link this, but verify it's set
 
-6. **Deploy:**
+5. **Deploy:**
    - Railway will automatically deploy when you push to your main branch
    - Monitor deployment logs in Railway dashboard
 
@@ -235,9 +211,7 @@ The application can be deployed to any platform that supports Next.js:
 Make sure to:
 
 - Set up MongoDB (MongoDB Atlas recommended)
-- Set up Redis (Redis Cloud or Upstash recommended)
 - Configure environment variables
-- Set up PayPal webhooks for payment processing
 
 ## Development
 

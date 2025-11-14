@@ -41,7 +41,6 @@ export default function RootLayout({
           {children}
           <Toaster />
         </ThemeProvider>
-        <Script src="https://www.paypal.com/sdk/js?client-id=Aa14ohuhpGoXFkvTvx18F8CBnShbrhBBM2EQz4JKoSYlqQ1IuY_ymJUVpffSYhZRGtvz6B4QZrYWCtfW&currency=USD&intent=subscription&vault=true" />
       </body>
     </html>
   );

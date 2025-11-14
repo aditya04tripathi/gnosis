@@ -8,7 +8,6 @@ import {
   signIn,
 } from "@/modules/shared/lib/auth";
 import connectDB from "@/modules/shared/lib/db";
-import Invoice from "@/modules/shared/models/Invoice";
 import ProjectPlanModel from "@/modules/shared/models/ProjectPlan";
 import ScrumBoard from "@/modules/shared/models/ScrumBoard";
 import User from "@/modules/shared/models/User";
@@ -42,11 +41,8 @@ export async function signUp(formData: FormData) {
       name,
       password: hashedPassword,
       subscriptionTier: "FREE",
-      subscriptionPlan: null,
       searchesUsed: 0,
       searchesResetAt: new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000), // 2 days for free users
-      paypalSubscriptionId: null,
-      hasPaymentMethod: false,
       preferences: {
         aiProvider: "gemini",
         theme: "system",
@@ -124,7 +120,6 @@ export async function deleteAccount() {
     await Validation.deleteMany({ userId: session.user.id });
     await ScrumBoard.deleteMany({ userId: session.user.id });
     await ProjectPlanModel.deleteMany({ userId: session.user.id });
-    await Invoice.deleteMany({ userId: session.user.id });
 
     revalidatePath("/");
     revalidatePath("/dashboard");

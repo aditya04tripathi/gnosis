@@ -6,11 +6,8 @@ export interface IUser extends Document {
   name: string;
   password: string;
   subscriptionTier: SubscriptionTier;
-  subscriptionPlan?: "BASIC" | "PRO";
   searchesUsed: number;
   searchesResetAt: Date;
-  paypalSubscriptionId?: string;
-  hasPaymentMethod?: boolean;
   preferences?: {
     aiProvider?: "gemini" | "openai" | "anthropic";
     theme?: "light" | "dark" | "system";
@@ -49,11 +46,6 @@ const UserSchema = new Schema<IUser>(
       enum: ["FREE", "MONTHLY", "YEARLY"],
       default: "FREE",
     },
-    subscriptionPlan: {
-      type: String,
-      enum: ["BASIC", "PRO"],
-      default: null,
-    },
     searchesUsed: {
       type: Number,
       default: 0,
@@ -61,14 +53,6 @@ const UserSchema = new Schema<IUser>(
     searchesResetAt: {
       type: Date,
       default: () => new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days for free users
-    },
-    paypalSubscriptionId: {
-      type: String,
-      default: null,
-    },
-    hasPaymentMethod: {
-      type: Boolean,
-      default: false,
     },
     preferences: {
       type: {

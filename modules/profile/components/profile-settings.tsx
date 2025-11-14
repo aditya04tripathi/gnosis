@@ -181,8 +181,7 @@ export function ProfileSettings({ user }: ProfileSettingsProps) {
                     <p>
                       Are you sure you want to delete your account? This will
                       permanently delete your account and all associated data,
-                      including all your projects, validations, invoices, and
-                      more.
+                      including all your projects, validations, and more.
                     </p>
                   </AlertDialogDescription>
                 </AlertDialogHeader>

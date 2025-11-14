@@ -2,20 +2,19 @@
 
 import type mongoose from "mongoose";
 import { revalidatePath } from "next/cache";
-import { auth } from "@/modules/shared/lib/auth";
 import {
   CACHE_TTL,
   FREE_SEARCHES_LIMIT,
   RATE_LIMIT,
   SUBSCRIPTION_PLANS,
 } from "@/modules/shared/constants";
+import { auth } from "@/modules/shared/lib/auth";
 import connectDB from "@/modules/shared/lib/db";
 import {
   generateAlternativeIdeas,
   generateProjectPlan,
   validateIdea,
 } from "@/modules/shared/lib/groq";
-import { getCache, rateLimit, setCache } from "@/modules/shared/lib/redis";
 import ProjectPlan from "@/modules/shared/models/ProjectPlan";
 import ScrumBoard from "@/modules/shared/models/ScrumBoard";
 import User from "@/modules/shared/models/User";
@@ -37,48 +36,19 @@ export async function validateStartupIdea(idea: string) {
   try {
     await connectDB();
 
-    const rateLimitResult = await rateLimit(
-      `validation:${session.user.id}`,
-      RATE_LIMIT.VALIDATION.maxRequests,
-      RATE_LIMIT.VALIDATION.windowMs,
-    );
-
-    if (!rateLimitResult.allowed) {
-      return {
-        error: `Rate limit exceeded. Please try again after ${new Date(
-          rateLimitResult.resetAt,
-        ).toLocaleTimeString()}`,
-      };
-    }
-
     const user = await User.findById(session.user.id);
     if (!user) {
       return { error: "User not found" };
     }
 
-    const plan =
-      SUBSCRIPTION_PLANS[
-        user.subscriptionTier === "FREE"
-          ? "FREE"
-          : user.subscriptionPlan || "BASIC"
-      ];
+    const plan = SUBSCRIPTION_PLANS.FREE;
     const now = new Date();
 
     if (now > user.searchesResetAt) {
       user.searchesUsed = 0;
-      if (user.subscriptionTier === "FREE") {
-        user.searchesResetAt = new Date(
-          now.getTime() + 2 * 24 * 60 * 60 * 1000, // 2 days
-        );
-      } else if (user.subscriptionTier === "MONTHLY") {
-        user.searchesResetAt = new Date(
-          now.getTime() + 30 * 24 * 60 * 60 * 1000,
-        );
-      } else if (user.subscriptionTier === "YEARLY") {
-        user.searchesResetAt = new Date(
-          now.getTime() + 365 * 24 * 60 * 60 * 1000,
-        );
-      }
+      user.searchesResetAt = new Date(
+        now.getTime() + 2 * 24 * 60 * 60 * 1000 // 2 days
+      );
       await user.save();
     }
 
@@ -89,67 +59,26 @@ export async function validateStartupIdea(idea: string) {
       const timeUntilReset = user.searchesResetAt.getTime() - now.getTime();
       const hoursUntilReset = Math.ceil(timeUntilReset / (1000 * 60 * 60));
       const daysUntilReset = Math.floor(timeUntilReset / (1000 * 60 * 60 * 24));
-      
+
       let resetMessage = "Free plan limit reached";
       if (daysUntilReset >= 1) {
-        resetMessage += `. Next validation available in ${daysUntilReset} day${daysUntilReset !== 1 ? 's' : ''}`;
+        resetMessage += `. Next validation available in ${daysUntilReset} day${
+          daysUntilReset !== 1 ? "s" : ""
+        }`;
       } else if (hoursUntilReset > 0) {
-        resetMessage += `. Next validation available in ${hoursUntilReset} hour${hoursUntilReset !== 1 ? 's' : ''}`;
+        resetMessage += `. Next validation available in ${hoursUntilReset} hour${
+          hoursUntilReset !== 1 ? "s" : ""
+        }`;
       } else {
         resetMessage += `. Next validation available soon`;
       }
-      
+
       return {
         error: resetMessage,
         upgradeRequired: true,
       };
     }
 
-    if (
-      user.searchesUsed >= plan.searchesPerMonth &&
-      user.subscriptionTier !== "FREE"
-    ) {
-      return {
-        error: "Subscription limit reached",
-        upgradeRequired: true,
-      };
-    }
-
-    const cacheKey = `validation:${Buffer.from(idea)
-      .toString("base64")
-      .slice(0, 50)}`;
-    const cached = await getCache<ValidationResult>(cacheKey);
-    if (cached) {
-      
-      user.searchesUsed += 1;
-      // Set reset time to 2 days from now for free users
-      if (user.subscriptionTier === "FREE") {
-        user.searchesResetAt = new Date(
-          now.getTime() + 2 * 24 * 60 * 60 * 1000, // 2 days
-        );
-      }
-      await user.save();
-
-      const validation = await Validation.create({
-        userId: user._id,
-        idea,
-        validationResult: cached,
-      });
-
-      revalidatePath("/dashboard");
-      revalidatePath("/validate");
-      revalidatePath("/usage");
-      return {
-        success: true,
-        validationId: (validation._id as mongoose.Types.ObjectId).toString(),
-        validationResult: cached,
-        user: {
-          searchesUsed: user.searchesUsed,
-          subscriptionTier: user.subscriptionTier,
-          subscriptionPlan: user.subscriptionPlan,
-        },
-      };
-    }
 
     const validationResult = await validateIdea(idea);
 
@@ -157,7 +86,7 @@ export async function validateStartupIdea(idea: string) {
     // Set reset time to 2 days from now for free users
     if (user.subscriptionTier === "FREE") {
       user.searchesResetAt = new Date(
-        now.getTime() + 2 * 24 * 60 * 60 * 1000, // 2 days
+        now.getTime() + 2 * 24 * 60 * 60 * 1000 // 2 days
       );
     }
     await user.save();
@@ -167,8 +96,6 @@ export async function validateStartupIdea(idea: string) {
       idea,
       validationResult,
     });
-
-    await setCache(cacheKey, validationResult, CACHE_TTL.VALIDATION);
 
     revalidatePath("/dashboard");
     revalidatePath("/validate");
@@ -180,7 +107,6 @@ export async function validateStartupIdea(idea: string) {
       user: {
         searchesUsed: user.searchesUsed,
         subscriptionTier: user.subscriptionTier,
-        subscriptionPlan: user.subscriptionPlan,
       },
     };
   } catch (error) {
@@ -220,7 +146,7 @@ export async function generatePlan(validationId: string) {
 
     const plan = await generateProjectPlan(
       validation.idea,
-      validation.validationResult,
+      validation.validationResult
     );
 
     projectPlan = await ProjectPlan.create({
@@ -234,7 +160,7 @@ export async function generatePlan(validationId: string) {
     await validation.save();
 
     revalidatePath(
-      `/project/${(projectPlan._id as mongoose.Types.ObjectId).toString()}`,
+      `/project/${(projectPlan._id as mongoose.Types.ObjectId).toString()}`
     );
     revalidatePath("/dashboard");
     revalidatePath(`/validation/${validationId}`);
@@ -253,7 +179,7 @@ export async function generatePlan(validationId: string) {
 export async function updateTaskStatus(
   projectPlanId: string,
   taskId: string,
-  status: "TODO" | "IN_PROGRESS" | "DONE" | "BLOCKED",
+  status: "TODO" | "IN_PROGRESS" | "DONE" | "BLOCKED"
 ) {
   const session = await auth();
   if (!session?.user) {
@@ -309,7 +235,7 @@ export async function updateTaskStatus(
 
 export async function improveProjectPlan(
   projectPlanId: string,
-  userRequest: string,
+  userRequest: string
 ) {
   const session = await auth();
   if (!session?.user) {
@@ -394,11 +320,10 @@ export async function improveProjectPlan(
     return {
       success: true,
       improvements,
-      updatedPlan: null, 
+      updatedPlan: null,
       user: {
         searchesUsed: user.searchesUsed,
         subscriptionTier: user.subscriptionTier,
-        subscriptionPlan: user.subscriptionPlan,
       },
     };
   } catch (error) {

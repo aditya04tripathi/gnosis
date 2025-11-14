@@ -141,7 +141,6 @@ export const FOOTER = {
     { title: "Validate", href: "/validate" },
     { title: "Pricing", href: "/pricing" },
     { title: "About", href: "/about" },
-    { title: "Billing", href: "/billing" },
     { title: "Profile", href: "/profile" },
     { title: "Privacy", href: "/privacy" },
     { title: "Terms", href: "/terms" },

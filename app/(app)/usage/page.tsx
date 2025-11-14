@@ -30,17 +30,7 @@ export default async function UsagePage() {
     return null;
   }
 
-  let limit: number;
-  if (user.subscriptionTier === "FREE") {
-    limit = FREE_SEARCHES_LIMIT;
-  } else if (user.subscriptionPlan === "BASIC") {
-    limit = SUBSCRIPTION_PLANS.BASIC.searchesPerMonth;
-  } else if (user.subscriptionPlan === "PRO") {
-    limit = Infinity;
-  } else {
-    
-    limit = SUBSCRIPTION_PLANS.BASIC.searchesPerMonth;
-  }
+  const limit = FREE_SEARCHES_LIMIT;
 
   const used = user.searchesUsed || 0;
   const remaining = limit === Infinity ? Infinity : Math.max(0, limit - used);
@@ -112,7 +102,7 @@ export default async function UsagePage() {
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">Plan</span>
                     <span className="font-medium">
-                      {user.subscriptionPlan || user.subscriptionTier || "FREE"}
+                      {user.subscriptionTier || "FREE"}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">

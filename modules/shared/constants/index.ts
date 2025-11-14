@@ -12,32 +12,6 @@ export const SUBSCRIPTION_PLANS = {
       "Flowchart visualization",
     ],
   },
-  BASIC: {
-    name: "Basic",
-    monthlyPrice: 19,
-    yearlyPrice: 190,
-    searchesPerMonth: 50,
-    features: [
-      "50 AI validations/month",
-      "Advanced project plans",
-      "SCRUM boards",
-      "Email support",
-    ],
-  },
-  PRO: {
-    name: "Pro",
-    monthlyPrice: 49,
-    yearlyPrice: 490,
-    searchesPerMonth: Infinity,
-    features: [
-      "Unlimited AI validations",
-      "Advanced project plans",
-      "SCRUM boards",
-      "Priority support",
-      "AI plan improvements",
-      "Export capabilities",
-    ],
-  },
 } as const;
 
 export const RATE_LIMIT = {

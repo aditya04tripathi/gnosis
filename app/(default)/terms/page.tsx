@@ -30,8 +30,7 @@ export default function TermsPage() {
               <p className="text-sm sm:text-base leading-relaxed">
                 {LEGAL.terms.serviceName} is an AI-powered platform that
                 provides startup idea validation, project planning, and business
-                insights. We offer various subscription plans with different
-                features and usage limits.
+                insights.
               </p>
             </div>
 
@@ -45,20 +44,10 @@ export default function TermsPage() {
             </div>
 
             <div className="flex flex-col gap-2">
-              <h4>Subscription and Payment</h4>
-              <p className="text-sm sm:text-base leading-relaxed">
-                Subscriptions are billed on a monthly or yearly basis. Payments
-                are processed through PayPal. All fees are non-refundable unless
-                required by law or as stated in our refund policy.
-              </p>
-            </div>
-
-            <div className="flex flex-col gap-2">
               <h4>Usage Limits</h4>
               <p className="text-sm sm:text-base leading-relaxed">
-                Free accounts include 1 validation per 2 days. Paid plans have specific
-                limits as outlined in our pricing page. Usage is tracked and
-                enforced per subscription period.
+                Free accounts include 1 validation per 2 days. Usage is tracked and
+                enforced per period.
               </p>
             </div>
 

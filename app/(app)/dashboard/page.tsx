@@ -1,6 +1,5 @@
 import {
   AlertCircle,
-  CheckCircle2,
   FileText,
   Plus,
   TrendingUp,
@@ -9,11 +8,6 @@ import {
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@/modules/shared/components/ui/alert";
 import { Button } from "@/modules/shared/components/ui/button";
 import {
   Card,
@@ -35,11 +29,7 @@ import Validation from "@/modules/shared/models/Validation";
 
 export const metadata: Metadata = METADATA.pages.dashboard;
 
-export default async function DashboardPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ payment?: string }>;
-}) {
+export default async function DashboardPage() {
   const session = await auth();
   if (!session?.user) {
     redirect("/auth/signin");
@@ -65,31 +55,13 @@ export default async function DashboardPage({
     .limit(10)
     .lean();
 
-  const plan = user.subscriptionPlan
-    ? SUBSCRIPTION_PLANS[user.subscriptionPlan]
-    : SUBSCRIPTION_PLANS.FREE;
+  const plan = SUBSCRIPTION_PLANS.FREE;
   const searchesRemaining = Math.max(0, plan.searchesPerMonth - searchesUsed);
-
-  const params = await searchParams;
-  const paymentSuccess = params.payment === "success";
 
   return (
     <div className="flex h-full flex-col">
       <main className="flex-1">
         <div className="container mx-auto flex flex-col gap-8">
-          {paymentSuccess && (
-            <Alert className="border-primary bg-primary/10">
-              <CheckCircle2 className="h-4 w-4 text-primary" />
-              <AlertTitle className="text-primary">
-                Payment Successful!
-              </AlertTitle>
-              <AlertDescription className="text-primary/80">
-                Your subscription has been activated. You now have access to all
-                premium features.
-              </AlertDescription>
-            </Alert>
-          )}
-
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1>{DASHBOARD.title}</h1>
