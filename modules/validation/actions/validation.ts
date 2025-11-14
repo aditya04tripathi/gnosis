@@ -68,7 +68,7 @@ export async function validateStartupIdea(idea: string) {
       user.searchesUsed = 0;
       if (user.subscriptionTier === "FREE") {
         user.searchesResetAt = new Date(
-          now.getTime() + 30 * 24 * 60 * 60 * 1000,
+          now.getTime() + 2 * 24 * 60 * 60 * 1000, // 2 days
         );
       } else if (user.subscriptionTier === "MONTHLY") {
         user.searchesResetAt = new Date(
@@ -86,8 +86,21 @@ export async function validateStartupIdea(idea: string) {
       user.subscriptionTier === "FREE" &&
       user.searchesUsed >= FREE_SEARCHES_LIMIT
     ) {
+      const timeUntilReset = user.searchesResetAt.getTime() - now.getTime();
+      const hoursUntilReset = Math.ceil(timeUntilReset / (1000 * 60 * 60));
+      const daysUntilReset = Math.floor(timeUntilReset / (1000 * 60 * 60 * 24));
+      
+      let resetMessage = "Free plan limit reached";
+      if (daysUntilReset >= 1) {
+        resetMessage += `. Next validation available in ${daysUntilReset} day${daysUntilReset !== 1 ? 's' : ''}`;
+      } else if (hoursUntilReset > 0) {
+        resetMessage += `. Next validation available in ${hoursUntilReset} hour${hoursUntilReset !== 1 ? 's' : ''}`;
+      } else {
+        resetMessage += `. Next validation available soon`;
+      }
+      
       return {
-        error: "Free plan limit reached",
+        error: resetMessage,
         upgradeRequired: true,
       };
     }
@@ -109,6 +122,12 @@ export async function validateStartupIdea(idea: string) {
     if (cached) {
       
       user.searchesUsed += 1;
+      // Set reset time to 2 days from now for free users
+      if (user.subscriptionTier === "FREE") {
+        user.searchesResetAt = new Date(
+          now.getTime() + 2 * 24 * 60 * 60 * 1000, // 2 days
+        );
+      }
       await user.save();
 
       const validation = await Validation.create({
@@ -135,6 +154,12 @@ export async function validateStartupIdea(idea: string) {
     const validationResult = await validateIdea(idea);
 
     user.searchesUsed += 1;
+    // Set reset time to 2 days from now for free users
+    if (user.subscriptionTier === "FREE") {
+      user.searchesResetAt = new Date(
+        now.getTime() + 2 * 24 * 60 * 60 * 1000, // 2 days
+      );
+    }
     await user.save();
 
     const validation = await Validation.create({

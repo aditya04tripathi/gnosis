@@ -56,7 +56,7 @@ export default function TermsPage() {
             <div className="flex flex-col gap-2">
               <h4>Usage Limits</h4>
               <p className="text-sm sm:text-base leading-relaxed">
-                Free accounts include 5 validations. Paid plans have specific
+                Free accounts include 1 validation per 2 days. Paid plans have specific
                 limits as outlined in our pricing page. Usage is tracked and
                 enforced per subscription period.
               </p>

@@ -1,8 +1,7 @@
 "use client";
 
-import Link from "next/link";
+import { Info } from "lucide-react";
 import { Badge } from "@/modules/shared/components/ui/badge";
-import { Button } from "@/modules/shared/components/ui/button";
 import {
   Card,
   CardContent,
@@ -10,6 +9,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/modules/shared/components/ui/card";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/modules/shared/components/ui/alert";
 
 interface BillingSettingsProps {
   user: {
@@ -34,6 +38,14 @@ export function BillingSettings({ user }: BillingSettingsProps) {
 
   return (
     <div className="space-y-6">
+      <Alert className="border-blue-500/50 bg-blue-500/10">
+        <Info className="h-4 w-4 text-blue-500" />
+        <AlertTitle className="text-blue-500">Payment System - Work In Progress</AlertTitle>
+        <AlertDescription className="text-blue-500/80">
+          Payment integration is currently under development. All users have access to the free plan with 1 AI validation per 2 days. Paid plans will be available soon.
+        </AlertDescription>
+      </Alert>
+
       <Card>
         <CardHeader>
           <CardTitle>Subscription</CardTitle>
@@ -47,7 +59,7 @@ export function BillingSettings({ user }: BillingSettingsProps) {
               <p className="font-medium">Current Plan</p>
               <p className="text-sm text-muted-foreground">
                 {user.subscriptionTier === "FREE" &&
-                  "Free plan with limited features"}
+                  "Free plan with 1 AI validation per 2 days"}
                 {user.subscriptionTier === "MONTHLY" &&
                   "Pro plan billed monthly"}
                 {user.subscriptionTier === "YEARLY" && "Pro plan billed yearly"}
@@ -55,19 +67,8 @@ export function BillingSettings({ user }: BillingSettingsProps) {
             </div>
             {getPlanBadge(user.subscriptionTier)}
           </div>
-
-          {user.subscriptionTier === "FREE" ? (
-            <Button asChild className="w-full">
-              <Link href="/pricing">Upgrade to Pro</Link>
-            </Button>
-          ) : (
-            <Button asChild variant="outline" className="w-full">
-              <Link href="/pricing">Change Plan</Link>
-            </Button>
-          )}
         </CardContent>
       </Card>
-      {}
     </div>
   );
 }

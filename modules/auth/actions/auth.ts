@@ -36,13 +36,27 @@ export async function signUp(formData: FormData) {
     }
 
     const hashedPassword = await bcrypt.hash(password, 12);
+    const now = new Date();
     await User.create({
       email,
       name,
       password: hashedPassword,
       subscriptionTier: "FREE",
+      subscriptionPlan: null,
       searchesUsed: 0,
-      searchesResetAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      searchesResetAt: new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000), // 2 days for free users
+      paypalSubscriptionId: null,
+      hasPaymentMethod: false,
+      preferences: {
+        aiProvider: "gemini",
+        theme: "system",
+      },
+      apiKeys: {
+        gemini: null,
+        openai: null,
+        anthropic: null,
+        groq: null,
+      },
     });
 
     await signIn("credentials", {

@@ -83,7 +83,7 @@ export const AUTH = {
   signUp: {
     title: "Create a Gnosis Account",
     subtitle:
-      "Welcome! Create an account to get started with 5 free validations",
+      "Welcome! Create an account to get started with 1 free validation per 2 days",
     buttonText: "Sign Up",
     buttonLoadingText: "Creating account...",
     passwordHint: "Must be at least 8 characters",
@@ -122,7 +122,7 @@ export const DASHBOARD = {
     searchesRemaining: "Searches Remaining",
     totalValidations: "Total Validations",
     subscription: "Subscription",
-    ofFreeSearches: (limit: number) => `of ${limit} free searches`,
+    ofFreeSearches: (limit: number) => `of ${limit} free search${limit !== 1 ? 'es' : ''} per 2 days`,
     ofMonthlySearches: (limit: number | string) =>
       typeof limit === "number" && limit === Infinity
         ? "unlimited monthly searches"

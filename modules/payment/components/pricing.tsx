@@ -1,12 +1,7 @@
 "use client";
 
-import { PayPalButtons } from "@paypal/react-paypal-js";
-import { Check } from "lucide-react";
+import { Check, Info } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { toast } from "sonner";
-import { downgradeToFree } from "@/modules/payment/actions/payment";
 import { Badge } from "@/modules/shared/components/ui/badge";
 import { Button } from "@/modules/shared/components/ui/button";
 import {
@@ -17,12 +12,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/modules/shared/components/ui/card";
-import { Label } from "@/modules/shared/components/ui/label";
 import { Separator } from "@/modules/shared/components/ui/separator";
-import { Switch } from "@/modules/shared/components/ui/switch";
-import { PayPalButton } from "./paypal-button";
-
-// import { PayPalButton } from "./paypal-button";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/modules/shared/components/ui/alert";
 
 interface PricingProps {
   currentPlan?: string;
@@ -33,44 +28,15 @@ export default function Pricing({
   currentPlan = "FREE",
   onHomePage = false,
 }: PricingProps) {
-  const router = useRouter();
-  const [isMonthly, setIsMonthly] = useState(true);
-
-  const handleDowngradeToFreeClick = async () => {
-    if (
-      currentPlan !== "FREE" &&
-      (currentPlan === "BASIC" || currentPlan === "PRO")
-    ) {
-      try {
-        const result = await downgradeToFree();
-        if (result.error || !result.success) {
-          toast.error(result.error || "Failed to downgrade plan");
-        } else if (result.data?.user) {
-          toast.success("Successfully downgraded to Free plan");
-
-          router.refresh();
-        }
-      } catch {
-        toast.error("Failed to downgrade to free plan");
-      }
-    }
-  };
-
   const monthlyPrices = {
     FREE: 0,
     BASIC: 19,
     PRO: 49,
   };
 
-  const yearlyPrices = {
-    FREE: 0,
-    BASIC: 190,
-    PRO: 490,
-  };
-
   const features = {
     FREE: [
-      "5 AI validations",
+      "1 AI validation per 2 days",
       "Basic project plans",
       "Flowchart visualization",
     ],
@@ -97,11 +63,18 @@ export default function Pricing({
           <div>
             <h1>Pricing</h1>
             <p className="text-muted-foreground">
-              Choose the perfect plan for your startup validation needs. Switch
-              between monthly and yearly billing.
+              Choose the perfect plan for your startup validation needs.
             </p>
           </div>
         )}
+
+        <Alert className="mb-6 border-blue-500/50 bg-blue-500/10">
+          <Info className="h-4 w-4 text-blue-500" />
+          <AlertTitle className="text-blue-500">Payment System - Work In Progress</AlertTitle>
+          <AlertDescription className="text-blue-500/80">
+            Payment integration is currently under development. All users have access to the free plan with 1 AI validation per 2 days. Paid plans will be available soon.
+          </AlertDescription>
+        </Alert>
 
         <div className="mt-20 grid gap-4 sm:gap-6 md:grid-cols-3">
           <Card
@@ -119,7 +92,7 @@ export default function Pricing({
                   ${monthlyPrices.FREE}
                 </span>
                 <span className="text-muted-foreground text-sm">
-                  / {isMonthly ? "month" : "year"}
+                  / forever
                 </span>
               </div>
               <CardDescription className="mt-3">
@@ -146,12 +119,8 @@ export default function Pricing({
                     <Link href="/auth/signup">Get Started</Link>
                   </Button>
                 ) : (
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={handleDowngradeToFreeClick}
-                  >
-                    Switch to Free Plan
+                  <Button asChild variant="outline" className="w-full">
+                    <Link href="/auth/signup">Get Started</Link>
                   </Button>
                 )}
               </CardFooter>
@@ -174,10 +143,10 @@ export default function Pricing({
               <CardTitle>Basic</CardTitle>
               <div className="mt-4 space-y-1">
                 <span className="block text-3xl sm:text-4xl font-bold">
-                  ${isMonthly ? monthlyPrices.BASIC : yearlyPrices.BASIC}
+                  ${monthlyPrices.BASIC}
                 </span>
                 <span className="text-muted-foreground text-sm">
-                  / {isMonthly ? "month" : "year"}
+                  / month
                 </span>
               </div>
               <CardDescription className="mt-3">
@@ -199,20 +168,9 @@ export default function Pricing({
 
             {!onHomePage && (
               <CardFooter className="shrink-0 mt-auto px-4 sm:px-6 pb-4 sm:pb-6">
-                {currentPlan === "BASIC" ? (
-                  <Button className="w-full" disabled>
-                    Current Plan
-                  </Button>
-                ) : (
-                  // <PayPalButton
-                  //   tier={isMonthly ? "MONTHLY" : "YEARLY"}
-                  //   planType="BASIC"
-                  // />
-                  <PayPalButton
-                    tier={isMonthly ? "MONTHLY" : "YEARLY"}
-                    planType="BASIC"
-                  />
-                )}
+                <Button className="w-full" disabled>
+                  Payment Coming Soon
+                </Button>
               </CardFooter>
             )}
           </Card>
@@ -229,10 +187,10 @@ export default function Pricing({
               <CardTitle>Pro</CardTitle>
               <div className="mt-4 space-y-1">
                 <span className="block text-3xl sm:text-4xl font-bold">
-                  ${isMonthly ? monthlyPrices.PRO : yearlyPrices.PRO}
+                  ${monthlyPrices.PRO}
                 </span>
                 <span className="text-muted-foreground text-sm">
-                  / {isMonthly ? "month" : "year"}
+                  / month
                 </span>
               </div>
               <CardDescription className="mt-3">
@@ -254,52 +212,14 @@ export default function Pricing({
 
             {!onHomePage && (
               <CardFooter className="shrink-0 mt-auto px-4 sm:px-6 pb-4 sm:pb-6">
-                {currentPlan === "PRO" ? (
-                  <Button className="w-full" disabled>
-                    Current Plan
-                  </Button>
-                ) : (
-                  <PayPalButton
-                    tier={isMonthly ? "MONTHLY" : "YEARLY"}
-                    planType="BASIC"
-                  />
-                )}
+                <Button className="w-full" disabled>
+                  Payment Coming Soon
+                </Button>
               </CardFooter>
             )}
           </Card>
         </div>
 
-        <div className="flex flex-col items-center justify-center gap-4 pt-4 sm:pt-6">
-          <div className="flex items-center justify-center gap-4">
-            <Label
-              htmlFor="billing-toggle"
-              className={`text-sm sm:text-base ${!isMonthly ? "text-muted-foreground" : "font-medium"}`}
-            >
-              Monthly
-            </Label>
-            <Switch
-              id="billing-toggle"
-              checked={!isMonthly}
-              onCheckedChange={(checked) => setIsMonthly(!checked)}
-            />
-            <Label
-              htmlFor="billing-toggle"
-              className={`text-sm sm:text-base ${isMonthly ? "text-muted-foreground" : "font-medium"}`}
-            >
-              Yearly
-            </Label>
-            {!isMonthly && (
-              <span className="text-sm sm:text-base text-primary font-medium ml-2">
-                Save 17%
-              </span>
-            )}
-          </div>
-          <p className="text-xs sm:text-sm text-muted-foreground text-center">
-            {isMonthly
-              ? "Billed monthly. Cancel anytime."
-              : "Billed annually. Save 17% compared to monthly billing."}
-          </p>
-        </div>
       </div>
     </section>
   );

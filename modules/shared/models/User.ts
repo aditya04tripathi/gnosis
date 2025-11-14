@@ -60,7 +60,7 @@ const UserSchema = new Schema<IUser>(
     },
     searchesResetAt: {
       type: Date,
-      default: () => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), 
+      default: () => new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days for free users
     },
     paypalSubscriptionId: {
       type: String,
@@ -105,7 +105,7 @@ const UserSchema = new Schema<IUser>(
   },
   {
     timestamps: true,
-  },
+  }
 );
 
 const User: Model<IUser> =
