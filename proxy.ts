@@ -40,7 +40,7 @@ export async function proxy(request: NextRequest) {
   ];
 
   const isProtectedRoute = protectedRoutes.some((route) =>
-    pathname.startsWith(route)
+    pathname.startsWith(route),
   );
 
   if (isProtectedRoute) {

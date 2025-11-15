@@ -6,4 +6,3 @@ export async function FooterServer() {
 
   return <FooterSection isAuthenticated={!!session?.user} />;
 }
-

@@ -46,8 +46,8 @@ export default function TermsPage() {
             <div className="flex flex-col gap-2">
               <h4>Usage Limits</h4>
               <p className="text-sm sm:text-base leading-relaxed">
-                Free accounts include 1 validation per 2 days. Usage is tracked and
-                enforced per period.
+                Free accounts include 1 validation per 2 days. Usage is tracked
+                and enforced per period.
               </p>
             </div>
 

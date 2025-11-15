@@ -1,10 +1,4 @@
-import {
-  AlertCircle,
-  FileText,
-  Plus,
-  TrendingUp,
-  Zap,
-} from "lucide-react";
+import { AlertCircle, FileText, Plus, TrendingUp, Zap } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -79,9 +73,7 @@ export default async function DashboardPage() {
           <div className="grid gap-4 md:grid-cols-3">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle>
-                  {DASHBOARD.stats.searchesRemaining}
-                </CardTitle>
+                <CardTitle>{DASHBOARD.stats.searchesRemaining}</CardTitle>
                 <Zap className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -95,9 +87,7 @@ export default async function DashboardPage() {
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle>
-                  {DASHBOARD.stats.totalValidations}
-                </CardTitle>
+                <CardTitle>{DASHBOARD.stats.totalValidations}</CardTitle>
                 <FileText className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -109,9 +99,7 @@ export default async function DashboardPage() {
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle>
-                  {DASHBOARD.stats.subscription}
-                </CardTitle>
+                <CardTitle>{DASHBOARD.stats.subscription}</CardTitle>
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>

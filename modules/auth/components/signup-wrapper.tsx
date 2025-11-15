@@ -102,7 +102,9 @@ export default function SignUpWrapper() {
 
             <div className="text-center">
               <Button asChild variant="link" className="text-sm">
-                <Link href="/auth/signin">Already have an account? Sign in</Link>
+                <Link href="/auth/signin">
+                  Already have an account? Sign in
+                </Link>
               </Button>
             </div>
           </div>

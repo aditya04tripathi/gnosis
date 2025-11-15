@@ -4,7 +4,10 @@ import type groq from "groq-sdk";
 import { Eye, EyeOff, Key } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { updateAIPreferences, updateAPIKeys } from "@/modules/profile/actions/profile";
+import {
+  updateAIPreferences,
+  updateAPIKeys,
+} from "@/modules/profile/actions/profile";
 import { Alert, AlertDescription } from "@/modules/shared/components/ui/alert";
 import { Button } from "@/modules/shared/components/ui/button";
 import {

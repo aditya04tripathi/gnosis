@@ -120,7 +120,7 @@ export async function updatePassword(formData: {
 
     const isCurrentPasswordValid = await bcrypt.compare(
       currentPassword,
-      user.password
+      user.password,
     );
 
     if (!isCurrentPasswordValid) {

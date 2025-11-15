@@ -73,7 +73,7 @@ export async function signUp(formData: FormData) {
 
 export async function signInAction(
   formData: FormData,
-  callbackUrl: string = "/dashboard"
+  callbackUrl: string = "/dashboard",
 ) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;

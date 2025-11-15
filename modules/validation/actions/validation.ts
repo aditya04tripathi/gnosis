@@ -47,7 +47,7 @@ export async function validateStartupIdea(idea: string) {
     if (now > user.searchesResetAt) {
       user.searchesUsed = 0;
       user.searchesResetAt = new Date(
-        now.getTime() + 2 * 24 * 60 * 60 * 1000 // 2 days
+        now.getTime() + 2 * 24 * 60 * 60 * 1000, // 2 days
       );
       await user.save();
     }
@@ -79,14 +79,13 @@ export async function validateStartupIdea(idea: string) {
       };
     }
 
-
     const validationResult = await validateIdea(idea);
 
     user.searchesUsed += 1;
     // Set reset time to 2 days from now for free users
     if (user.subscriptionTier === "FREE") {
       user.searchesResetAt = new Date(
-        now.getTime() + 2 * 24 * 60 * 60 * 1000 // 2 days
+        now.getTime() + 2 * 24 * 60 * 60 * 1000, // 2 days
       );
     }
     await user.save();
@@ -146,7 +145,7 @@ export async function generatePlan(validationId: string) {
 
     const plan = await generateProjectPlan(
       validation.idea,
-      validation.validationResult
+      validation.validationResult,
     );
 
     projectPlan = await ProjectPlan.create({
@@ -160,7 +159,7 @@ export async function generatePlan(validationId: string) {
     await validation.save();
 
     revalidatePath(
-      `/project/${(projectPlan._id as mongoose.Types.ObjectId).toString()}`
+      `/project/${(projectPlan._id as mongoose.Types.ObjectId).toString()}`,
     );
     revalidatePath("/dashboard");
     revalidatePath(`/validation/${validationId}`);
@@ -179,7 +178,7 @@ export async function generatePlan(validationId: string) {
 export async function updateTaskStatus(
   projectPlanId: string,
   taskId: string,
-  status: "TODO" | "IN_PROGRESS" | "DONE" | "BLOCKED"
+  status: "TODO" | "IN_PROGRESS" | "DONE" | "BLOCKED",
 ) {
   const session = await auth();
   if (!session?.user) {
@@ -235,7 +234,7 @@ export async function updateTaskStatus(
 
 export async function improveProjectPlan(
   projectPlanId: string,
-  userRequest: string
+  userRequest: string,
 ) {
   const session = await auth();
   if (!session?.user) {

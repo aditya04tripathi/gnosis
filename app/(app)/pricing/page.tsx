@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
-import { APP_INFO, METADATA, SUBSCRIPTION_PLANS } from "@/modules/shared/constants";
+import {
+  APP_INFO,
+  METADATA,
+  SUBSCRIPTION_PLANS,
+} from "@/modules/shared/constants";
 import {
   Card,
   CardContent,

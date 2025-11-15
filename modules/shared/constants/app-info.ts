@@ -122,7 +122,8 @@ export const DASHBOARD = {
     searchesRemaining: "Searches Remaining",
     totalValidations: "Total Validations",
     subscription: "Subscription",
-    ofFreeSearches: (limit: number) => `of ${limit} free search${limit !== 1 ? 'es' : ''} per 2 days`,
+    ofFreeSearches: (limit: number) =>
+      `of ${limit} free search${limit !== 1 ? "es" : ""} per 2 days`,
     ofMonthlySearches: (limit: number | string) =>
       typeof limit === "number" && limit === Infinity
         ? "unlimited monthly searches"
