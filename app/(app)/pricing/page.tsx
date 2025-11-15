@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
 import {
-  APP_INFO,
-  METADATA,
-  SUBSCRIPTION_PLANS,
-} from "@/modules/shared/constants";
-import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/modules/shared/components/ui/card";
+import {
+  APP_INFO,
+  METADATA,
+  SUBSCRIPTION_PLANS,
+} from "@/modules/shared/constants";
 
 export const metadata: Metadata = {
   ...METADATA.default,

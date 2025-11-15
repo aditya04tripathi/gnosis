@@ -5,7 +5,7 @@ export const metadata: Metadata = METADATA.pages.privacy;
 
 export default function PrivacyPage() {
   return (
-    <div className="pt-24 flex min-h-screen flex-col bg-background">
+    <div className="container mx-auto px-10 pt-24 flex min-h-screen flex-col bg-background">
       <main className="flex-1">
         <div className="container mx-auto">
           <div className="mb-6 sm:mb-8">
