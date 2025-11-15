@@ -73,7 +73,7 @@ export async function signUp(formData: FormData) {
 
 export async function signInAction(
   formData: FormData,
-  callbackUrl: string = "/dashboard",
+  callbackUrl: string = "/dashboard"
 ) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
@@ -100,7 +100,7 @@ export async function signInAction(
 }
 
 export async function signOutAction() {
-  await authSignOut();
+  await authSignOut({ redirect: false });
   revalidatePath("/");
   revalidatePath("/dashboard");
   revalidatePath("/pricing");
