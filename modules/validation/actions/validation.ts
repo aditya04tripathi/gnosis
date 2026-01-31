@@ -15,6 +15,7 @@ import {
   generateProjectPlan,
   validateIdea,
 } from "@/modules/shared/lib/groq";
+import { getGroqClient } from "@/modules/shared/lib/groq-client";
 import ProjectPlan from "@/modules/shared/models/ProjectPlan";
 import ScrumBoard from "@/modules/shared/models/ScrumBoard";
 import User from "@/modules/shared/models/User";
@@ -265,14 +266,7 @@ export async function improveProjectPlan(
       return { error: "Project plan not found" };
     }
 
-    const Groq = (await import("groq-sdk")).default;
-    const apiKey = process.env.GROQ_API_KEY;
-    if (!apiKey) {
-      return { error: "GROQ API key not configured" };
-    }
-    const groqClient = new Groq({
-      apiKey,
-    });
+    const groqClient = getGroqClient();
 
     const planSummary = JSON.stringify({
       phases: projectPlan.plan.phases.map((p) => ({

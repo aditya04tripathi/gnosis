@@ -1,17 +1,9 @@
-import Groq from "groq-sdk";
+import { getGroqClient } from "@/modules/shared/lib/groq-client";
 import type {
   AlternativeIdea,
   ProjectPlan,
   ValidationResult,
 } from "@/modules/validation/types/validation.types";
-
-if (!process.env.GROQ_API_KEY) {
-  throw new Error("Please add GROQ_API_KEY to your environment variables");
-}
-
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
 
 export async function validateIdea(idea: string): Promise<ValidationResult> {
   const prompt = `You are an expert startup validator and business analyst. Analyze the following startup idea and provide a comprehensive validation:
@@ -35,6 +27,7 @@ Provide your response in JSON format with the following structure:
 Be thorough, realistic, and constructive in your analysis.`;
 
   try {
+    const groq = getGroqClient();
     const completion = await groq.chat.completions.create({
       messages: [
         {
@@ -107,6 +100,7 @@ Create a detailed project plan with phases and tasks. Provide your response in J
 Create 4-6 phases covering: Research & Planning, MVP Development, Testing & Iteration, Launch Preparation, Marketing & Growth, and Scaling. Include 5-10 tasks per phase.`;
 
   try {
+    const groq = getGroqClient();
     const completion = await groq.chat.completions.create({
       messages: [
         {
@@ -157,6 +151,7 @@ Provide your response in JSON format:
 }`;
 
   try {
+    const groq = getGroqClient();
     const completion = await groq.chat.completions.create({
       messages: [
         {

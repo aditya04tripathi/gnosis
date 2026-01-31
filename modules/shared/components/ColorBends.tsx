@@ -232,18 +232,52 @@ export default function ColorBends({
     rafRef.current = requestAnimationFrame(loop);
 
     return () => {
-      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
-      if (resizeObserverRef.current) resizeObserverRef.current.disconnect();
-      else (window as Window).removeEventListener("resize", handleResize);
-      geometry.dispose();
-      material.dispose();
-      renderer.dispose();
-      if (
-        renderer.domElement &&
-        renderer.domElement.parentElement === container
-      ) {
-        container.removeChild(renderer.domElement);
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
       }
+
+      if (resizeObserverRef.current) {
+        resizeObserverRef.current.disconnect();
+        resizeObserverRef.current = null;
+      } else {
+        (window as Window).removeEventListener("resize", handleResize);
+      }
+
+      scene.clear();
+
+      if (mesh) {
+        mesh.geometry.dispose();
+        if (Array.isArray(mesh.material)) {
+          mesh.material.forEach((m) => {
+            m.dispose();
+          });
+        } else {
+          mesh.material.dispose();
+        }
+      }
+
+      if (geometry) {
+        geometry.dispose();
+      }
+
+      if (material) {
+        material.dispose();
+      }
+
+      if (renderer) {
+        renderer.dispose();
+        renderer.forceContextLoss();
+        if (
+          renderer.domElement &&
+          renderer.domElement.parentElement === container
+        ) {
+          container.removeChild(renderer.domElement);
+        }
+      }
+
+      materialRef.current = null;
+      rendererRef.current = null;
     };
   }, []);
 
@@ -267,15 +301,15 @@ export default function ColorBends({
       const v =
         h.length === 3
           ? [
-              parseInt(h[0] + h[0], 16),
-              parseInt(h[1] + h[1], 16),
-              parseInt(h[2] + h[2], 16),
-            ]
+            parseInt(h[0] + h[0], 16),
+            parseInt(h[1] + h[1], 16),
+            parseInt(h[2] + h[2], 16),
+          ]
           : [
-              parseInt(h.slice(0, 2), 16),
-              parseInt(h.slice(2, 4), 16),
-              parseInt(h.slice(4, 6), 16),
-            ];
+            parseInt(h.slice(0, 2), 16),
+            parseInt(h.slice(2, 4), 16),
+            parseInt(h.slice(4, 6), 16),
+          ];
       return new THREE.Vector3(v[0] / 255, v[1] / 255, v[2] / 255);
     };
 
