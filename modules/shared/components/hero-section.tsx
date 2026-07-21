@@ -1,197 +1,99 @@
-import { ArrowRight } from "lucide-react";
+"use client";
+
+import { ArrowUpRight } from "@phosphor-icons/react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Image from "next/image";
 import Link from "next/link";
-import { HERO_SECTION } from "@/modules/shared/constants";
-import { AnimatedGroup } from "./ui/animated-group";
-import { Button } from "./ui/button";
-import { TextEffect } from "./ui/text-effect";
+import { useEffect, useRef } from "react";
+import { APP_INFO, HERO_SECTION } from "@/modules/shared/constants";
 
-const transitionVariants = {
-  item: {
-    hidden: {
-      opacity: 0,
-      filter: "blur(12px)",
-      y: 12,
-    },
-    visible: {
-      opacity: 1,
-      filter: "blur(0px)",
-      y: 0,
-      transition: {
-        type: "spring" as const,
-        bounce: 0.3,
-        duration: 1.5,
-      },
-    },
-  },
-};
+gsap.registerPlugin(ScrollTrigger);
 
 export default function HeroSection() {
+  const imageRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = imageRef.current;
+    if (!el) return;
+
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        el,
+        { scale: 0.88, opacity: 0.45 },
+        {
+          scale: 1,
+          opacity: 1,
+          ease: "none",
+          scrollTrigger: {
+            trigger: el,
+            start: "top 85%",
+            end: "top 25%",
+            scrub: true,
+          },
+        },
+      );
+    }, el);
+
+    return () => ctx.revert();
+  }, []);
+
   return (
-    <div className="overflow-hidden">
+    <section className="relative min-h-[100dvh] overflow-hidden ambient-mesh">
       <div
         aria-hidden
-        className="absolute inset-0 isolate hidden opacity-65 contain-strict lg:block"
-      >
-        <div className="w-140 h-320 -translate-y-87.5 absolute left-0 top-0 -rotate-45 rounded-full bg-[radial-gradient(68.54%_68.72%_at_55.02%_31.46%,hsla(0,0%,88%,.08)_0,hsla(0,0%,60%,.02)_50%,transparent_80%)] dark:bg-[radial-gradient(68.54%_68.72%_at_55.02%_31.46%,hsla(0,0%,45%,.08)_0,hsla(0,0%,25%,.02)_50%,transparent_80%)]" />
-        <div className="h-320 absolute left-0 top-0 w-60 -rotate-45 rounded-full bg-[radial-gradient(50%_50%_at_50%_50%,hsla(0,0%,88%,.06)_0,hsla(0,0%,60%,.02)_80%,transparent_100%)] dark:bg-[radial-gradient(50%_50%_at_50%_50%,hsla(0,0%,45%,.06)_0,hsla(0,0%,25%,.02)_80%,transparent_100%)] [translate:5%_-50%]" />
-        <div className="h-320 -translate-y-87.5 absolute left-0 top-0 w-60 -rotate-45 bg-[radial-gradient(50%_50%_at_50%_50%,hsla(0,0%,88%,.04)_0,hsla(0,0%,60%,.02)_80%,transparent_100%)] dark:bg-[radial-gradient(50%_50%_at_50%_50%,hsla(0,0%,45%,.04)_0,hsla(0,0%,25%,.02)_80%,transparent_100%)]" />
-      </div>
-      <section>
-        <div className="relative pt-24 md:pt-36">
-          <AnimatedGroup
-            variants={{
-              container: {
-                visible: {
-                  transition: {
-                    delayChildren: 1,
-                  },
-                },
-              },
-              item: {
-                hidden: {
-                  opacity: 0,
-                  y: 20,
-                },
-                visible: {
-                  opacity: 1,
-                  y: 0,
-                  transition: {
-                    type: "spring",
-                    bounce: 0.3,
-                    duration: 2,
-                  },
-                },
-              },
-            }}
-            className="mask-b-from-35% mask-b-to-90% absolute inset-0 top-56 -z-20 lg:top-32"
-          >
-            <Image
-              src="https://ik.imagekit.io/lrigu76hy/tailark/night-background.jpg?updatedAt=1745733451120"
-              alt="background"
-              className="hidden size-full dark:block"
-              width="3276"
-              height="4095"
-            />
-          </AnimatedGroup>
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,transparent_0%,var(--background)_72%)]"
+      />
 
-          <div
-            aria-hidden
-            className="absolute inset-0 -z-10 size-full bg-background [background:radial-gradient(125%_125%_at_50%_100%,transparent_0%,var(--color-background)_75%)]"
-          />
+      <div className="relative mx-auto flex min-h-[100dvh] max-w-7xl flex-col px-4 pb-16 pt-28 md:px-6 md:pb-24 md:pt-36 lg:px-8">
+        <div className="relative z-10 max-w-3xl md:max-w-5xl">
+          <p className="mb-6 font-semibold text-[clamp(2rem,4vw,3.5rem)] leading-none tracking-tighter text-foreground">
+            {APP_INFO.name}
+          </p>
+          <h1 className="max-w-5xl text-balance">{HERO_SECTION.heading}</h1>
+          <p className="mt-6 max-w-[38ch] text-pretty text-lg leading-relaxed text-muted-foreground md:text-xl">
+            {HERO_SECTION.subheading}
+          </p>
 
-          <div className="mx-auto max-w-7xl px-6">
-            <div className="text-center sm:mx-auto lg:mr-auto lg:mt-0 pt-24 md:pt-32">
-              <AnimatedGroup variants={transitionVariants}>
-                <Link
-                  href={HERO_SECTION.announcement.href}
-                  className="hover:bg-muted/50 bg-muted/80 group mx-auto flex w-fit items-center gap-4 rounded-full border border-border/50 p-1 pl-4 shadow-md backdrop-blur-sm transition-colors duration-300"
-                >
-                  <span className="text-foreground text-sm font-medium">
-                    {HERO_SECTION.announcement.text}
-                  </span>
-                  <span className="block h-4 w-0.5 border-l border-border/50 bg-muted"></span>
+          <div className="mt-10 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
+            <Link
+              href={HERO_SECTION.cta.primary.href}
+              className="group inline-flex items-center gap-3 rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:brightness-110 active:scale-[0.98]"
+            >
+              <span>{HERO_SECTION.cta.primary.text}</span>
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black/10 transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-0.5 group-hover:-translate-y-px group-hover:scale-105">
+                <ArrowUpRight className="h-4 w-4" weight="light" />
+              </span>
+            </Link>
+            <Link
+              href={HERO_SECTION.cta.secondary.href}
+              className="inline-flex items-center rounded-full px-5 py-3 text-sm font-medium text-muted-foreground transition-colors duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:text-foreground"
+            >
+              {HERO_SECTION.cta.secondary.text}
+            </Link>
+          </div>
+        </div>
 
-                  <div className="bg-background group-hover:bg-muted size-6 overflow-hidden rounded-full duration-500">
-                    <div className="flex w-12 -translate-x-1/2 duration-500 ease-in-out group-hover:translate-x-0">
-                      <span className="flex size-6">
-                        <ArrowRight className="m-auto size-3" />
-                      </span>
-                      <span className="flex size-6">
-                        <ArrowRight className="m-auto size-3" />
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-              </AnimatedGroup>
-
-              <TextEffect
-                preset="fade-in-blur"
-                speedSegment={0.3}
-                as="h1"
-                className="mx-auto mt-8 text-balance"
-              >
-                {HERO_SECTION.heading}
-              </TextEffect>
-              <TextEffect
-                per="line"
-                preset="fade-in-blur"
-                speedSegment={0.3}
-                delay={0.5}
-                as="p"
-                className="mx-auto max-w-2xl text-balance text-lg"
-              >
-                {HERO_SECTION.subheading}
-              </TextEffect>
-
-              <AnimatedGroup
-                variants={{
-                  container: {
-                    visible: {
-                      transition: {
-                        staggerChildren: 0.05,
-                        delayChildren: 0.75,
-                      },
-                    },
-                  },
-                  ...transitionVariants,
-                }}
-                className="mt-12 flex flex-col items-center justify-center gap-2 md:flex-row"
-              >
-                <div
-                  key={1}
-                  className="bg-foreground/10 rounded-[calc(var(--radius-xl)+0.125rem)] border p-0.5"
-                >
-                  <Button
-                    asChild
-                    size="lg"
-                    className="rounded-xl px-5 text-base"
-                  >
-                    <Link href={HERO_SECTION.cta.primary.href}>
-                      <span className="text-nowrap">
-                        {HERO_SECTION.cta.primary.text}
-                      </span>
-                    </Link>
-                  </Button>
-                </div>
-              </AnimatedGroup>
+        <div
+          ref={imageRef}
+          className="relative mt-16 w-full md:mt-20 will-change-transform"
+        >
+          <div className="absolute -inset-x-8 -bottom-24 top-1/3 -z-10 bg-[radial-gradient(ellipse_at_center,rgba(74,222,155,0.14),transparent_65%)]" />
+          <div className="relative w-full overflow-hidden rounded-none md:rounded-[1.5rem]">
+            <div className="relative aspect-[16/10] w-full md:aspect-[15/8]">
+              <Image
+                src="/mail2.png"
+                alt="Gnosis validation workspace"
+                fill
+                priority
+                className="object-cover object-top contrast-125 opacity-95"
+                sizes="100vw"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
             </div>
           </div>
-
-          <AnimatedGroup
-            variants={{
-              container: {
-                visible: {
-                  transition: {
-                    staggerChildren: 0.05,
-                    delayChildren: 0.75,
-                  },
-                },
-              },
-              ...transitionVariants,
-            }}
-          >
-            <div className="mask-b-from-55% relative -mr-56 mt-8 overflow-hidden px-2 sm:mr-0 sm:mt-12 md:mt-20">
-              <div className="inset-shadow-2xs ring-background dark:inset-shadow-white/20 bg-background relative mx-auto max-w-6xl overflow-hidden rounded-2xl border border-border p-4 shadow-lg ring-1">
-                <Image
-                  className="bg-background aspect-15/8 relative hidden rounded-2xl dark:block"
-                  src="/mail2.png"
-                  alt="app screen"
-                  width="2700"
-                  height="1440"
-                />
-                <Image
-                  className="z-2 border-border/25 aspect-15/8 relative rounded-2xl border dark:hidden"
-                  src="/mail2.png"
-                  alt="app screen"
-                  width="2700"
-                  height="1440"
-                />
-              </div>
-            </div>
-          </AnimatedGroup>
         </div>
-      </section>
-    </div>
+      </div>
+    </section>
   );
 }

@@ -1,13 +1,11 @@
-import { Brain, GitBranch, LayoutGrid, Sparkles } from "lucide-react";
-
 export const APP_INFO = {
   name: "Gnosis",
-  fullName: "Gnosis - AI-Powered Startup Validation",
-  tagline: "Validate your startup ideas with AI-powered analysis",
+  fullName: "Gnosis — Startup validation with clarity",
+  tagline: "Know before you build",
   description:
-    "Validate your startup ideas with AI-powered analysis. Get detailed feedback, project plans, and actionable insights to bring your idea to life.",
+    "Gnosis turns raw startup ideas into scored validation, market insight, and execution plans you can actually ship against.",
   shortDescription:
-    "AI-powered platform for validating startup ideas and creating comprehensive project plans.",
+    "Validate startup ideas, generate project plans, and manage execution in one place.",
   keywords: [
     "startup",
     "validation",
@@ -21,54 +19,54 @@ export const APP_INFO = {
   ],
   author: {
     name: "Aditya Tripathi",
-    url: "https://gnosis.up.railway.app",
+    url: "https://gnosis.adityatripathi.dev",
   },
 } as const;
 
 export const HERO_SECTION = {
-  announcement: {
-    text: "Introducing Support for AI Models - Try for Free",
-    href: "https://gnosis.up.railway.app",
-  },
-  heading: "Validate Your Startup Ideas with AI",
+  heading: "Know the idea before you build it",
   subheading:
-    "Get detailed feedback, project plans, and actionable insights to bring your startup idea to life.",
+    "Score market fit, surface risk early, and leave with a plan your team can execute.",
   cta: {
     primary: {
-      text: "Start Building",
-      href: "https://gnosis.up.railway.app/auth/signup",
+      text: "Start validating",
+      href: "/auth/signup",
+    },
+    secondary: {
+      text: "See how it works",
+      href: "#features",
     },
   },
 } as const;
 
 export const FEATURES = {
-  heading: "Everything You Need to Validate & Build",
+  heading: "From gut feeling to grounded plan",
   description:
-    "Powerful AI-driven tools to validate your startup ideas, create comprehensive project plans, and manage your execution with visual workflows.",
+    "Validation, planning, and delivery tools that stay in one workspace instead of five tabs.",
   items: [
     {
-      title: "AI-Powered Validation",
+      title: "AI validation",
       description:
-        "Get comprehensive AI analysis of your startup idea with detailed feedback on strengths, weaknesses, market opportunities, and actionable suggestions to improve your concept.",
-      icon: Brain,
+        "Scored analysis with strengths, gaps, market signals, and concrete next moves — not a vague pep talk.",
+      icon: "brain",
     },
     {
-      title: "Interactive Flowcharts",
+      title: "Living flowcharts",
       description:
-        "Visualize your project workflow with interactive flowcharts that show phases, tasks, and dependencies, making it easy to understand your project structure at a glance.",
-      icon: GitBranch,
+        "Phases, dependencies, and decision points laid out so scope stops living only in someone’s head.",
+      icon: "gitBranch",
     },
     {
-      title: "SCRUM Task Management",
+      title: "SCRUM boards",
       description:
-        "Manage your project execution with drag-and-drop SCRUM boards, track task progress, prioritize work, and keep your team aligned with your startup goals.",
-      icon: LayoutGrid,
+        "Drag work from idea to done. Keep founders and builders aligned without another tool migration.",
+      icon: "layoutGrid",
     },
     {
-      title: "Intelligent Project Planning",
+      title: "Project planning",
       description:
-        "Automatically generate detailed project plans with phases, tasks, timelines, and risk assessments. Use AI to improve and refine your plans as your idea evolves.",
-      icon: Sparkles,
+        "Phased plans with timelines and risk notes you can regenerate as the idea sharpens.",
+      icon: "sparkle",
     },
   ],
 } as const;
@@ -197,9 +195,9 @@ export const METADATA = {
 };
 
 export const TESTIMONIALS = {
-  heading: "Trusted by Entrepreneurs Worldwide",
+  heading: "Founders who stress-tested the idea first",
   description:
-    "Join thousands of founders who have validated their startup ideas and built successful businesses using my AI-powered platform.",
+    "Clearer pivots, tighter roadmaps, fewer months spent building the wrong thing.",
 } as const;
 
 export const CONTACT = {
