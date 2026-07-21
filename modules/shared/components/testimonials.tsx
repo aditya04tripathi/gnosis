@@ -1,148 +1,112 @@
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/modules/shared/components/ui/avatar";
-import { Card, CardContent } from "@/modules/shared/components/ui/card";
+"use client";
+
+import { ArrowLeft, ArrowRight, Quotes } from "@phosphor-icons/react";
+import Image from "next/image";
+import { useState } from "react";
 import { APP_INFO, TESTIMONIALS } from "@/modules/shared/constants";
+import { cn } from "@/modules/shared/lib/utils";
+
+const quotes = [
+  {
+    body: `${APP_INFO.name} surfaced weaknesses I had papered over. The plan that followed was the first roadmap my co-founder and I both trusted.`,
+    name: "Maya Okonkwo",
+    role: "Founder, Lattice Health",
+    image: "https://picsum.photos/seed/maya-founder/200/200",
+  },
+  {
+    body: "We pivoted two weeks after the validation report instead of six months into a build nobody needed. That alone paid for the habit.",
+    name: "Jonah Park",
+    role: "Solo founder",
+    image: "https://picsum.photos/seed/jonah-founder/200/200",
+  },
+  {
+    body: "Flowcharts plus SCRUM in the same place meant engineering stopped asking me to redraw the plan in yet another doc.",
+    name: "Elena Vasquez",
+    role: "Product lead, Northwind Labs",
+    image: "https://picsum.photos/seed/elena-pm/200/200",
+  },
+];
 
 export default function Testimonials() {
+  const [index, setIndex] = useState(0);
+  const quote = quotes[index];
+
+  const prev = () => setIndex((i) => (i - 1 + quotes.length) % quotes.length);
+  const next = () => setIndex((i) => (i + 1) % quotes.length);
+
   return (
-    <section className="py-16 md:py-32">
-      <div className="container mx-auto space-y-8 px-4 sm:px-6 md:space-y-16">
-        <div className="relative z-10 mx-auto text-center">
+    <section className="overflow-x-hidden py-24 md:py-40">
+      <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8">
+        <div className="mb-16 max-w-xl md:mb-20">
           <h2>{TESTIMONIALS.heading}</h2>
-          <p className="text-muted-foreground mt-2">
+          <p className="mt-4 max-w-[40ch] text-muted-foreground md:text-lg">
             {TESTIMONIALS.description}
           </p>
         </div>
 
-        <div className="grid gap-4 sm:gap-6 [--color-card:var(--color-muted)] *:border-none *:shadow-none sm:grid-cols-2 md:grid-cols-4 lg:grid-rows-2">
-          <Card className="grid grid-rows-[1fr_auto] gap-8 sm:col-span-2 sm:p-6 lg:row-span-2">
-            <CardContent className="pt-6 flex flex-col">
-              <blockquote className="flex flex-col h-full">
-                <p className="grow mb-8">
-                  {APP_INFO.name} transformed how I approach new ideas. The AI
-                  feedback helped me identify critical weaknesses I hadn't seen,
-                  and the project planning feature gave me a clear roadmap to
-                  execute. It's like having a co-founder who's an expert in
-                  every domain.
-                </p>
-              </blockquote>
-            </CardContent>
+        <div className="rounded-[2rem] bg-white/[0.03] p-1.5 ring-1 ring-white/10">
+          <div className="relative overflow-hidden rounded-[calc(2rem-0.375rem)] bg-card px-6 py-10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.08)] md:px-12 md:py-14">
+            <Quotes className="mb-8 h-10 w-10 text-primary/50" weight="light" />
+            <blockquote
+              key={quote.name}
+              className="max-w-3xl text-2xl font-medium leading-snug tracking-tight text-foreground md:text-3xl transition-opacity duration-700"
+            >
+              {quote.body}
+            </blockquote>
 
-            <CardContent className="pb-6 pt-0">
-              <div className="grid grid-cols-[auto_1fr] items-center gap-3">
-                <Avatar className="size-12">
-                  <AvatarImage
-                    src="https://tailus.io/images/reviews/shekinah.webp"
-                    alt="Shekinah Tshiokufila"
-                    height="400"
-                    width="400"
-                    loading="lazy"
+            <div className="mt-12 flex flex-col gap-8 sm:flex-row sm:items-end sm:justify-between">
+              <div className="flex items-center gap-4">
+                <div className="relative h-14 w-14 overflow-hidden rounded-2xl ring-1 ring-white/10">
+                  <Image
+                    src={quote.image}
+                    alt={quote.name}
+                    fill
+                    className="object-cover grayscale contrast-125"
+                    sizes="56px"
                   />
-                  <AvatarFallback>ST</AvatarFallback>
-                </Avatar>
-
+                </div>
                 <div>
-                  <cite className="text-sm font-medium">Sarah Chen</cite>
-                  <span className="text-muted-foreground block text-sm">
-                    Founder, TechVenture
-                  </span>
+                  <p className="font-medium">{quote.name}</p>
+                  <p className="text-sm text-muted-foreground">{quote.role}</p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-          <Card className="md:col-span-2">
-            <CardContent className="h-full pt-6">
-              <blockquote className="grid h-full grid-rows-[1fr_auto] gap-6">
-                <p>
-                  The validation insights were incredibly detailed. I used the
-                  feedback to pivot my idea before spending months building
-                  something that wouldn't work. Saved me time and money.
-                </p>
 
-                <div className="grid grid-cols-[auto_1fr] items-center gap-3">
-                  <Avatar className="size-12">
-                    <AvatarImage
-                      src="https://tailus.io/images/reviews/jonathan.webp"
-                      alt="Jonathan Yombo"
-                      height="400"
-                      width="400"
-                      loading="lazy"
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={prev}
+                  aria-label="Previous quote"
+                  className="flex h-11 w-11 items-center justify-center rounded-full ring-1 ring-white/10 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-white/5 active:scale-95"
+                >
+                  <ArrowLeft className="h-4 w-4" weight="light" />
+                </button>
+                <button
+                  type="button"
+                  onClick={next}
+                  aria-label="Next quote"
+                  className="flex h-11 w-11 items-center justify-center rounded-full ring-1 ring-white/10 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-white/5 active:scale-95"
+                >
+                  <ArrowRight className="h-4 w-4" weight="light" />
+                </button>
+                <div className="ml-3 flex gap-1.5">
+                  {quotes.map((q, i) => (
+                    <button
+                      key={q.name}
+                      type="button"
+                      aria-label={`Go to quote ${i + 1}`}
+                      onClick={() => setIndex(i)}
+                      className={cn(
+                        "h-1.5 rounded-full transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]",
+                        i === index
+                          ? "w-6 bg-primary"
+                          : "w-1.5 bg-white/20 hover:bg-white/40",
+                      )}
                     />
-                    <AvatarFallback>JY</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <cite>Marcus Rodriguez</cite>
-                    <span className="text-muted-foreground block text-sm">
-                      Entrepreneur
-                    </span>
-                  </div>
+                  ))}
                 </div>
-              </blockquote>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="h-full pt-6">
-              <blockquote className="grid h-full grid-rows-[1fr_auto] gap-6">
-                <p>
-                  The flowchart visualization helped my team understand the
-                  project scope immediately. The SCRUM boards keep us organized
-                  and moving forward efficiently.
-                </p>
-
-                <div className="grid grid-cols-[auto_1fr] items-center gap-3">
-                  <Avatar className="size-12">
-                    <AvatarImage
-                      src="https://tailus.io/images/reviews/yucel.webp"
-                      alt="Yucel Faruksahan"
-                      height="400"
-                      width="400"
-                      loading="lazy"
-                    />
-                    <AvatarFallback>YF</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <cite className="text-sm font-medium">Priya Sharma</cite>
-                    <span className="text-muted-foreground block text-sm">
-                      Product Manager
-                    </span>
-                  </div>
-                </div>
-              </blockquote>
-            </CardContent>
-          </Card>
-          <Card className="card variant-mixed">
-            <CardContent className="h-full pt-6">
-              <blockquote className="grid h-full grid-rows-[1fr_auto] gap-6">
-                <p>
-                  As a first-time founder, I didn't know where to start. The AI
-                  validation and project planning features gave me confidence
-                  and a clear path forward.
-                </p>
-
-                <div className="grid grid-cols-[auto_1fr] gap-3">
-                  <Avatar className="size-12">
-                    <AvatarImage
-                      src="https://tailus.io/images/reviews/rodrigo.webp"
-                      alt="Rodrigo Aguilar"
-                      height="400"
-                      width="400"
-                      loading="lazy"
-                    />
-                    <AvatarFallback>YF</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p>Alex Thompson</p>
-                    <span className="text-muted-foreground block text-sm">
-                      Startup Founder
-                    </span>
-                  </div>
-                </div>
-              </blockquote>
-            </CardContent>
-          </Card>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
