@@ -34,21 +34,21 @@ services:
     build:
       context: .
       args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:49153}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:49154}
     ports:
-      - "49153:49153"
+      - "49154:49154"
     environment:
       NODE_ENV: production
       HOSTNAME: 0.0.0.0
-      PORT: 49153
-      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:49153}
-      AUTH_URL: ${AUTH_URL:-http://localhost:49153}
+      PORT: 49154
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:49154}
+      AUTH_URL: ${AUTH_URL:-http://localhost:49154}
       AUTH_TRUST_HOST: ${AUTH_TRUST_HOST:-true}
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-dev-only-change-me}
       AUTH_SECRET: ${AUTH_SECRET:-dev-only-change-me}
       MONGODB_URI: mongodb://${MONGO_INITDB_ROOT_USERNAME:-gnosis}:${MONGO_INITDB_ROOT_PASSWORD:-gnosisdev}@mongo:27017/${MONGO_DB:-gnosis}?authSource=admin
       GROQ_API_KEY: ${GROQ_API_KEY:-}
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:49153}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:49154}
     depends_on:
       mongo:
         condition: service_healthy

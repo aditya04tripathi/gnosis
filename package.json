@@ -12,10 +12,10 @@
     "lint": "biome check",
     "format": "biome format --write",
     "docker:build": "docker build --platform linux/amd64 -t gnosis .",
-    "docker:up": "docker compose up --build -d && echo http://localhost:49153",
+    "docker:up": "docker compose up --build -d && echo http://localhost:49154",
     "docker:down": "docker compose down",
     "docker:prod:pull": "docker compose -f docker-compose.prod.yml pull",
-    "docker:prod:up": "docker compose -f docker-compose.prod.yml up -d && echo http://localhost:49153",
+    "docker:prod:up": "docker compose -f docker-compose.prod.yml up -d && echo http://localhost:49154",
     "docker:prod:down": "docker compose -f docker-compose.prod.yml down"
   },
   "dependencies": {

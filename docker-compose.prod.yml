@@ -1,6 +1,6 @@
 # Pull-only for the app image. Do not add build: on web.
 # Image: ghcr.io/aditya04tripathi/gnosis
-# Public URL: https://gnosis.adityatripathi.dev (Cloudflare Tunnel → 127.0.0.1:49153)
+# Public URL: https://gnosis.adityatripathi.dev (Cloudflare Tunnel → 127.0.0.1:49154)
 #
 # MongoDB stays on the internal compose network only — no host ports.
 #
@@ -10,7 +10,7 @@
 #
 # Cloudflare Tunnel ingress:
 #   hostname: gnosis.adityatripathi.dev
-#   service: http://127.0.0.1:49153
+#   service: http://127.0.0.1:49154
 
 services:
   mongo:
@@ -48,11 +48,11 @@ services:
     image: ghcr.io/aditya04tripathi/gnosis:${IMAGE_TAG:-latest}
     pull_policy: always
     ports:
-      - "127.0.0.1:49153:49153"
+      - "127.0.0.1:49154:49154"
     environment:
       NODE_ENV: production
       HOSTNAME: 0.0.0.0
-      PORT: 49153
+      PORT: 49154
       NEXTAUTH_URL: ${NEXTAUTH_URL:-https://gnosis.adityatripathi.dev}
       AUTH_URL: ${AUTH_URL:-https://gnosis.adityatripathi.dev}
       AUTH_TRUST_HOST: ${AUTH_TRUST_HOST:-true}

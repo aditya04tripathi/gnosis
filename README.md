@@ -122,7 +122,7 @@ Configuration is primarily handled through environment variables:
 
 - **URL**: [https://gnosis.adityatripathi.dev](https://gnosis.adityatripathi.dev)
 - **Runtime**: Docker image from GHCR on a VPS
-- **Edge**: Cloudflare Tunnel (`cloudflared`) → `http://127.0.0.1:49153`
+- **Edge**: Cloudflare Tunnel (`cloudflared`) → `http://127.0.0.1:49154`
 
 ### VPS + Cloudflare Tunnel
 
@@ -146,7 +146,7 @@ Configuration is primarily handled through environment variables:
    ```yaml
    ingress:
      - hostname: gnosis.adityatripathi.dev
-       service: http://127.0.0.1:49153
+       service: http://127.0.0.1:49154
      - service: http_status:404
    ```
 
@@ -158,7 +158,7 @@ Configuration is primarily handled through environment variables:
 - `GROQ_API_KEY`
 - `AUTH_TRUST_HOST=true` (already set for tunnel / proxy hosts)
 
-`MONGODB_URI` is composed automatically as `mongodb://…@mongo:27017/…` inside the stack. The compose file binds `127.0.0.1:49153` only for the app; Cloudflare Tunnel is the ingress. Mongo is not published outside Docker.
+`MONGODB_URI` is composed automatically as `mongodb://…@mongo:27017/…` inside the stack. The compose file binds `127.0.0.1:49154` only for the app; Cloudflare Tunnel is the ingress. Mongo is not published outside Docker.
 
 ## Limitations and Assumptions
 
