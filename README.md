@@ -77,7 +77,9 @@ The application follows a modular architecture to ensure scalability and maintai
    ```env
    NEXTAUTH_URL=http://localhost:3000
    NEXTAUTH_SECRET=your-generated-secret
-   MONGODB_URI=mongodb://localhost:27017/gnosis
+   MONGO_INITDB_ROOT_USERNAME=gnosis
+   MONGO_INITDB_ROOT_PASSWORD=gnosisdev
+   MONGO_DB=gnosis
    GROQ_API_KEY=your-groq-api-key
    ```
 
@@ -116,17 +118,47 @@ Configuration is primarily handled through environment variables:
 
 ## Deployment
 
-The application is optimized for deployment on platforms supporting Next.js Server Actions:
+### Production host
 
-- **Vercel**: Recommended for seamless integration
-- **Railway**: Suitable for full-stack deployment with MongoDB
+- **URL**: [https://gnosis.adityatripathi.dev](https://gnosis.adityatripathi.dev)
+- **Runtime**: Docker image from GHCR on a VPS
+- **Edge**: Cloudflare Tunnel (`cloudflared`) → `http://127.0.0.1:49153`
 
-Ensure all environment variables are set in the production environment:
+### VPS + Cloudflare Tunnel
 
-- `NEXTAUTH_URL`
-- `NEXTAUTH_SECRET`
-- `MONGODB_URI`
+1. Publish the image (push to `main` / run the Docker workflow), then on the VPS:
+
+   ```bash
+   mkdir -p ~/gnosis && cd ~/gnosis
+   # place docker-compose.prod.yml and .env here
+   cp .env.example .env
+   # set NEXTAUTH_SECRET, AUTH_SECRET, MONGO_INITDB_ROOT_PASSWORD, GROQ_API_KEY
+   # keep NEXTAUTH_URL=https://gnosis.adityatripathi.dev
+
+   docker compose -f docker-compose.prod.yml pull
+   docker compose -f docker-compose.prod.yml up -d
+   ```
+
+   Stack services: `web` (app) + `mongo` (internal only). Mongo has **no host port** — only containers on the compose network can reach it.
+
+2. Point a Cloudflare Tunnel ingress at the bound port:
+
+   ```yaml
+   ingress:
+     - hostname: gnosis.adityatripathi.dev
+       service: http://127.0.0.1:49153
+     - service: http_status:404
+   ```
+
+3. Required production env vars:
+
+- `NEXTAUTH_URL` / `AUTH_URL` → `https://gnosis.adityatripathi.dev`
+- `NEXTAUTH_SECRET` / `AUTH_SECRET`
+- `MONGO_INITDB_ROOT_USERNAME` / `MONGO_INITDB_ROOT_PASSWORD` / `MONGO_DB`
 - `GROQ_API_KEY`
+- `AUTH_TRUST_HOST=true` (already set for tunnel / proxy hosts)
+
+`MONGODB_URI` is composed automatically as `mongodb://…@mongo:27017/…` inside the stack. The compose file binds `127.0.0.1:49153` only for the app; Cloudflare Tunnel is the ingress. Mongo is not published outside Docker.
 
 ## Limitations and Assumptions
 
@@ -147,5 +179,5 @@ This project is licensed under the terms described in [LICENSE](./LICENSE).
 
 **Aditya Tripathi**
 
-- Website: [https://gnosis.up.railway.app](https://gnosis.up.railway.app)
+- Website: [https://gnosis.adityatripathi.dev](https://gnosis.adityatripathi.dev)
 - GitHub: [@aditya04tripathi](https://github.com/aditya04tripathi)
