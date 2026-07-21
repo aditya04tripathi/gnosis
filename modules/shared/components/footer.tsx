@@ -11,7 +11,6 @@ export default function FooterSection({ isAuthenticated }: FooterProps) {
         { title: "Home", href: "/" },
         { title: "Dashboard", href: "/dashboard" },
         { title: "Validate", href: "/validate" },
-        { title: "Billing", href: "/billing" },
         { title: "Profile", href: "/profile" },
         { title: "Privacy", href: "/privacy" },
         { title: "Terms", href: "/terms" },
@@ -21,35 +20,40 @@ export default function FooterSection({ isAuthenticated }: FooterProps) {
         { title: "About", href: "/about" },
         { title: "Privacy", href: "/privacy" },
         { title: "Terms", href: "/terms" },
-        { title: "Sign In", href: "/auth/signin" },
-        { title: "Sign Up", href: "/auth/signup" },
+        { title: "Sign in", href: "/auth/signin" },
+        { title: "Sign up", href: "/auth/signup" },
       ];
 
   return (
-    <footer className="py-16 border-t mt-10">
-      <div className="mx-auto max-w-5xl px-6">
-        <Link
-          href="/"
-          aria-label="go home"
-          className="mx-auto text-center block font-bold"
-        >
-          <h2>{APP_INFO.name}</h2>
-        </Link>
-
-        <div className="my-8 flex flex-wrap justify-center gap-6 text-sm">
-          {footerLinks.map((link) => (
+    <footer className="border-t border-white/5 py-20 md:py-24">
+      <div className="mx-auto flex max-w-7xl flex-col gap-12 px-4 md:px-6 lg:px-8">
+        <div className="flex flex-col justify-between gap-10 md:flex-row md:items-end">
+          <div>
             <Link
-              key={link.href}
-              href={link.href}
-              className="text-muted-foreground hover:text-primary block duration-150 transition-colors"
+              href="/"
+              className="text-2xl font-semibold tracking-tight transition-opacity hover:opacity-80"
             >
-              {link.title}
+              {APP_INFO.name}
             </Link>
-          ))}
+            <p className="mt-3 max-w-[28ch] text-sm text-muted-foreground">
+              {APP_INFO.tagline}
+            </p>
+          </div>
+          <nav className="flex flex-wrap gap-x-6 gap-y-3 text-sm">
+            {footerLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="text-muted-foreground transition-colors duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:text-foreground"
+              >
+                {link.title}
+              </Link>
+            ))}
+          </nav>
         </div>
-        <span className="text-muted-foreground block text-center text-sm">
+        <p className="text-sm text-muted-foreground">
           {FOOTER.copyright(new Date().getFullYear())}
-        </span>
+        </p>
       </div>
     </footer>
   );
