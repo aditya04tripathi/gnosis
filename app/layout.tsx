@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
-import { Geist_Mono, JetBrains_Mono } from "next/font/google";
+import { Geist_Mono, Outfit } from "next/font/google";
 import "./globals.css";
-import Script from "next/script";
 import { HydrationSuppressor } from "@/modules/shared/components/hydration-suppressor";
 import { ThemeProvider } from "@/modules/shared/components/theme-provider";
 import { Toaster } from "@/modules/shared/components/ui/sonner";
 import { METADATA } from "@/modules/shared/constants";
 
-const geistSans = JetBrains_Mono({
-  variable: "--font-jetbrains-mono",
+const outfit = Outfit({
+  variable: "--font-outfit",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
 const geistMono = Geist_Mono({
@@ -27,11 +27,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`dark ${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`dark ${outfit.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning
       >
         <HydrationSuppressor />
-
+        <div className="grain-overlay" aria-hidden />
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
