@@ -1,0 +1,76 @@
+# Pull-only for the app image. Do not add build: on web.
+# Image: ghcr.io/aditya04tripathi/gnosis
+# Public URL: https://gnosis.adityatripathi.dev (Cloudflare Tunnel → 127.0.0.1:49153)
+#
+# MongoDB stays on the internal compose network only — no host ports.
+#
+#   cp .env.example .env
+#   docker compose -f docker-compose.prod.yml pull
+#   docker compose -f docker-compose.prod.yml up -d
+#
+# Cloudflare Tunnel ingress:
+#   hostname: gnosis.adityatripathi.dev
+#   service: http://127.0.0.1:49153
+
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:?set MONGO_INITDB_ROOT_USERNAME in .env}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:?set MONGO_INITDB_ROOT_PASSWORD in .env}
+      MONGO_INITDB_DATABASE: ${MONGO_DB:-gnosis}
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - internal
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mongosh",
+          "--quiet",
+          "-u",
+          "${MONGO_INITDB_ROOT_USERNAME}",
+          "-p",
+          "${MONGO_INITDB_ROOT_PASSWORD}",
+          "--authenticationDatabase",
+          "admin",
+          "--eval",
+          "db.adminCommand('ping').ok",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  web:
+    image: ghcr.io/aditya04tripathi/gnosis:${IMAGE_TAG:-latest}
+    pull_policy: always
+    ports:
+      - "127.0.0.1:49153:49153"
+    environment:
+      NODE_ENV: production
+      HOSTNAME: 0.0.0.0
+      PORT: 49153
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-https://gnosis.adityatripathi.dev}
+      AUTH_URL: ${AUTH_URL:-https://gnosis.adityatripathi.dev}
+      AUTH_TRUST_HOST: ${AUTH_TRUST_HOST:-true}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:?set NEXTAUTH_SECRET in .env}
+      AUTH_SECRET: ${AUTH_SECRET:?set AUTH_SECRET in .env}
+      MONGODB_URI: mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017/${MONGO_DB:-gnosis}?authSource=admin
+      GROQ_API_KEY: ${GROQ_API_KEY:?set GROQ_API_KEY in .env}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://gnosis.adityatripathi.dev}
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - internal
+    restart: unless-stopped
+
+volumes:
+  mongo_data:
+
+networks:
+  internal:
+    driver: bridge
