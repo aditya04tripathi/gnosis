@@ -11,7 +11,7 @@
     "start": "next start",
     "lint": "biome check",
     "format": "biome format --write",
-    "docker:build": "docker build --platform linux/amd64 -t gnosis .",
+    "docker:build": "docker build -t gnosis .",
     "docker:up": "docker compose up --build -d && echo http://localhost:49154",
     "docker:down": "docker compose down",
     "docker:prod:pull": "docker compose -f docker-compose.prod.yml pull",

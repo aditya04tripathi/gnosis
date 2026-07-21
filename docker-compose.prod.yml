@@ -1,5 +1,5 @@
 # Pull-only for the app image. Do not add build: on web.
-# Image: ghcr.io/aditya04tripathi/gnosis
+# Image: ghcr.io/aditya04tripathi/gnosis (multi-arch: linux/amd64 + linux/arm64)
 # Public URL: https://gnosis.adityatripathi.dev (Cloudflare Tunnel → 127.0.0.1:49154)
 #
 # MongoDB stays on the internal compose network only — no host ports.
@@ -7,6 +7,10 @@
 #   cp .env.example .env
 #   docker compose -f docker-compose.prod.yml pull
 #   docker compose -f docker-compose.prod.yml up -d
+#
+# If pull fails on ARM with "no matching manifest for linux/arm64",
+# re-run the Docker GHCR workflow (multi-arch), then pull again.
+# Interim on Apple Silicon: docker compose up --build -d
 #
 # Cloudflare Tunnel ingress:
 #   hostname: gnosis.adityatripathi.dev
