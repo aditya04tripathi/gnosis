@@ -7,6 +7,7 @@ import {
   FREE_SEARCHES_LIMIT,
   RATE_LIMIT,
   SUBSCRIPTION_PLANS,
+  VALIDATE,
 } from "@/modules/shared/constants";
 import { auth } from "@/modules/shared/lib/auth";
 import connectDB from "@/modules/shared/lib/db";
@@ -15,7 +16,7 @@ import {
   generateProjectPlan,
   validateIdea,
 } from "@/modules/shared/lib/groq";
-import { getGroqClient } from "@/modules/shared/lib/groq-client";
+import { getGroqClient, GROQ_FAST_MODEL } from "@/modules/shared/lib/groq-client";
 import ProjectPlan from "@/modules/shared/models/ProjectPlan";
 import ScrumBoard from "@/modules/shared/models/ScrumBoard";
 import User from "@/modules/shared/models/User";
@@ -28,9 +29,15 @@ export async function validateStartupIdea(idea: string) {
     return { error: "Unauthorized" };
   }
 
-  if (!idea || idea.trim().length < 10) {
+  if (!idea || idea.trim().length < VALIDATE.minLength) {
     return {
-      error: "Please provide a detailed startup idea (at least 10 characters)",
+      error: VALIDATE.errorMessages.tooShort,
+    };
+  }
+
+  if (idea.trim().length > VALIDATE.maxLength) {
+    return {
+      error: `Please keep your idea under ${VALIDATE.maxLength} characters`,
     };
   }
 
@@ -295,7 +302,7 @@ export async function improveProjectPlan(
           content: `Current project plan:\n${planSummary}\n\nUser request: ${userRequest}\n\nProvide improvements and suggestions. If the user wants specific changes, explain how to implement them.`,
         },
       ],
-      model: "llama-3.1-70b-versatile",
+      model: GROQ_FAST_MODEL,
       temperature: 0.7,
       max_tokens: 2000,
     });

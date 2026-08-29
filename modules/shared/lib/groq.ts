@@ -1,14 +1,29 @@
-import { getGroqClient } from "@/modules/shared/lib/groq-client";
+import {
+  getGroqClient,
+  GROQ_CREATIVE_MODEL,
+  GROQ_STRUCTURED_MODEL,
+} from "@/modules/shared/lib/groq-client";
 import type {
   AlternativeIdea,
   ProjectPlan,
   ValidationResult,
 } from "@/modules/validation/types/validation.types";
 
+const MAX_IDEA_CHARS = 1000;
+
+function truncateIdea(idea: string): string {
+  const trimmed = idea.trim();
+  if (trimmed.length <= MAX_IDEA_CHARS) {
+    return trimmed;
+  }
+  return trimmed.slice(0, MAX_IDEA_CHARS);
+}
+
 export async function validateIdea(idea: string): Promise<ValidationResult> {
+  const trimmedIdea = truncateIdea(idea);
   const prompt = `You are an expert startup validator and business analyst. Analyze the following startup idea and provide a comprehensive validation:
 
-${idea}
+${trimmedIdea}
 
 Provide your response in JSON format with the following structure:
 {
@@ -40,9 +55,10 @@ Be thorough, realistic, and constructive in your analysis.`;
           content: prompt,
         },
       ],
-      model: "groq/compound",
+      model: GROQ_STRUCTURED_MODEL,
       response_format: { type: "json_object" },
       temperature: 0.7,
+      max_tokens: 4096,
     });
 
     const content = completion.choices[0]?.message?.content;
@@ -62,9 +78,10 @@ export async function generateProjectPlan(
   idea: string,
   validationResult: ValidationResult,
 ): Promise<ProjectPlan> {
+  const trimmedIdea = truncateIdea(idea);
   const prompt = `Based on this startup idea and validation:
 
-Idea: ${idea}
+Idea: ${trimmedIdea}
 Score: ${validationResult.score}/100
 Strengths: ${validationResult.strengths.join(", ")}
 Weaknesses: ${validationResult.weaknesses.join(", ")}
@@ -113,9 +130,10 @@ Create 4-6 phases covering: Research & Planning, MVP Development, Testing & Iter
           content: prompt,
         },
       ],
-      model: "groq/compound",
+      model: GROQ_STRUCTURED_MODEL,
       response_format: { type: "json_object" },
       temperature: 0.7,
+      max_tokens: 8192,
     });
 
     const content = completion.choices[0]?.message?.content;
@@ -134,9 +152,10 @@ Create 4-6 phases covering: Research & Planning, MVP Development, Testing & Iter
 export async function generateAlternativeIdeas(
   idea: string,
 ): Promise<AlternativeIdea[]> {
+  const trimmedIdea = truncateIdea(idea);
   const prompt = `Generate 3-5 alternative startup ideas related to or inspired by this concept:
 
-${idea}
+${trimmedIdea}
 
 Provide your response in JSON format:
 {
@@ -164,9 +183,10 @@ Provide your response in JSON format:
           content: prompt,
         },
       ],
-      model: "groq/compound",
+      model: GROQ_CREATIVE_MODEL,
       response_format: { type: "json_object" },
       temperature: 0.9,
+      max_tokens: 2048,
     });
 
     const content = completion.choices[0]?.message?.content;
