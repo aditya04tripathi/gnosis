@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getGitHubConfig } from "@/modules/github/lib/github-config";
+import { buildAppRedirect, getGitHubConfig } from "@/modules/github/lib/github-config";
 import { GITHUB_OAUTH_SCOPES } from "@/modules/github/lib/gnosis-attribution";
 import { codeChallenge, createGitHubOAuthState, createOAuthCookie, safeRedirectPath } from "@/modules/github/lib/oauth-state";
 import { auth } from "@/modules/shared/lib/auth";
@@ -7,7 +7,7 @@ import { auth } from "@/modules/shared/lib/auth";
 export async function GET(request: Request) {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.redirect(new URL("/auth/signin", request.url));
+    return NextResponse.redirect(buildAppRedirect("/auth/signin"));
   }
 
   const { clientId, appUrl } = getGitHubConfig();

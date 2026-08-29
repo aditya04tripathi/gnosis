@@ -139,7 +139,7 @@ export function GitHubSyncPanel({
         return;
       }
       toast.success(
-        "Repository linked. Pulling issues and milestones from GitHub.",
+        "Repository linked. Starting two-way sync with GitHub.",
       );
       setSyncStatus({ status: "queued", stage: "Queued" });
       router.refresh();
@@ -153,7 +153,7 @@ export function GitHubSyncPanel({
         toast.error(result.error);
         return;
       }
-      toast.success("Pulling latest data from GitHub");
+      toast.success("Syncing with GitHub");
       setSyncStatus({ status: "queued", stage: "Queued" });
       void pollSyncStatus();
     });
@@ -216,8 +216,8 @@ export function GitHubSyncPanel({
               GitHub Integration
             </CardTitle>
             <CardDescription>
-              GitHub is the source of truth. Link an existing repository and
-              pull issues, milestones, and board status into Gnosis.
+              Link a repository and keep tasks, issues, milestones, and board
+              status in sync between Gnosis and GitHub.
             </CardDescription>
           </div>
           {githubConnected ? (
@@ -257,9 +257,56 @@ export function GitHubSyncPanel({
         ) : null}
         {!githubConnected ? (
           <p className="text-muted-foreground text-sm">
-            Connect your GitHub account to pull issues and milestones from a
-            repository.
+            Connect your GitHub account to sync a repository with this project.
           </p>
+        ) : github?.owner && github.repo ? (
+          <>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                disabled={isPending || isSyncing}
+                onClick={handleSync}
+              >
+                {isSyncing ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="size-4" />
+                )}
+                {isSyncing ? "Syncing…" : "Sync"}
+              </Button>
+              <Button
+                disabled={isPending || isSyncing}
+                onClick={handleUnlink}
+                variant="outline"
+              >
+                <Unlink className="size-4" />
+                Unlink repo
+              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button disabled={isPending || isSyncing} variant="destructive">
+                    <Trash2 className="size-4" />
+                    Delete project
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete this project?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This permanently removes the project, issues, board,
+                      and sync history from Gnosis. Your GitHub repository
+                      is not affected.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeleteProject}>
+                      Delete project
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          </>
         ) : (
           <>
             <div className="grid gap-3 sm:grid-cols-2">
@@ -286,58 +333,14 @@ export function GitHubSyncPanel({
             <div className="flex flex-wrap gap-2">
               <Button disabled={isPending || !owner || !repo} onClick={handleLinkRepo}>
                 <Link2 className="size-4" />
-                {github?.owner ? "Update repository" : "Link repository"}
+                Link repository
               </Button>
-              {github?.owner && github.repo ? (
-                <>
-                  <Button
-                    disabled={isPending || isSyncing}
-                    onClick={handleSync}
-                    variant="secondary"
-                  >
-                    {isSyncing ? (
-                      <Loader2 className="size-4 animate-spin" />
-                    ) : (
-                      <RefreshCw className="size-4" />
-                    )}
-                    {isSyncing ? "Syncing…" : "Sync from GitHub"}
-                  </Button>
-                  <Button
-                    disabled={isPending}
-                    onClick={handleUnlink}
-                    variant="outline"
-                  >
-                    <Unlink className="size-4" />
-                    Unlink repo
-                  </Button>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button disabled={isPending} variant="destructive">
-                        <Trash2 className="size-4" />
-                        Delete project
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete this project?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This permanently removes the project, issues, board,
-                          and sync history from Gnosis. Your GitHub repository
-                          is not affected.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDeleteProject}>
-                          Delete project
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </>
-              ) : null}
             </div>
+          </>
+        )}
 
+        {githubConnected && github?.owner && github.repo ? (
+          <>
             {isSyncing || syncStatus?.status === "failed" ? (
               <div className="space-y-2 rounded-md border bg-muted/30 px-3 py-2">
                 <div className="flex items-center justify-between text-sm">
@@ -359,45 +362,43 @@ export function GitHubSyncPanel({
               </div>
             ) : null}
 
-            {github?.owner && github.repo ? (
-              <div className="space-y-2 rounded-md border bg-muted/30 px-3 py-2 text-sm">
+            <div className="space-y-2 rounded-md border bg-muted/30 px-3 py-2 text-sm">
+              <p>
+                Linked to{" "}
+                <a
+                  className="font-medium text-primary hover:underline"
+                  href={`https://github.com/${github.owner}/${github.repo}`}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  {github.owner}/{github.repo}
+                </a>
+              </p>
+              {github.project?.url ? (
                 <p>
-                  Linked to{" "}
+                  GitHub Project:{" "}
                   <a
                     className="font-medium text-primary hover:underline"
-                    href={`https://github.com/${github.owner}/${github.repo}`}
+                    href={github.project.url}
                     rel="noreferrer"
                     target="_blank"
                   >
-                    {github.owner}/{github.repo}
+                    Board · List · Roadmap
                   </a>
                 </p>
-                {github.project?.url ? (
-                  <p>
-                    GitHub Project:{" "}
-                    <a
-                      className="font-medium text-primary hover:underline"
-                      href={github.project.url}
-                      rel="noreferrer"
-                      target="_blank"
-                    >
-                      Board · List · Roadmap
-                    </a>
-                  </p>
-                ) : null}
-                {lastSyncedAt ? (
-                  <p className="text-muted-foreground text-xs">
-                    Last synced {new Date(lastSyncedAt).toLocaleString()}
-                  </p>
-                ) : (
-                  <p className="text-muted-foreground text-xs">
-                    Not synced yet — link a repo and sync to import from GitHub
-                  </p>
-                )}
-              </div>
-            ) : null}
+              ) : null}
+              {lastSyncedAt ? (
+                <p className="text-muted-foreground text-xs">
+                  Last synced {new Date(lastSyncedAt).toLocaleString()}
+                </p>
+              ) : (
+                <p className="text-muted-foreground text-xs">
+                  Not synced yet — run Sync to exchange changes with GitHub
+                </p>
+              )}
+            </div>
           </>
-        )}
+        ) : null}
       </CardContent>
     </Card>
   );

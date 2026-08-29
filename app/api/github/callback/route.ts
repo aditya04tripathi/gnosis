@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { getGitHubConfig } from "@/modules/github/lib/github-config";
+import { buildAppRedirect, getGitHubConfig } from "@/modules/github/lib/github-config";
 import { parseOAuthCookie } from "@/modules/github/lib/oauth-state";
 import { encryptSecret } from "@/modules/shared/lib/api-key-crypto";
 import connectDB from "@/modules/shared/lib/db";
@@ -14,14 +14,12 @@ export async function GET(request: Request) {
 
   if (!clientId || !clientSecret) {
     return NextResponse.redirect(
-      new URL("/dashboard?github=not-configured", request.url),
+      buildAppRedirect("/dashboard?github=not-configured"),
     );
   }
 
   if (!code || !stateParam) {
-    return NextResponse.redirect(
-      new URL("/dashboard?github=error", request.url),
-    );
+    return NextResponse.redirect(buildAppRedirect("/dashboard?github=error"));
   }
 
   const cookieStore = await cookies();
@@ -30,9 +28,7 @@ export async function GET(request: Request) {
     stateParam,
   );
   if (!state) {
-    return NextResponse.redirect(
-      new URL("/dashboard?github=error", request.url),
-    );
+    return NextResponse.redirect(buildAppRedirect("/dashboard?github=error"));
   }
 
   try {
@@ -86,14 +82,14 @@ export async function GET(request: Request) {
       githubScopes: tokenData.scope?.split(",").map((s) => s.trim()).filter(Boolean) ?? [],
     });
 
-    const redirectUrl = new URL(state.redirectTo, request.url);
+    const redirectUrl = buildAppRedirect(state.redirectTo);
     redirectUrl.searchParams.set("github", "connected");
     const response = NextResponse.redirect(redirectUrl);
     response.cookies.delete("github-oauth-state");
     return response;
   } catch (error) {
     console.error("GitHub OAuth callback error:", error);
-    const redirectUrl = new URL(state.redirectTo || "/dashboard", request.url);
+    const redirectUrl = buildAppRedirect(state.redirectTo || "/dashboard");
     redirectUrl.searchParams.set("github", "error");
     return NextResponse.redirect(redirectUrl);
   }

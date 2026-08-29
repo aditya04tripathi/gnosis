@@ -3,6 +3,7 @@ import { getGitHubRepository } from "@/modules/github/lib/repository";
 import {
   syncGitHubToGnosis,
 } from "@/modules/github/lib/sync-inbound";
+import { syncProjectPlanToGitHub } from "@/modules/github/lib/sync";
 import { updateProjectSyncStatus } from "@/modules/github/lib/sync-queue";
 import connectDB from "@/modules/shared/lib/db";
 import GitHubSyncJob, {
@@ -64,14 +65,24 @@ async function executeSyncJob(
     case "task":
     case "issue":
     case "milestone": {
-      await updateJobProgress(job, 0, 1, "Pulling from GitHub");
+      await updateJobProgress(job, 0, 2, "Pulling from GitHub");
       const inbound = await syncGitHubToGnosis(
         octokit,
         projectPlan,
         async (current, total) => {
-          await updateJobProgress(job, current, total, "Pulling from GitHub");
+          await updateJobProgress(
+            job,
+            0,
+            2,
+            total > 0
+              ? `Pulling from GitHub (${current}/${total})`
+              : "Pulling from GitHub",
+          );
         },
       );
+
+      await updateJobProgress(job, 1, 2, "Pushing to GitHub");
+      const outbound = await syncProjectPlanToGitHub(octokit, projectPlan);
 
       projectPlan.github = {
         ...projectPlan.github,
@@ -81,8 +92,11 @@ async function executeSyncJob(
       projectPlan.markModified("github");
       await projectPlan.save();
 
-      await updateJobProgress(job, 1, 1, "Completed");
-      return inbound as unknown as Record<string, unknown>;
+      await updateJobProgress(job, 2, 2, "Completed");
+      return {
+        inbound,
+        outbound,
+      } as unknown as Record<string, unknown>;
     }
 
     case "inbound": {

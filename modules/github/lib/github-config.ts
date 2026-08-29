@@ -13,6 +13,11 @@ export function getGitHubConfig() {
   return { clientId, clientSecret, appUrl };
 }
 
+export function buildAppRedirect(path: string): URL {
+  const { appUrl } = getGitHubConfig();
+  return new URL(path, appUrl);
+}
+
 export function isGitHubConfigured(): boolean {
   const { clientId, clientSecret } = getGitHubConfig();
   return Boolean(clientId && clientSecret);

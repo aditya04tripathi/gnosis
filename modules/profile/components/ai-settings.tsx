@@ -114,6 +114,14 @@ export function AISettings({
               </option>
             ))}
           </select>
+          {provider === "groq" && (
+            <Alert>
+              <AlertDescription>
+                Groq uses the server API key by default. Connect your own key
+                below only if you want to override it.
+              </AlertDescription>
+            </Alert>
+          )}
           {provider === "custom" && (
             <div className="grid gap-3 md:grid-cols-2">
               <Input
@@ -161,11 +169,14 @@ export function AISettings({
           <CardHeader>
             <CardTitle className="flex gap-2">
               <Key className="h-5 w-5" />
-              Bring your own {provider} key
+              {provider === "groq"
+                ? "Override with your own Groq key"
+                : `Bring your own ${provider} key`}
             </CardTitle>
             <CardDescription>
-              Keys are AES-256-GCM encrypted at rest and never returned to the
-              browser.
+              {provider === "groq"
+                ? "Optional. Without a personal key, requests use the server GROQ_API_KEY."
+                : "Keys are AES-256-GCM encrypted at rest and never returned to the browser."}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">

@@ -1,6 +1,6 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import { createGroq, groq } from "@ai-sdk/groq";
+import { createGroq } from "@ai-sdk/groq";
 import { createOpenAI } from "@ai-sdk/openai";
 import type { LanguageModel } from "ai";
 import { createOllama } from "ollama-ai-provider-v2";
@@ -56,6 +56,19 @@ export function shouldUseOllama(): boolean {
   return process.env.AI_PROVIDER === "ollama";
 }
 
+function getServerGroqApiKey(): string {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) {
+    throw new Error("GROQ_API_KEY is required for Groq");
+  }
+  return apiKey;
+}
+
+function getGroqLanguageModel(role: AIModelRole, apiKey?: string): LanguageModel {
+  const resolvedKey = apiKey ?? getServerGroqApiKey();
+  return createGroq({ apiKey: resolvedKey })(getGroqModelId(role));
+}
+
 function getGroqModelId(role: AIModelRole): string {
   const byRole = {
     structured: GROQ_STRUCTURED_MODEL,
@@ -72,13 +85,7 @@ export function getLanguageModel(
     return ollama(getOllamaModelId(role));
   }
 
-  if (!process.env.GROQ_API_KEY) {
-    throw new Error(
-      "GROQ_API_KEY is required when AI_PROVIDER=groq or in production",
-    );
-  }
-
-  return groq(getGroqModelId(role));
+  return getGroqLanguageModel(role);
 }
 
 export function getUserLanguageModel(
@@ -105,10 +112,9 @@ export function getUserLanguageModel(
   const apiKey = encryptedKey?.startsWith("v1:")
     ? decryptApiKey(encryptedKey)
     : undefined;
-  if (provider === "groq")
-    return apiKey
-      ? createGroq({ apiKey })(getGroqModelId(role))
-      : getLanguageModel(role);
+  if (provider === "groq") {
+    return getGroqLanguageModel(role, apiKey);
+  }
   if (!apiKey) throw new Error(`Connect a ${provider} API key before using it`);
   if (provider === "openai") return createOpenAI({ apiKey })("gpt-4o-mini");
   if (provider === "anthropic")
