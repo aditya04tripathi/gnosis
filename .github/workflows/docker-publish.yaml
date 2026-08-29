@@ -118,3 +118,49 @@ jobs:
         run: |
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
             $(printf '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@sha256:%s ' *)
+
+  deploy:
+    name: deploy to VPS
+    runs-on: ubuntu-24.04
+    needs: merge
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Write production .env
+        run: |
+          cat > .env << EOF
+          IMAGE_TAG=latest
+          NEXTAUTH_URL=${{ vars.NEXTAUTH_URL }}
+          AUTH_URL=${{ vars.AUTH_URL }}
+          AUTH_TRUST_HOST=true
+          NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
+          AUTH_SECRET=${{ secrets.AUTH_SECRET }}
+          MONGO_INITDB_ROOT_USERNAME=${{ secrets.MONGO_INITDB_ROOT_USERNAME }}
+          MONGO_INITDB_ROOT_PASSWORD=${{ secrets.MONGO_INITDB_ROOT_PASSWORD }}
+          MONGO_DB=gnosis
+          GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
+          NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL }}
+          EOF
+
+      - name: Copy files to VPS
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          source: ".env,docker-compose.prod.yml"
+          target: ${{ secrets.DEPLOY_PATH }}
+
+      - name: Pull and restart
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            cd ${{ secrets.DEPLOY_PATH }}
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml up -d

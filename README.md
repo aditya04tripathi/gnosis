@@ -126,22 +126,49 @@ Configuration is primarily handled through environment variables:
 
 ### VPS + Cloudflare Tunnel
 
-1. Publish the image (push to `main` / run the Docker workflow), then on the VPS:
+1. **One-time VPS setup** — create the deploy directory and ensure Docker can pull from GHCR (public image, or `docker login ghcr.io` with a `read:packages` PAT):
 
    ```bash
-   mkdir -p ~/gnosis && cd ~/gnosis
-   # place docker-compose.prod.yml and .env here
-   cp .env.example .env
-   # set NEXTAUTH_SECRET, AUTH_SECRET, MONGO_INITDB_ROOT_PASSWORD, GROQ_API_KEY
-   # keep NEXTAUTH_URL=https://gnosis.adityatripathi.dev
+   mkdir -p ~/gnosis
+   ```
 
+2. **GitHub Actions deploy** — pushes to `main` build the image, then the workflow writes `.env` from repository secrets/variables and restarts the stack on the VPS.
+
+   **Repository secrets** (Settings → Secrets and variables → Actions → Secrets):
+
+   | Secret | Purpose |
+   |--------|---------|
+   | `AUTH_SECRET` | Auth.js session signing |
+   | `NEXTAUTH_SECRET` | Legacy alias (same value as `AUTH_SECRET`) |
+   | `GROQ_API_KEY` | Groq API |
+   | `MONGO_INITDB_ROOT_USERNAME` | Mongo root user |
+   | `MONGO_INITDB_ROOT_PASSWORD` | Mongo root password |
+   | `SSH_HOST` | VPS hostname or IP |
+   | `SSH_USER` | SSH user on the VPS |
+   | `SSH_PRIVATE_KEY` | Private key for SSH (PEM, full contents) |
+   | `DEPLOY_PATH` | Absolute path on VPS, e.g. `/home/ubuntu/gnosis` |
+
+   **Repository variables** (already set):
+
+   | Variable | Value |
+   |----------|-------|
+   | `NEXTAUTH_URL` | `https://gnosis.adityatripathi.dev` |
+   | `AUTH_URL` | `https://gnosis.adityatripathi.dev` |
+   | `NEXT_PUBLIC_API_URL` | `https://gnosis.adityatripathi.dev` |
+
+   GitHub secrets are **not** baked into the Docker image — they are injected at deploy time into the VPS `.env` file.
+
+3. **Manual deploy** (if needed):
+
+   ```bash
+   cd ~/gnosis
    docker compose -f docker-compose.prod.yml pull
    docker compose -f docker-compose.prod.yml up -d
    ```
 
    Stack services: `web` (app) + `mongo` (internal only). Mongo has **no host port** — only containers on the compose network can reach it.
 
-2. Point a Cloudflare Tunnel ingress at the bound port:
+4. Point a Cloudflare Tunnel ingress at the bound port:
 
    ```yaml
    ingress:
@@ -150,7 +177,7 @@ Configuration is primarily handled through environment variables:
      - service: http_status:404
    ```
 
-3. Required production env vars:
+3. Required production env vars (written by CI from secrets/variables above):
 
 - `NEXTAUTH_URL` / `AUTH_URL` → `https://gnosis.adityatripathi.dev`
 - `NEXTAUTH_SECRET` / `AUTH_SECRET`
