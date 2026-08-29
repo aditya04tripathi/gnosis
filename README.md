@@ -145,8 +145,23 @@ Configuration is primarily handled through environment variables:
    | `MONGO_INITDB_ROOT_PASSWORD` | Mongo root password |
    | `SSH_HOST` | VPS hostname or IP |
    | `SSH_USER` | SSH user on the VPS |
-   | `SSH_PRIVATE_KEY` | Private key for SSH (PEM, full contents) |
+   | `SSH_PRIVATE_KEY` | Deploy key private half (see below) |
    | `DEPLOY_PATH` | Absolute path on VPS, e.g. `/home/ubuntu/gnosis` |
+
+   **SSH key setup** (one-time):
+
+   ```bash
+   # On your machine — create a deploy key (no passphrase)
+   ssh-keygen -t ed25519 -f ~/.ssh/gnosis_deploy -N ""
+
+   # On the VPS — add the public key
+   cat ~/.ssh/gnosis_deploy.pub | ssh user@your-vps "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
+
+   # Copy the private key into GitHub → Settings → Secrets → SSH_PRIVATE_KEY
+   cat ~/.ssh/gnosis_deploy
+   ```
+
+   Paste the **entire** private key output, including `-----BEGIN OPENSSH PRIVATE KEY-----` and `-----END OPENSSH PRIVATE KEY-----`. Do not paste the `.pub` file.
 
    **Repository variables** (already set):
 
