@@ -40,7 +40,7 @@ Be thorough, realistic, and constructive in your analysis.`;
           content: prompt,
         },
       ],
-      model: "llama-3.3-70b-versatile",
+      model: "groq/compound",
       response_format: { type: "json_object" },
       temperature: 0.7,
     });
@@ -113,7 +113,7 @@ Create 4-6 phases covering: Research & Planning, MVP Development, Testing & Iter
           content: prompt,
         },
       ],
-      model: "llama-3.3-70b-versatile",
+      model: "groq/compound",
       response_format: { type: "json_object" },
       temperature: 0.7,
     });
@@ -164,7 +164,7 @@ Provide your response in JSON format:
           content: prompt,
         },
       ],
-      model: "llama-3.3-70b-versatile",
+      model: "groq/compound",
       response_format: { type: "json_object" },
       temperature: 0.9,
     });
