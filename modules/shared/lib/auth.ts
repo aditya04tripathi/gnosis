@@ -18,27 +18,32 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null;
         }
 
-        await connectDB();
-        const user = await User.findOne({ email: credentials.email });
+        try {
+          await connectDB();
+          const user = await User.findOne({ email: credentials.email });
 
-        if (!user) {
+          if (!user) {
+            return null;
+          }
+
+          const isPasswordValid = await bcrypt.compare(
+            credentials.password as string,
+            user.password,
+          );
+
+          if (!isPasswordValid) {
+            return null;
+          }
+
+          return {
+            id: (user._id as { toString(): string }).toString(),
+            email: user.email,
+            name: user.name,
+          };
+        } catch (error) {
+          console.error("[auth] authorize failed:", error);
           return null;
         }
-
-        const isPasswordValid = await bcrypt.compare(
-          credentials.password as string,
-          user.password,
-        );
-
-        if (!isPasswordValid) {
-          return null;
-        }
-
-        return {
-          id: (user._id as { toString(): string }).toString(),
-          email: user.email,
-          name: user.name,
-        };
       },
     }),
   ],
@@ -50,11 +55,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.userId = user.id;
-        await connectDB();
-        const dbUser = await User.findById(user.id);
-        if (dbUser) {
-          token.subscriptionTier = dbUser.subscriptionTier;
-          token.searchesUsed = dbUser.searchesUsed;
+        try {
+          await connectDB();
+          const dbUser = await User.findById(user.id);
+          if (dbUser) {
+            token.subscriptionTier = dbUser.subscriptionTier;
+            token.searchesUsed = dbUser.searchesUsed;
+          }
+        } catch (error) {
+          console.error("[auth] jwt user enrichment failed:", error);
         }
       }
       return token;

@@ -141,8 +141,7 @@ Configuration is primarily handled through environment variables:
    | `AUTH_SECRET` | Auth.js session signing |
    | `NEXTAUTH_SECRET` | Legacy alias (same value as `AUTH_SECRET`) |
    | `GROQ_API_KEY` | Groq API |
-   | `MONGO_INITDB_ROOT_USERNAME` | Mongo root user |
-   | `MONGO_INITDB_ROOT_PASSWORD` | Mongo root password |
+   | `MONGO_INITDB_ROOT_PASSWORD` | Mongo root password (must match existing VPS data volume) |
    | `SSH_HOST` | VPS hostname or IP |
    | `SSH_USER` | SSH user on the VPS |
    | `SSH_PRIVATE_KEY` | Deploy key private half (see below) |
@@ -170,6 +169,7 @@ Configuration is primarily handled through environment variables:
    | `NEXTAUTH_URL` | `https://gnosis.adityatripathi.dev` |
    | `AUTH_URL` | `https://gnosis.adityatripathi.dev` |
    | `NEXT_PUBLIC_API_URL` | `https://gnosis.adityatripathi.dev` |
+   | `MONGO_INITDB_ROOT_USERNAME` | Optional, defaults to `gnosis` |
 
    GitHub secrets are **not** baked into the Docker image — they are injected at deploy time into the VPS `.env` file.
 

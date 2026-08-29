@@ -62,7 +62,7 @@ services:
       AUTH_TRUST_HOST: ${AUTH_TRUST_HOST:-true}
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:?set NEXTAUTH_SECRET in .env}
       AUTH_SECRET: ${AUTH_SECRET:?set AUTH_SECRET in .env}
-      MONGODB_URI: mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017/${MONGO_DB:-gnosis}?authSource=admin
+      MONGODB_URI: ${MONGODB_URI:?set MONGODB_URI in .env}
       GROQ_API_KEY: ${GROQ_API_KEY:?set GROQ_API_KEY in .env}
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://gnosis.adityatripathi.dev}
     depends_on:
