@@ -13,6 +13,7 @@
     "dev:docker:down": "docker compose --env-file .env.local -f docker-compose.dev.yml --profile docker-dev down",
     "setup:github": "bash scripts/setup-github-creds.sh",
     "build": "next build",
+    "test:e2e": "playwright test",
     "start": "next start",
     "lint": "biome check",
     "format": "biome format --write",
@@ -115,6 +116,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.0",
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^3.0.0",
     "@types/jsonwebtoken": "^9.0.10",

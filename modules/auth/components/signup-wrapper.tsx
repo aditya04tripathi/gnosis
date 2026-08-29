@@ -15,11 +15,9 @@ export default function SignUpWrapper() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = async (formData: FormData) => {
     setIsLoading(true);
 
-    const formData = new FormData(e.currentTarget);
     try {
       const result = await signUp(formData);
       if (result.error) {
@@ -37,7 +35,7 @@ export default function SignUpWrapper() {
 
   return (
     <section className="max-w-2xl mx-auto flex min-h-screen px-4 py-16 md:py-32 dark:bg-transparent">
-      <form onSubmit={handleSubmit} className="w-full m-auto h-fit">
+      <form action={handleSubmit} className="w-full m-auto h-fit">
         <div className="p-6">
           <div>
             <h1 className="mb-1 mt-4">{AUTH.signUp.title}</h1>
