@@ -18,6 +18,10 @@ export interface IUser extends Document {
     anthropic?: string;
     groq?: string;
   };
+  githubAccessToken?: string;
+  githubUsername?: string;
+  githubConnectedAt?: Date;
+  githubScopes?: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -86,6 +90,10 @@ const UserSchema = new Schema<IUser>(
         groq: null,
       },
     },
+    githubAccessToken: { type: String, default: null, select: false },
+    githubUsername: { type: String, default: null },
+    githubConnectedAt: { type: Date, default: null },
+    githubScopes: { type: [String], default: [] },
   },
   {
     timestamps: true,

@@ -1,50 +1,31 @@
 "use client";
 
 import { Sparkles } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { Button } from "@/modules/shared/components/ui/button";
-import { ImprovePlanModal } from "@/modules/validation/components/improve-plan-modal";
-import type { ProjectPlan } from "@/modules/validation/types/validation.types";
+import { useOptionalProjectAiChat } from "@/modules/project/components/project-ai-chat-provider";
 
 interface ProjectHeaderProps {
-  projectPlanId: string;
-  plan: ProjectPlan;
   onPlanUpdated?: () => void;
 }
 
-export function ProjectHeader({
-  projectPlanId,
-  plan,
-  onPlanUpdated,
-}: ProjectHeaderProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const router = useRouter();
-
-  const handlePlanUpdated = () => {
-    onPlanUpdated?.();
-    setIsModalOpen(false);
-    router.refresh();
-  };
+export function ProjectHeader({ onPlanUpdated }: ProjectHeaderProps) {
+  const aiChat = useOptionalProjectAiChat();
 
   return (
-    <>
-      <div className="flex items-center justify-between">
-        <div>
-          <h1>Project Plan</h1>
-        </div>
-        <Button onClick={() => setIsModalOpen(true)} className="gap-2">
-          <Sparkles className="h-4 w-4" />
-          Improve Plan
-        </Button>
+    <div className="flex items-center justify-between">
+      <div>
+        <h1>Project Plan</h1>
       </div>
-      <ImprovePlanModal
-        open={isModalOpen}
-        onOpenChange={setIsModalOpen}
-        projectPlanId={projectPlanId}
-        currentPlan={plan}
-        onPlanUpdated={handlePlanUpdated}
-      />
-    </>
+      <Button
+        className="gap-2"
+        onClick={() => {
+          aiChat?.open();
+          onPlanUpdated?.();
+        }}
+      >
+        <Sparkles className="h-4 w-4" />
+        AI Assistant
+      </Button>
+    </div>
   );
 }

@@ -1,66 +1,83 @@
-import {
-  clipIdeaText,
-  getGroqClient,
-  GROQ_CREATIVE_MODEL,
-  GROQ_STRUCTURED_MODEL,
-} from "@/modules/shared/lib/groq-client";
+import { z } from "zod";
+import { generateStructuredObject } from "@/modules/shared/lib/ai-structured";
+import { clipIdeaText } from "@/modules/shared/lib/groq-client";
 import type {
   AlternativeIdea,
   ProjectPlan,
   ValidationResult,
 } from "@/modules/validation/types/validation.types";
 
+const validationResultSchema = z.object({
+  isValid: z.boolean(),
+  score: z.number().min(0).max(100),
+  feedback: z.string(),
+  strengths: z.array(z.string()).min(1),
+  weaknesses: z.array(z.string()).min(1),
+  suggestions: z.array(z.string()).min(1),
+  recommendedTier: z.enum(["MONTHLY", "YEARLY"]),
+  marketAnalysis: z.string(),
+  competition: z.array(z.string()).min(1),
+  targetAudience: z.string(),
+});
+
+const projectTaskSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  description: z.string(),
+  status: z.enum(["TODO", "IN_PROGRESS", "DONE", "BLOCKED"]).default("TODO"),
+  priority: z.enum(["LOW", "MEDIUM", "HIGH"]),
+  tags: z.array(z.string()),
+  phaseId: z.string(),
+});
+
+const projectPhaseSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string(),
+  duration: z.string(),
+  dependencies: z.array(z.string()),
+  tasks: z.array(projectTaskSchema),
+});
+
+const projectPlanSchema = z.object({
+  phases: z.array(projectPhaseSchema).min(1),
+  estimatedDuration: z.string(),
+  estimatedCost: z.string(),
+  riskLevel: z.enum(["LOW", "MEDIUM", "HIGH"]),
+  priority: z.enum(["LOW", "MEDIUM", "HIGH"]),
+});
+
+const alternativeIdeasSchema = z.object({
+  alternatives: z.array(
+    z.object({
+      title: z.string(),
+      description: z.string(),
+      score: z.number().min(0).max(100),
+      reasoning: z.string(),
+    }),
+  ),
+});
+
 export async function validateIdea(idea: string): Promise<ValidationResult> {
   const trimmedIdea = clipIdeaText(idea);
-  const prompt = `You are an expert startup validator and business analyst. Analyze the following startup idea and provide a comprehensive validation:
+  const prompt = `Analyze the following startup idea and provide a comprehensive validation:
 
 ${trimmedIdea}
-
-Provide your response in JSON format with the following structure:
-{
-  "isValid": boolean,
-  "score": number (0-100),
-  "feedback": string (detailed feedback in 2-3 paragraphs),
-  "strengths": string[] (array of 3-5 strengths),
-  "weaknesses": string[] (array of 3-5 weaknesses),
-  "suggestions": string[] (array of 5-7 actionable suggestions),
-  "recommendedTier": "MONTHLY" | "YEARLY" (recommended billing period based on idea complexity and potential),
-  "marketAnalysis": string (2-3 paragraph market analysis),
-  "competition": string[] (array of 3-5 main competitors or similar products),
-  "targetAudience": string (detailed description of target audience)
-}
 
 Be thorough, realistic, and constructive in your analysis.`;
 
   try {
-    const groq = getGroqClient();
-    const completion = await groq.chat.completions.create({
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are an expert startup validator with deep knowledge in business strategy, market analysis, and product development. Provide structured, JSON-formatted responses only.",
-        },
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-      model: GROQ_STRUCTURED_MODEL,
-      response_format: { type: "json_object" },
-      temperature: 0.7,
-      max_tokens: 4096,
+    return await generateStructuredObject({
+      role: "structured",
+      system:
+        "You are an expert startup validator with deep knowledge in business strategy, market analysis, and product development.",
+      prompt,
+      schema: validationResultSchema,
+      temperature: 0.5,
+      maxOutputTokens: 4096,
     });
-
-    const content = completion.choices[0]?.message?.content;
-    if (!content) {
-      throw new Error("No response from Groq");
-    }
-
-    const result = JSON.parse(content) as ValidationResult;
-    return result;
   } catch (error) {
-    console.error("Groq validation error:", error);
+    console.error("Idea validation error:", error);
     throw new Error("Failed to validate idea");
   }
 }
@@ -77,65 +94,21 @@ Score: ${validationResult.score}/100
 Strengths: ${validationResult.strengths.join(", ")}
 Weaknesses: ${validationResult.weaknesses.join(", ")}
 
-Create a detailed project plan with phases and tasks. Provide your response in JSON format:
-{
-  "phases": [
-    {
-      "id": string,
-      "name": string,
-      "description": string,
-      "duration": string (e.g., "2-3 weeks"),
-      "dependencies": string[] (array of phase IDs this depends on),
-      "tasks": [
-        {
-          "id": string,
-          "title": string,
-          "description": string,
-          "status": "TODO",
-          "priority": "LOW" | "MEDIUM" | "HIGH",
-          "tags": string[],
-          "phaseId": string
-        }
-      ]
-    }
-  ],
-  "estimatedDuration": string (total estimated duration),
-  "estimatedCost": string (estimated cost range),
-  "riskLevel": "LOW" | "MEDIUM" | "HIGH",
-  "priority": "LOW" | "MEDIUM" | "HIGH"
-}
-
+Create a detailed project plan with phases and tasks.
 Create 4-6 phases covering: Research & Planning, MVP Development, Testing & Iteration, Launch Preparation, Marketing & Growth, and Scaling. Include 5-10 tasks per phase.`;
 
   try {
-    const groq = getGroqClient();
-    const completion = await groq.chat.completions.create({
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are an expert project manager and product strategist. Create detailed, actionable project plans with phases and tasks. Provide structured JSON responses only.",
-        },
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-      model: GROQ_STRUCTURED_MODEL,
-      response_format: { type: "json_object" },
-      temperature: 0.7,
-      max_tokens: 8192,
+    return await generateStructuredObject({
+      role: "structured",
+      system:
+        "You are an expert project manager and product strategist. Create detailed, actionable project plans with phases and tasks.",
+      prompt,
+      schema: projectPlanSchema,
+      temperature: 0.5,
+      maxOutputTokens: 8192,
     });
-
-    const content = completion.choices[0]?.message?.content;
-    if (!content) {
-      throw new Error("No response from Groq");
-    }
-
-    const result = JSON.parse(content) as ProjectPlan;
-    return result;
   } catch (error) {
-    console.error("Groq project plan error:", error);
+    console.error("Project plan generation error:", error);
     throw new Error("Failed to generate project plan");
   }
 }
@@ -146,49 +119,22 @@ export async function generateAlternativeIdeas(
   const trimmedIdea = clipIdeaText(idea);
   const prompt = `Generate 3-5 alternative startup ideas related to or inspired by this concept:
 
-${trimmedIdea}
-
-Provide your response in JSON format:
-{
-  "alternatives": [
-    {
-      "title": string,
-      "description": string (2-3 sentences),
-      "score": number (0-100, potential score),
-      "reasoning": string (why this is a good alternative, 1-2 sentences)
-    }
-  ]
-}`;
+${trimmedIdea}`;
 
   try {
-    const groq = getGroqClient();
-    const completion = await groq.chat.completions.create({
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are a creative startup ideator. Generate innovative, viable alternative ideas. Provide structured JSON responses only.",
-        },
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-      model: GROQ_CREATIVE_MODEL,
-      response_format: { type: "json_object" },
-      temperature: 0.9,
-      max_tokens: 2048,
+    const result = await generateStructuredObject({
+      role: "creative",
+      system:
+        "You are a creative startup ideator. Generate innovative, viable alternative ideas.",
+      prompt,
+      schema: alternativeIdeasSchema,
+      temperature: 0.8,
+      maxOutputTokens: 2048,
     });
 
-    const content = completion.choices[0]?.message?.content;
-    if (!content) {
-      throw new Error("No response from Groq");
-    }
-
-    const result = JSON.parse(content) as { alternatives: AlternativeIdea[] };
     return result.alternatives;
   } catch (error) {
-    console.error("Groq alternative ideas error:", error);
+    console.error("Alternative ideas generation error:", error);
     throw new Error("Failed to generate alternative ideas");
   }
 }

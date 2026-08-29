@@ -2,7 +2,10 @@ import type { Mongoose } from "mongoose";
 import mongoose from "mongoose";
 
 const MONGODB_URI: string =
-  process.env.MONGODB_URI || "mongodb://localhost:27017/saas-validator";
+  process.env.MONGODB_URI ||
+  (process.env.MONGO_INITDB_ROOT_USERNAME
+    ? `mongodb://${process.env.MONGO_INITDB_ROOT_USERNAME}:${process.env.MONGO_INITDB_ROOT_PASSWORD ?? ""}@127.0.0.1:27017/${process.env.MONGO_DB ?? "gnosis"}?authSource=admin`
+    : "mongodb://127.0.0.1:27017/gnosis");
 
 interface MongooseCache {
   conn: Mongoose | null;

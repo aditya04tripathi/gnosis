@@ -72,30 +72,64 @@ The application follows a modular architecture to ensure scalability and maintai
 
 3. **Configure Environment**
 
-   Create a `.env.local` file in the root directory:
-
-   ```env
-   NEXTAUTH_URL=http://localhost:3000
-   NEXTAUTH_SECRET=your-generated-secret
-   MONGO_INITDB_ROOT_USERNAME=gnosis
-   MONGO_INITDB_ROOT_PASSWORD=gnosisdev
-   MONGO_DB=gnosis
-   GROQ_API_KEY=your-groq-api-key
-   ```
-
-   Generate `NEXTAUTH_SECRET` using:
+   For **local dev with hot reload + Docker MongoDB**:
 
    ```bash
+   cp .env.local.example .env.local
+   # Edit .env.local — generate AUTH_SECRET; ensure Ollama is running locally
    openssl rand -base64 32
+   ollama pull llama3.2:1b
    ```
 
-4. **Run Development Server**
+   Local dev uses **Ollama** for AI (`AI_PROVIDER=ollama` in `.env.local`).
+   Production uses **Groq** (`GROQ_API_KEY` in `.env`).
+
+   `.env.local` uses `127.0.0.1` for MongoDB (app on host, database in Docker).
+   Production `.env` uses `mongo` as the hostname (both services in Docker).
+
+4. **Run Local Dev (recommended)**
 
    ```bash
-   pnpm dev
+   pnpm dev:local
    ```
 
-   The application will be available at `http://localhost:3000`
+   This starts MongoDB in Docker, waits until it's healthy, then runs `next dev` on
+   **http://localhost:3000** with hot reload.
+
+   Stop MongoDB when done:
+
+   ```bash
+   pnpm dev:local:down
+   ```
+
+5. **Run Full Stack in Docker (hot reload in container)**
+
+   ```bash
+   pnpm dev:docker
+   ```
+
+   Mounts your source into the container so file saves trigger hot reload.
+   App: **http://localhost:3000**
+
+6. **Run Production-like Docker Stack**
+
+   ```bash
+   pnpm docker:up
+   ```
+
+   App: **http://localhost:49154** (built image, no hot reload)
+
+### Dev modes compared
+
+| Command | App | Database | AI | Hot reload |
+|---------|-----|----------|----|------------|
+| `pnpm dev:local` | Host (:3000) | Docker Mongo | Ollama (local) | Yes |
+| `pnpm dev:docker` | Docker (:3000) | Docker Mongo | Ollama (host) | Yes (volumes) |
+| `pnpm docker:up` | Docker (:49154) | Docker Mongo | Groq | No (production build) |
+
+---
+
+Legacy: plain `pnpm dev` still works if MongoDB is already running and `.env.local` is set.
 
 ## Usage
 

@@ -8,6 +8,7 @@ import { Button } from "@/modules/shared/components/ui/button";
 import { Label } from "@/modules/shared/components/ui/label";
 import { Textarea } from "@/modules/shared/components/ui/textarea";
 import { VALIDATE } from "@/modules/shared/constants";
+import { ValidationHub } from "@/modules/validation/components/validation-hub";
 import { validateStartupIdea } from "@/modules/validation/actions/validation";
 
 function ValidateContent() {
@@ -68,6 +69,7 @@ function ValidateContent() {
               <h1>{VALIDATE.heading}</h1>
               <p className="text-muted-foreground">{VALIDATE.description}</p>
             </div>
+            <ValidationHub />
             <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
               <div className="space-y-2">
                 <Label

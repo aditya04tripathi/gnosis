@@ -158,6 +158,8 @@ jobs:
           MONGO_INITDB_ROOT_PASSWORD: ${{ secrets.MONGO_INITDB_ROOT_PASSWORD }}
           MONGO_DB: gnosis
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          GITHUB_CLIENT_ID: ${{ secrets.GITHUB_CLIENT_ID }}
+          GITHUB_CLIENT_SECRET: ${{ secrets.GITHUB_CLIENT_SECRET }}
           NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
         run: |
           node <<'SCRIPT'
@@ -172,6 +174,8 @@ jobs:
             MONGO_INITDB_ROOT_PASSWORD: process.env.MONGO_INITDB_ROOT_PASSWORD,
             MONGO_DB: process.env.MONGO_DB,
             GROQ_API_KEY: process.env.GROQ_API_KEY,
+            GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
+            GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
             NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
           };
           const user = encodeURIComponent(env.MONGO_INITDB_ROOT_USERNAME);

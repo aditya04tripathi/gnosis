@@ -35,7 +35,6 @@ const ScrumBoardSchema = new Schema<IScrumBoard>(
   },
 );
 
-ScrumBoardSchema.index({ projectPlanId: 1 });
 ScrumBoardSchema.index({ userId: 1 });
 
 const ScrumBoard: Model<IScrumBoard> =

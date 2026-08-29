@@ -1,8 +1,10 @@
 import Groq from "groq-sdk";
 
-export const GROQ_STRUCTURED_MODEL = "openai/gpt-oss-20b";
-export const GROQ_CREATIVE_MODEL = "qwen/qwen3.8-27b";
-export const GROQ_FAST_MODEL = "qwen/qwen3.6-27b";
+export {
+  GROQ_CREATIVE_MODEL,
+  GROQ_FAST_MODEL,
+  GROQ_STRUCTURED_MODEL,
+} from "@/modules/shared/lib/ai-provider";
 
 const CHARS_PER_TOKEN = 4;
 
@@ -43,13 +45,13 @@ export function clipIdeaText(idea: string): string {
   return trimmed.slice(0, maxChars);
 }
 
-if (!process.env.GROQ_API_KEY) {
-  throw new Error("Please add GROQ_API_KEY to your environment variables");
-}
-
 let groqInstance: Groq | null = null;
 
 export function getGroqClient(): Groq {
+  if (!process.env.GROQ_API_KEY) {
+    throw new Error("GROQ_API_KEY is required for Groq API access");
+  }
+
   if (!groqInstance) {
     groqInstance = new Groq({
       apiKey: process.env.GROQ_API_KEY,

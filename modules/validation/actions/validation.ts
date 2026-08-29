@@ -2,6 +2,7 @@
 
 import type mongoose from "mongoose";
 import { revalidatePath } from "next/cache";
+import { ensureMilestonesFromRoadmap } from "@/modules/project/lib/milestones-from-roadmap";
 import {
   CACHE_TTL,
   FREE_SEARCHES_LIMIT,
@@ -10,13 +11,13 @@ import {
   VALIDATE,
 } from "@/modules/shared/constants";
 import { auth } from "@/modules/shared/lib/auth";
+import { getEffectiveSearchLimit, isDevUnlimited } from "@/modules/shared/lib/dev-mode";
 import connectDB from "@/modules/shared/lib/db";
 import {
   generateAlternativeIdeas,
   generateProjectPlan,
   validateIdea,
 } from "@/modules/shared/lib/groq";
-import { getGroqClient, GROQ_FAST_MODEL } from "@/modules/shared/lib/groq-client";
 import ProjectPlan from "@/modules/shared/models/ProjectPlan";
 import ScrumBoard from "@/modules/shared/models/ScrumBoard";
 import User from "@/modules/shared/models/User";
@@ -54,9 +55,12 @@ export async function validateStartupIdea(idea: string) {
       await user.save();
     }
 
+    const searchLimit = getEffectiveSearchLimit(FREE_SEARCHES_LIMIT);
+
     if (
+      !isDevUnlimited() &&
       user.subscriptionTier === "FREE" &&
-      user.searchesUsed >= FREE_SEARCHES_LIMIT
+      user.searchesUsed >= searchLimit
     ) {
       const timeUntilReset = user.searchesResetAt.getTime() - now.getTime();
       const hoursUntilReset = Math.ceil(timeUntilReset / (1000 * 60 * 60));
@@ -157,6 +161,9 @@ export async function generatePlan(validationId: string) {
       alternativeIdeas,
     });
 
+    ensureMilestonesFromRoadmap(projectPlan);
+    await projectPlan.save();
+
     validation.projectPlanId = projectPlan._id as mongoose.Types.ObjectId;
     await validation.save();
 
@@ -209,6 +216,7 @@ export async function updateTaskStatus(
       return { error: "Task not found" };
     }
 
+    ensureMilestonesFromRoadmap(projectPlan);
     await projectPlan.save();
 
     let scrumBoard = await ScrumBoard.findOne({ projectPlanId });
@@ -231,97 +239,5 @@ export async function updateTaskStatus(
   } catch (error) {
     console.error("Update task error:", error);
     return { error: "Failed to update task" };
-  }
-}
-
-export async function improveProjectPlan(
-  projectPlanId: string,
-  userRequest: string,
-) {
-  const session = await auth();
-  if (!session?.user) {
-    return { error: "Unauthorized" };
-  }
-
-  try {
-    await connectDB();
-
-    const user = await User.findById(session.user.id);
-    if (!user) {
-      return { error: "User not found" };
-    }
-
-    const searchesRemaining =
-      user.subscriptionTier === "FREE"
-        ? FREE_SEARCHES_LIMIT - user.searchesUsed
-        : Infinity;
-
-    if (searchesRemaining < 0.5) {
-      return {
-        error: "Insufficient credits. Please upgrade your plan.",
-      };
-    }
-
-    const projectPlan = await ProjectPlan.findById(projectPlanId);
-    if (!projectPlan || projectPlan.userId.toString() !== session.user.id) {
-      return { error: "Project plan not found" };
-    }
-
-    const groqClient = getGroqClient();
-
-    const planSummary = JSON.stringify({
-      phases: projectPlan.plan.phases.map((p) => ({
-        name: p.name,
-        description: p.description,
-        tasks: p.tasks.map((t) => ({
-          title: t.title,
-          description: t.description,
-          status: t.status,
-          priority: t.priority,
-        })),
-      })),
-      estimatedDuration: projectPlan.plan.estimatedDuration,
-      estimatedCost: projectPlan.plan.estimatedCost,
-      riskLevel: projectPlan.plan.riskLevel,
-    });
-
-    const completion = await groqClient.chat.completions.create({
-      messages: [
-        {
-          role: "system",
-          content: `You are an expert project management consultant. Help users improve their project plans based on their requests. Provide actionable suggestions and explanations.`,
-        },
-        {
-          role: "user",
-          content: `Current project plan:\n${planSummary}\n\nUser request: ${userRequest}\n\nProvide improvements and suggestions. If the user wants specific changes, explain how to implement them.`,
-        },
-      ],
-      model: GROQ_FAST_MODEL,
-      temperature: 0.7,
-      max_tokens: 2000,
-    });
-
-    const improvements =
-      completion.choices[0]?.message?.content || "No improvements suggested.";
-
-    user.searchesUsed = (user.searchesUsed || 0) + 0.5;
-    await user.save();
-
-    revalidatePath(`/project/${projectPlanId}`);
-    revalidatePath("/dashboard");
-    revalidatePath("/usage");
-
-    return {
-      success: true,
-      improvements,
-      updatedPlan: null,
-      user: {
-        searchesUsed: user.searchesUsed,
-        subscriptionTier: user.subscriptionTier,
-      },
-    };
-  } catch (error) {
-    console.error("Improve plan error:", error);
-    return { error: "Failed to improve project plan. Please try again." };
   }
 }

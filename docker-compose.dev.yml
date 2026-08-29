@@ -1,0 +1,88 @@
+# Local development — MongoDB in Docker, Next.js with hot reload on your machine.
+#
+# Fast path (recommended):
+#   cp .env.local.example .env.local   # once
+#   pnpm dev:local                     # mongo in Docker + next dev on :3000
+#
+# Everything in Docker (hot reload via volume mounts):
+#   cp .env.local.example .env.local
+#   pnpm dev:docker                    # mongo + web-dev on :3000
+#
+# Stop:
+#   pnpm dev:local:down
+#   pnpm dev:docker:down
+
+services:
+  mongo:
+    image: mongo:7
+    container_name: gnosis-mongo-dev
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:-gnosis}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:-gnosisdev}
+      MONGO_INITDB_DATABASE: ${MONGO_DB:-gnosis}
+    volumes:
+      - mongo_dev_data:/data/db
+    ports:
+      - "127.0.0.1:27017:27017"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mongosh",
+          "--quiet",
+          "-u",
+          "${MONGO_INITDB_ROOT_USERNAME:-gnosis}",
+          "-p",
+          "${MONGO_INITDB_ROOT_PASSWORD:-gnosisdev}",
+          "--authenticationDatabase",
+          "admin",
+          "--eval",
+          "db.adminCommand('ping').ok",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
+
+  web-dev:
+    profiles: ["docker-dev"]
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: gnosis-web-dev
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      HOSTNAME: 0.0.0.0
+      WATCHPACK_POLLING: "true"
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      AUTH_URL: ${AUTH_URL:-http://localhost:3000}
+      AUTH_TRUST_HOST: ${AUTH_TRUST_HOST:-true}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-dev-only-change-me}
+      AUTH_SECRET: ${AUTH_SECRET:-dev-only-change-me}
+      MONGODB_URI: mongodb://${MONGO_INITDB_ROOT_USERNAME:-gnosis}:${MONGO_INITDB_ROOT_PASSWORD:-gnosisdev}@mongo:27017/${MONGO_DB:-gnosis}?authSource=admin
+      AI_PROVIDER: ${AI_PROVIDER:-ollama}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434/api}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2:1b}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+      GITHUB_WEBHOOK_SECRET: ${GITHUB_WEBHOOK_SECRET:-}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000}
+    volumes:
+      - .:/app
+      - web_dev_node_modules:/app/node_modules
+      - web_dev_next:/app/.next
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+volumes:
+  mongo_dev_data:
+  web_dev_node_modules:
+  web_dev_next:

@@ -13,6 +13,7 @@ import {
   FREE_SEARCHES_LIMIT,
   SUBSCRIPTION_PLANS,
 } from "@/modules/shared/constants";
+import { getEffectiveSearchLimit, isDevUnlimited } from "@/modules/shared/lib/dev-mode";
 import connectDB from "@/modules/shared/lib/db";
 import User from "@/modules/shared/models/User";
 
@@ -30,7 +31,7 @@ export default async function UsagePage() {
     return null;
   }
 
-  const limit = FREE_SEARCHES_LIMIT;
+  const limit = getEffectiveSearchLimit(FREE_SEARCHES_LIMIT);
 
   const used = user.searchesUsed || 0;
   const remaining = limit === Infinity ? Infinity : Math.max(0, limit - used);
