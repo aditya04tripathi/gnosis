@@ -1,7 +1,9 @@
-import groq from "groq-sdk";
 import type { Metadata } from "next";
+import {
+  encryptLegacyApiKeys,
+  hasEncryptedApiKey,
+} from "@/modules/shared/lib/api-key-crypto";
 import { auth } from "@/modules/shared/lib/auth";
-import { useOllama } from "@/modules/shared/lib/ai-provider";
 import { AISettings } from "@/modules/profile/components/ai-settings";
 import connectDB from "@/modules/shared/lib/db";
 import User from "@/modules/shared/models/User";
@@ -13,16 +15,11 @@ export const metadata: Metadata = {
 
 export default async function AIPage() {
   const session = await auth();
+  if (!session?.user?.id) return null;
   await connectDB();
-  const user = await User.findById(session?.user?.id).lean();
-
-  const groqModels = useOllama()
-    ? []
-    : (
-        await new groq({
-          apiKey: process.env.GROQ_API_KEY,
-        }).models.list()
-      ).data;
+  const user = await User.findById(session.user.id);
+  if (!user) return null;
+  if (encryptLegacyApiKeys(user.apiKeys)) await user.save();
 
   return (
     <div className="flex h-full flex-col">
@@ -32,17 +29,20 @@ export default async function AIPage() {
             <div>
               <h1>AI Preferences</h1>
               <p className="text-muted-foreground">
-                {useOllama()
-                  ? "Local development uses Ollama. Groq is enabled in production."
-                  : "Choose your AI provider and configure API keys"}
+                Choose your AI provider and configure API keys
               </p>
             </div>
           </div>
 
-          <AISettings
-            groqModels={groqModels}
-            user={JSON.parse(JSON.stringify(user))}
-          />
+          <AISettings settings={{
+            provider: (user.preferences?.aiProvider || "groq") as "groq" | "openai" | "gemini" | "anthropic" | "custom" | "ollama",
+            customBaseUrl: user.preferences?.customBaseUrl,
+            customModel: user.preferences?.customModel,
+            ollamaBaseUrl: user.preferences?.ollamaBaseUrl,
+            ollamaModel: user.preferences?.ollamaModel,
+          }} connected={{
+            groq: hasEncryptedApiKey(user, "groq"), openai: hasEncryptedApiKey(user, "openai"), gemini: hasEncryptedApiKey(user, "gemini"), anthropic: hasEncryptedApiKey(user, "anthropic"), custom: hasEncryptedApiKey(user, "custom"),
+          }} />
         </div>
       </main>
     </div>
