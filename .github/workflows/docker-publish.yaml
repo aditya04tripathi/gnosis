@@ -211,4 +211,4 @@ jobs:
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         run: |
           ssh -i ~/.ssh/deploy_key "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
-            "cd '${DEPLOY_PATH}' && docker compose -f docker-compose.prod.yml pull web && docker compose -f docker-compose.prod.yml up -d --no-deps web"
+            "cd '${DEPLOY_PATH}' && docker compose -f docker-compose.prod.yml pull web && docker compose -f docker-compose.prod.yml up -d --no-deps --force-recreate web"
