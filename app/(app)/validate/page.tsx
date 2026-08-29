@@ -85,12 +85,7 @@ function ValidateContent() {
                   className="resize-none text-sm sm:text-base sm:min-h-[200px]"
                   required
                   minLength={VALIDATE.minLength}
-                  maxLength={VALIDATE.maxLength}
                 />
-                <p className="text-xs text-muted-foreground sm:text-sm">
-                  {idea.length}/{VALIDATE.maxLength} characters (minimum{" "}
-                  {VALIDATE.minLength} characters)
-                </p>
               </div>
               <Button
                 type="submit"

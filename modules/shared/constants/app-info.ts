@@ -98,7 +98,6 @@ export const VALIDATE = {
   buttonText: "Validate Idea",
   buttonLoadingText: "Validating...",
   minLength: 10,
-  maxLength: 1000,
   errorMessages: {
     tooShort: "Please provide a detailed startup idea (at least 10 characters)",
     rateLimit: "Rate limit exceeded. Please try again later.",

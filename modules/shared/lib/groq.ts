@@ -1,4 +1,5 @@
 import {
+  clipIdeaText,
   getGroqClient,
   GROQ_CREATIVE_MODEL,
   GROQ_STRUCTURED_MODEL,
@@ -9,18 +10,8 @@ import type {
   ValidationResult,
 } from "@/modules/validation/types/validation.types";
 
-const MAX_IDEA_CHARS = 1000;
-
-function truncateIdea(idea: string): string {
-  const trimmed = idea.trim();
-  if (trimmed.length <= MAX_IDEA_CHARS) {
-    return trimmed;
-  }
-  return trimmed.slice(0, MAX_IDEA_CHARS);
-}
-
 export async function validateIdea(idea: string): Promise<ValidationResult> {
-  const trimmedIdea = truncateIdea(idea);
+  const trimmedIdea = clipIdeaText(idea);
   const prompt = `You are an expert startup validator and business analyst. Analyze the following startup idea and provide a comprehensive validation:
 
 ${trimmedIdea}
@@ -78,7 +69,7 @@ export async function generateProjectPlan(
   idea: string,
   validationResult: ValidationResult,
 ): Promise<ProjectPlan> {
-  const trimmedIdea = truncateIdea(idea);
+  const trimmedIdea = clipIdeaText(idea);
   const prompt = `Based on this startup idea and validation:
 
 Idea: ${trimmedIdea}
@@ -152,7 +143,7 @@ Create 4-6 phases covering: Research & Planning, MVP Development, Testing & Iter
 export async function generateAlternativeIdeas(
   idea: string,
 ): Promise<AlternativeIdea[]> {
-  const trimmedIdea = truncateIdea(idea);
+  const trimmedIdea = clipIdeaText(idea);
   const prompt = `Generate 3-5 alternative startup ideas related to or inspired by this concept:
 
 ${trimmedIdea}

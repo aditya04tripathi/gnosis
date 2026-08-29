@@ -35,12 +35,6 @@ export async function validateStartupIdea(idea: string) {
     };
   }
 
-  if (idea.trim().length > VALIDATE.maxLength) {
-    return {
-      error: `Please keep your idea under ${VALIDATE.maxLength} characters`,
-    };
-  }
-
   try {
     await connectDB();
 
