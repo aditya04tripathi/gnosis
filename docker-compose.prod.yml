@@ -64,6 +64,8 @@ services:
       AUTH_SECRET: ${AUTH_SECRET:?set AUTH_SECRET in .env}
       MONGODB_URI: ${MONGODB_URI:?set MONGODB_URI in .env}
       GROQ_API_KEY: ${GROQ_API_KEY:?set GROQ_API_KEY in .env}
+      BYOK_ENCRYPTION_KEY: ${BYOK_ENCRYPTION_KEY:?set BYOK_ENCRYPTION_KEY in .env}
+      ALLOW_LOCAL_AI_ENDPOINTS: ${ALLOW_LOCAL_AI_ENDPOINTS:-false}
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://gnosis.adityatripathi.dev}
     depends_on:
       mongo:

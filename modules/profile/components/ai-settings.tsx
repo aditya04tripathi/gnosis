@@ -1,248 +1,58 @@
 "use client";
 
-import type groq from "groq-sdk";
-import { Eye, EyeOff, Key } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Key, Trash2 } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
-import {
-  updateAIPreferences,
-  updateAPIKeys,
-} from "@/modules/profile/actions/profile";
+import { updateAIPreferences, updateAPIKeys } from "@/modules/profile/actions/profile";
 import { Alert, AlertDescription } from "@/modules/shared/components/ui/alert";
 import { Button } from "@/modules/shared/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/modules/shared/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/modules/shared/components/ui/card";
 import { Input } from "@/modules/shared/components/ui/input";
 import { Label } from "@/modules/shared/components/ui/label";
 
-interface AISettingsProps {
-  user: {
-    _id: string;
-    preferences?: {
-      aiProvider?: string;
-      theme?: string;
-    };
-    apiKeys?: {
-      groq?: string;
-    };
-  };
-  groqModels: groq.Models.Model[];
-}
+const providers = ["groq", "openai", "gemini", "anthropic", "custom", "ollama"] as const;
+type Provider = (typeof providers)[number];
 
-export function AISettings({ user, groqModels }: AISettingsProps) {
+export function AISettings({ settings, connected }: { settings: { provider: Provider; customBaseUrl?: string; customModel?: string; ollamaBaseUrl?: string; ollamaModel?: string }; connected: Record<Exclude<Provider, "ollama">, boolean> }) {
+  const [provider, setProvider] = useState<Provider>(settings.provider);
   const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingKeys, setIsLoadingKeys] = useState(false);
-  const [selectedProvider, setSelectedProvider] = useState(
-    user.preferences?.aiProvider || "gemini",
-  );
-  const aiProviders = groqModels;
-  const [groqApiKey, setGroqApiKey] = useState(user.apiKeys?.groq || "");
-  const [showGroqKey, setShowGroqKey] = useState(false);
+  const [apiKey, setApiKey] = useState("");
+  const [customBaseUrl, setCustomBaseUrl] = useState(settings.customBaseUrl || "");
+  const [customModel, setCustomModel] = useState(settings.customModel || "");
+  const [ollamaBaseUrl, setOllamaBaseUrl] = useState(settings.ollamaBaseUrl || "http://127.0.0.1:11434/v1");
+  const [ollamaModel, setOllamaModel] = useState(settings.ollamaModel || "llama3.2");
+  const [keyStatus, setKeyStatus] = useState(connected);
 
-  useEffect(() => {}, []);
-
-  const saveProviderPreference = async (provider: string) => {
+  async function saveProvider() {
     setIsLoading(true);
-
-    try {
-      const formData = new FormData();
-      formData.append("aiProvider", provider);
-
-      const result = await updateAIPreferences(formData);
-
-      if (result.error) {
-        toast.error(result.error);
-      } else {
-        toast.success("AI preferences updated successfully!");
-        setSelectedProvider(provider);
-      }
-    } catch {
-      toast.error("Failed to update AI preferences");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    await saveProviderPreference(selectedProvider);
-  };
-
-  const handleAPIKeysSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsLoadingKeys(true);
-
-    try {
-      const formData = new FormData();
-      formData.append("groq", groqApiKey);
-
-      const result = await updateAPIKeys(formData);
-
-      if (result.error) {
-        toast.error(result.error);
-      } else {
-        toast.success("API keys updated successfully!");
-      }
-    } catch {
-      toast.error("Failed to update API keys");
-    } finally {
-      setIsLoadingKeys(false);
-    }
-  };
-
-  return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>AI Provider Selection</CardTitle>
-          <CardDescription>
-            Choose which AI provider powers your validations and insights
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid gap-4 md:grid-cols-3">
-              {aiProviders.map((provider) => {
-                const isSelected = selectedProvider === provider.id;
-                return (
-                  <Button
-                    key={provider.id}
-                    type="button"
-                    variant={isSelected ? "outline" : "ghost"}
-                    onClick={() => saveProviderPreference(provider.id)}
-                    disabled={isLoading}
-                    className={`h-auto p-4 justify-start text-left transition-all ${
-                      isSelected
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/50"
-                    }`}
-                  >
-                    <div className="w-full">
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className="font-medium">
-                          {provider.id} ({provider.owned_by})
-                        </span>
-                      </div>
-                    </div>
-                  </Button>
-                );
-              })}
-            </div>
-
-            <div className="flex justify-end gap-4">
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Saving..." : "Save Changes"}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-
-      {}
-      <Card>
-        <CardHeader>
-          <CardTitle>Usage & Limits</CardTitle>
-          <CardDescription>
-            Information about your AI usage and rate limits
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between py-2 border-b">
-              <span className="text-sm font-medium">Current Provider</span>
-              <span className="text-sm text-muted-foreground">
-                {aiProviders.find((p) => p.id === selectedProvider)?.id ||
-                  selectedProvider}
-              </span>
-            </div>
-            <div className="flex items-center justify-between py-2 border-b">
-              <span className="text-sm font-medium">Monthly Credits</span>
-              <span className="text-sm text-muted-foreground">Unlimited</span>
-            </div>
-            <div className="flex items-center justify-between py-2">
-              <span className="text-sm font-medium">Response Quality</span>
-              <span className="text-sm text-muted-foreground">
-                High (optimized)
-              </span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Key className="h-5 w-5" />
-            API Keys
-          </CardTitle>
-          <CardDescription>
-            Add your own API keys to use custom AI providers (optional)
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleAPIKeysSubmit} className="space-y-6">
-            <Alert>
-              <AlertDescription>
-                Your API keys are encrypted and stored securely. Leaving a key
-                empty will use our default keys.
-              </AlertDescription>
-            </Alert>
-
-            <div className="space-y-2">
-              <Label htmlFor="groq-api-key" className="flex items-center gap-2">
-                Groq API Key
-              </Label>
-              <CardDescription className="text-sm text-muted-foreground mb-2">
-                This API key works for all Groq models. Get your key from{" "}
-                <a
-                  href="https://console.groq.com/keys"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline"
-                >
-                  Groq Console
-                </a>
-                .
-              </CardDescription>
-              <div className="relative">
-                <Input
-                  id="groq-api-key"
-                  type={showGroqKey ? "text" : "password"}
-                  placeholder="Enter your Groq API key"
-                  value={groqApiKey}
-                  onChange={(e) => setGroqApiKey(e.target.value)}
-                  disabled={isLoadingKeys}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-0 top-0 h-full"
-                  onClick={() => setShowGroqKey(!showGroqKey)}
-                >
-                  {showGroqKey ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-4">
-              <Button type="submit" disabled={isLoadingKeys}>
-                {isLoadingKeys ? "Saving..." : "Save API Keys"}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
-  );
+    const form = new FormData();
+    form.set("aiProvider", provider); form.set("customBaseUrl", customBaseUrl); form.set("customModel", customModel); form.set("ollamaBaseUrl", ollamaBaseUrl); form.set("ollamaModel", ollamaModel);
+    const result = await updateAIPreferences(form);
+    setIsLoading(false);
+    result.error ? toast.error(result.error) : toast.success(`${provider} is now active`);
+  }
+  async function saveKey(action: "save" | "remove") {
+    if (provider === "ollama") return;
+    if (action === "save" && !apiKey.trim()) return toast.error("Enter an API key first");
+    setIsLoading(true);
+    const form = new FormData(); form.set("provider", provider); form.set("action", action); form.set("apiKey", apiKey.trim());
+    const result = await updateAPIKeys(form);
+    setIsLoading(false);
+    if (result.error) return toast.error(result.error);
+    setApiKey(""); setKeyStatus((current) => ({ ...current, [provider]: action === "save" })); toast.success(action === "save" ? "Key securely connected" : "Key removed");
+  }
+  const providerNeedsKey = provider !== "ollama";
+  return <div className="space-y-6">
+    <Card><CardHeader><CardTitle>AI provider</CardTitle><CardDescription>Select the provider used for validation, plans, and improvements.</CardDescription></CardHeader><CardContent className="space-y-4">
+      <select className="h-10 w-full rounded-md border bg-background px-3" value={provider} onChange={(e) => setProvider(e.target.value as Provider)} disabled={isLoading}>{providers.map((item) => <option key={item} value={item}>{item === "custom" ? "OpenAI-compatible" : item === "ollama" ? "Ollama (local server)" : item[0].toUpperCase() + item.slice(1)}</option>)}</select>
+      {provider === "custom" && <div className="grid gap-3 md:grid-cols-2"><Input value={customBaseUrl} onChange={(e) => setCustomBaseUrl(e.target.value)} placeholder="https://api.example.com/v1" /><Input value={customModel} onChange={(e) => setCustomModel(e.target.value)} placeholder="Model name" /></div>}
+      {provider === "ollama" && <Alert><AlertDescription>Ollama must be reachable from the Gnosis server. Local endpoints require the server setting <code>ALLOW_LOCAL_AI_ENDPOINTS=true</code>.</AlertDescription></Alert>}
+      {provider === "ollama" && <div className="grid gap-3 md:grid-cols-2"><Input value={ollamaBaseUrl} onChange={(e) => setOllamaBaseUrl(e.target.value)} placeholder="http://127.0.0.1:11434/v1" /><Input value={ollamaModel} onChange={(e) => setOllamaModel(e.target.value)} placeholder="llama3.2" /></div>}
+      <Button onClick={saveProvider} disabled={isLoading}>{isLoading ? "Saving..." : "Use this provider"}</Button>
+    </CardContent></Card>
+    {providerNeedsKey && <Card><CardHeader><CardTitle className="flex gap-2"><Key className="h-5 w-5" />Bring your own {provider} key</CardTitle><CardDescription>Keys are AES-256-GCM encrypted at rest and never returned to the browser.</CardDescription></CardHeader><CardContent className="space-y-4">
+      <Label htmlFor="api-key">{keyStatus[provider] ? "Replace your key" : "API key"}</Label><Input id="api-key" type="password" autoComplete="off" value={apiKey} onChange={(e) => setApiKey(e.target.value)} placeholder="Paste a key" />
+      <div className="flex gap-3"><Button onClick={() => saveKey("save")} disabled={isLoading}>{keyStatus[provider] ? "Rotate key" : "Connect key"}</Button>{keyStatus[provider] && <Button variant="outline" onClick={() => saveKey("remove")} disabled={isLoading}><Trash2 className="mr-2 h-4 w-4" />Remove</Button>}</div>
+    </CardContent></Card>}
+  </div>;
 }

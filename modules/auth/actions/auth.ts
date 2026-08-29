@@ -8,6 +8,7 @@ import {
   signIn,
 } from "@/modules/shared/lib/auth";
 import connectDB from "@/modules/shared/lib/db";
+import { rateLimit } from "@/modules/shared/lib/rate-limit";
 import ProjectPlanModel from "@/modules/shared/models/ProjectPlan";
 import ScrumBoard from "@/modules/shared/models/ScrumBoard";
 import User from "@/modules/shared/models/User";
@@ -20,6 +21,9 @@ export async function signUp(formData: FormData) {
 
   if (!email || !name || !password) {
     return { error: "All fields are required" };
+  }
+  if (!rateLimit(`auth:signup:${email.toLowerCase()}`, { maxRequests: 5, windowMs: 60_000 }).allowed) {
+    return { error: "Too many attempts. Please wait a minute and try again." };
   }
 
   if (password.length < 8) {
@@ -44,7 +48,7 @@ export async function signUp(formData: FormData) {
       searchesUsed: 0,
       searchesResetAt: new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000), // 2 days for free users
       preferences: {
-        aiProvider: "gemini",
+        aiProvider: "groq",
         theme: "system",
       },
       apiKeys: {
@@ -52,6 +56,7 @@ export async function signUp(formData: FormData) {
         openai: null,
         anthropic: null,
         groq: null,
+        custom: null,
       },
     });
 
@@ -80,6 +85,9 @@ export async function signInAction(
 
   if (!email || !password) {
     return { error: "Email and password are required" };
+  }
+  if (!rateLimit(`auth:signin:${email.toLowerCase()}`, { maxRequests: 10, windowMs: 15 * 60_000 }).allowed) {
+    return { error: "Too many attempts. Please wait 15 minutes and try again." };
   }
 
   try {

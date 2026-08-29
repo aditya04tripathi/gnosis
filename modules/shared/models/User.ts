@@ -9,7 +9,11 @@ export interface IUser extends Document {
   searchesUsed: number;
   searchesResetAt: Date;
   preferences?: {
-    aiProvider?: "gemini" | "openai" | "anthropic";
+    aiProvider?: "groq" | "openai" | "gemini" | "anthropic" | "custom" | "ollama";
+    customBaseUrl?: string;
+    customModel?: string;
+    ollamaBaseUrl?: string;
+    ollamaModel?: string;
     theme?: "light" | "dark" | "system";
   };
   apiKeys?: {
@@ -17,6 +21,7 @@ export interface IUser extends Document {
     openai?: string;
     anthropic?: string;
     groq?: string;
+    custom?: string;
   };
   githubAccessToken?: string;
   githubUsername?: string;
@@ -62,17 +67,21 @@ const UserSchema = new Schema<IUser>(
       type: {
         aiProvider: {
           type: String,
-          enum: ["gemini", "openai", "anthropic"],
-          default: "gemini",
+          enum: ["groq", "openai", "gemini", "anthropic", "custom", "ollama"],
+          default: "groq",
         },
         theme: {
           type: String,
           enum: ["light", "dark", "system"],
           default: "system",
         },
+        customBaseUrl: { type: String, default: undefined },
+        customModel: { type: String, default: undefined },
+        ollamaBaseUrl: { type: String, default: undefined },
+        ollamaModel: { type: String, default: undefined },
       },
       default: {
-        aiProvider: "gemini",
+        aiProvider: "groq",
         theme: "system",
       },
     },
@@ -82,12 +91,14 @@ const UserSchema = new Schema<IUser>(
         openai: { type: String, default: null },
         anthropic: { type: String, default: null },
         groq: { type: String, default: null },
+        custom: { type: String, default: null },
       },
       default: {
         gemini: null,
         openai: null,
         anthropic: null,
         groq: null,
+        custom: null,
       },
     },
     githubAccessToken: { type: String, default: null, select: false },
