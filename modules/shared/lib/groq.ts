@@ -187,6 +187,7 @@ Provide your response in JSON format:
       response_format: { type: "json_object" },
       temperature: 0.9,
       max_tokens: 2048,
+      reasoning_effort: "none",
     });
 
     const content = completion.choices[0]?.message?.content;

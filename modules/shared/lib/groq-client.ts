@@ -1,7 +1,7 @@
 import Groq from "groq-sdk";
 
 export const GROQ_STRUCTURED_MODEL = "openai/gpt-oss-20b";
-export const GROQ_CREATIVE_MODEL = "qwen-2.5-32b";
+export const GROQ_CREATIVE_MODEL = "qwen/qwen3-32b";
 export const GROQ_FAST_MODEL = "llama-3.1-8b-instant";
 
 if (!process.env.GROQ_API_KEY) {
