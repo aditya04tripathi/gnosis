@@ -15,8 +15,11 @@ import {
 import { FREE_SEARCHES_LIMIT } from "@/modules/shared/constants";
 import { getUserLanguageModel } from "@/modules/shared/lib/ai-provider";
 import { auth } from "@/modules/shared/lib/auth";
-import { getEffectiveSearchLimit, isDevUnlimited } from "@/modules/shared/lib/dev-mode";
 import connectDB from "@/modules/shared/lib/db";
+import {
+  getEffectiveSearchLimit,
+  isDevUnlimited,
+} from "@/modules/shared/lib/dev-mode";
 import { rateLimit } from "@/modules/shared/lib/rate-limit";
 import ProjectPlan from "@/modules/shared/models/ProjectPlan";
 import User from "@/modules/shared/models/User";
@@ -78,7 +81,12 @@ export async function POST(req: Request) {
 
   const { messages, projectPlanId } = body;
 
-  if (!projectPlanId || !messages?.length || messages.length > 30 || JSON.stringify(messages).length > 50_000) {
+  if (
+    !projectPlanId ||
+    !messages?.length ||
+    messages.length > 30 ||
+    JSON.stringify(messages).length > 50_000
+  ) {
     return Response.json(
       { error: "Missing projectPlanId or messages" },
       { status: 400 },
@@ -87,14 +95,25 @@ export async function POST(req: Request) {
 
   try {
     await connectDB();
-    if (!rateLimit(`ai:improve:${session.user.id}`, { maxRequests: 5, windowMs: 60_000 }).allowed) {
-      return Response.json({ error: "Too many AI requests. Please wait a minute and try again." }, { status: 429 });
+    if (
+      !rateLimit(`ai:improve:${session.user.id}`, {
+        maxRequests: 5,
+        windowMs: 60_000,
+      }).allowed
+    ) {
+      return Response.json(
+        { error: "Too many AI requests. Please wait a minute and try again." },
+        { status: 429 },
+      );
     }
 
     const user = await User.findById(session.user.id);
     if (!user) {
       return Response.json({ error: "User not found" }, { status: 404 });
     }
+
+    // Validate the user's selected provider before any usage is reserved.
+    const model = getUserLanguageModel(user, "fast");
 
     const searchLimit = getEffectiveSearchLimit(FREE_SEARCHES_LIMIT);
     const searchesRemaining =
@@ -111,7 +130,10 @@ export async function POST(req: Request) {
 
     const projectPlan = await ProjectPlan.findById(projectPlanId);
     if (!projectPlan || projectPlan.userId.toString() !== session.user.id) {
-      return Response.json({ error: "Project plan not found" }, { status: 404 });
+      return Response.json(
+        { error: "Project plan not found" },
+        { status: 404 },
+      );
     }
 
     const existingPlan = JSON.parse(
@@ -123,16 +145,24 @@ export async function POST(req: Request) {
       projectPlan,
     );
 
-    if (!isDevUnlimited()) {
+    if (!isDevUnlimited() && user.subscriptionTier === "FREE") {
       const reserved = await User.findOneAndUpdate(
-        { _id: session.user.id, searchesUsed: { $lte: searchLimit - 0.5 } },
+        {
+          _id: session.user.id,
+          subscriptionTier: "FREE",
+          searchesUsed: { $lte: searchLimit - 0.5 },
+        },
         { $inc: { searchesUsed: 0.5 } },
       );
-      if (!reserved) return Response.json({ error: "Insufficient credits. Please upgrade your plan." }, { status: 402 });
+      if (!reserved)
+        return Response.json(
+          { error: "Insufficient credits. Please upgrade your plan." },
+          { status: 402 },
+        );
     }
 
     const result = streamText({
-      model: getUserLanguageModel(user, "fast"),
+      model,
       system: `You are an expert project management consultant with the ability to edit project plans and interact with GitHub.
 
 ## Project plan

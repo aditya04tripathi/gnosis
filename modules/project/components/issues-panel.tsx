@@ -9,9 +9,11 @@ import {
   Search,
   Trash2,
 } from "lucide-react";
+import { nanoid } from "nanoid";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { nanoid } from "nanoid";
+import { toast } from "sonner";
+import { stripGnosisSyncFooter } from "@/modules/github/lib/gnosis-attribution";
 import {
   addIssueComment,
   createProjectIssue,
@@ -25,7 +27,7 @@ import {
   type IssueType,
   type ProjectIssueData,
 } from "@/modules/project/types/project.types";
-import { stripGnosisSyncFooter } from "@/modules/github/lib/gnosis-attribution";
+import { MarkdownContent } from "@/modules/shared/components/markdown-content";
 import { Badge } from "@/modules/shared/components/ui/badge";
 import { Button } from "@/modules/shared/components/ui/button";
 import {
@@ -46,8 +48,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/modules/shared/components/ui/select";
-import { Textarea } from "@/modules/shared/components/ui/textarea";
-import { MarkdownContent } from "@/modules/shared/components/markdown-content";
 import {
   Table,
   TableBody,
@@ -56,6 +56,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/modules/shared/components/ui/table";
+import { Textarea } from "@/modules/shared/components/ui/textarea";
 import { useOptimisticAction } from "@/modules/shared/hooks/use-optimistic-action";
 import { cn } from "@/modules/shared/lib/utils";
 
@@ -89,11 +90,18 @@ function CreateIssueDialog({
   phases,
   milestones,
   onCreated,
+  onCreationFailed,
+  onCreationResolved,
 }: {
   projectPlanId: string;
   phases: { id: string; name: string }[];
   milestones: { id: string; title: string }[];
   onCreated: (issue: ProjectIssueData) => void;
+  onCreationFailed: (temporaryIssueId: string) => void;
+  onCreationResolved: (
+    temporaryIssueId: string,
+    issue: ProjectIssueData,
+  ) => void;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -137,10 +145,20 @@ function CreateIssueDialog({
       priority,
       phaseId: tempIssue.phaseId,
       milestoneId: tempIssue.milestoneId,
-    }).then((result) => {
-      if (result.error) return;
-      router.refresh();
-    });
+    })
+      .then((result) => {
+        if (result.error || !result.issue) {
+          onCreationFailed(tempIssue._id);
+          toast.error(result.error || "Failed to create issue");
+          return;
+        }
+        onCreationResolved(tempIssue._id, result.issue);
+        router.refresh();
+      })
+      .catch(() => {
+        onCreationFailed(tempIssue._id);
+        toast.error("Failed to create issue");
+      });
   };
 
   return (
@@ -162,7 +180,10 @@ function CreateIssueDialog({
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label>Type</Label>
-              <Select onValueChange={(v) => setType(v as IssueType)} value={type}>
+              <Select
+                onValueChange={(v) => setType(v as IssueType)}
+                value={type}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -334,7 +355,9 @@ function IssueDetail({
     <div className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l bg-background shadow-xl">
       <div className="flex items-center justify-between border-b px-4 py-3">
         <div className="flex items-center gap-2 text-sm">
-          <span className="font-mono text-muted-foreground">#{issue.number}</span>
+          <span className="font-mono text-muted-foreground">
+            #{issue.number}
+          </span>
           <IssueTypeBadge type={localIssue.type} />
         </div>
         <Button onClick={onClose} size="sm" variant="ghost">
@@ -342,7 +365,9 @@ function IssueDetail({
         </Button>
       </div>
       <div className="flex-1 space-y-4 overflow-y-auto p-4">
-        <h2 className="font-semibold text-lg leading-snug">{localIssue.title}</h2>
+        <h2 className="font-semibold text-lg leading-snug">
+          {localIssue.title}
+        </h2>
         <div className="flex flex-wrap gap-2">
           {localIssue.status !== "done" && localIssue.status !== "closed" ? (
             <Button onClick={() => handleStatusChange("done")} size="sm">
@@ -366,7 +391,9 @@ function IssueDetail({
           </Select>
           <Badge variant="outline">{localIssue.priority}</Badge>
           {localIssue.githubIssueNumber ? (
-            <Badge variant="secondary">GH #{localIssue.githubIssueNumber}</Badge>
+            <Badge variant="secondary">
+              GH #{localIssue.githubIssueNumber}
+            </Badge>
           ) : null}
         </div>
         <MarkdownContent>
@@ -424,7 +451,8 @@ export function IssuesPanel({
   const [selectedIssueId, setSelectedIssueId] = useState<string | null>(null);
 
   const selectedIssue = useMemo(
-    () => optimisticIssues.find((issue) => issue._id === selectedIssueId) ?? null,
+    () =>
+      optimisticIssues.find((issue) => issue._id === selectedIssueId) ?? null,
     [optimisticIssues, selectedIssueId],
   );
 
@@ -450,6 +478,23 @@ export function IssuesPanel({
     setOptimisticIssues([issue, ...optimisticIssues]);
   };
 
+  const handleIssueCreationFailed = (temporaryIssueId: string) => {
+    setOptimisticIssues(
+      optimisticIssues.filter((issue) => issue._id !== temporaryIssueId),
+    );
+  };
+
+  const handleIssueCreationResolved = (
+    temporaryIssueId: string,
+    createdIssue: ProjectIssueData,
+  ) => {
+    setOptimisticIssues(
+      optimisticIssues.map((issue) =>
+        issue._id === temporaryIssueId ? createdIssue : issue,
+      ),
+    );
+  };
+
   const handleIssueUpdated = (updated: ProjectIssueData) => {
     setOptimisticIssues(
       optimisticIssues.map((issue) =>
@@ -469,6 +514,8 @@ export function IssuesPanel({
         <CreateIssueDialog
           milestones={milestones}
           onCreated={handleIssueCreated}
+          onCreationFailed={handleIssueCreationFailed}
+          onCreationResolved={handleIssueCreationResolved}
           phases={phases}
           projectPlanId={projectPlanId}
         />
@@ -514,7 +561,9 @@ export function IssuesPanel({
 
       <div
         className={
-          layout === "table" ? "overflow-hidden rounded-lg border" : "divide-y rounded-lg border"
+          layout === "table"
+            ? "overflow-hidden rounded-lg border"
+            : "divide-y rounded-lg border"
         }
       >
         {filtered.length === 0 ? (
@@ -560,7 +609,9 @@ export function IssuesPanel({
                   </TableCell>
                   <TableCell className="text-sm">{issue.priority}</TableCell>
                   <TableCell className="text-muted-foreground text-sm">
-                    {issue.githubIssueNumber ? `#${issue.githubIssueNumber}` : "—"}
+                    {issue.githubIssueNumber
+                      ? `#${issue.githubIssueNumber}`
+                      : "—"}
                   </TableCell>
                 </TableRow>
               ))}
