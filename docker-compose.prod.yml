@@ -4,7 +4,7 @@
 #
 # MongoDB stays on the internal compose network only — no host ports.
 #
-#   cp .env.example .env
+#   cp .env.prod .env   # once on the VPS; CI does not overwrite .env
 #   docker compose -f docker-compose.prod.yml pull
 #   docker compose -f docker-compose.prod.yml up -d
 #
@@ -66,6 +66,14 @@ services:
       GROQ_API_KEY: ${GROQ_API_KEY:?set GROQ_API_KEY in .env}
       BYOK_ENCRYPTION_KEY: ${BYOK_ENCRYPTION_KEY:?set BYOK_ENCRYPTION_KEY in .env}
       ALLOW_LOCAL_AI_ENDPOINTS: ${ALLOW_LOCAL_AI_ENDPOINTS:-false}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+      GITHUB_WEBHOOK_SECRET: ${GITHUB_WEBHOOK_SECRET:?set GITHUB_WEBHOOK_SECRET in .env}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      STRIPE_PRICE_MONTHLY: ${STRIPE_PRICE_MONTHLY:-}
+      STRIPE_PRICE_YEARLY: ${STRIPE_PRICE_YEARLY:-}
+      STRIPE_PRICE_CREDITS_10: ${STRIPE_PRICE_CREDITS_10:-}
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://gnosis.adityatripathi.dev}
     depends_on:
       mongo:

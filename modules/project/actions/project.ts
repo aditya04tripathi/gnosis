@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { getOctokitForUser } from "@/modules/github/lib/octokit";
+import { removeGitHubWebhookForLinkedRepo } from "@/modules/github/lib/github-webhooks";
 import { auth } from "@/modules/shared/lib/auth";
 import connectDB from "@/modules/shared/lib/db";
 import GitHubSyncJob from "@/modules/shared/models/GitHubSyncJob";
@@ -20,6 +22,19 @@ export async function deleteProject(projectPlanId: string) {
   const projectPlan = await ProjectPlan.findById(projectPlanId);
   if (!projectPlan || projectPlan.userId.toString() !== session.user.id) {
     return { error: "Project not found" };
+  }
+
+  if (projectPlan.github?.owner && projectPlan.github.repo) {
+    try {
+      const octokit = await getOctokitForUser(session.user.id);
+      await removeGitHubWebhookForLinkedRepo(octokit, {
+        owner: projectPlan.github.owner,
+        repo: projectPlan.github.repo,
+        webhookId: projectPlan.github.webhookId,
+      });
+    } catch (error) {
+      console.error("Failed to remove GitHub webhook:", error);
+    }
   }
 
   await Promise.all([

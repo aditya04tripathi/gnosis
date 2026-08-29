@@ -17,3 +17,24 @@ export function isGitHubConfigured(): boolean {
   const { clientId, clientSecret } = getGitHubConfig();
   return Boolean(clientId && clientSecret);
 }
+
+export function getGitHubWebhookUrl(): string | null {
+  const { appUrl } = getGitHubConfig();
+
+  try {
+    const url = new URL(appUrl);
+    if (url.protocol !== "https:") {
+      return null;
+    }
+    if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+      return null;
+    }
+    return `${url.origin}/api/github/webhook`;
+  } catch {
+    return null;
+  }
+}
+
+export function canRegisterGitHubWebhooks(): boolean {
+  return Boolean(getGitHubWebhookUrl() && process.env.GITHUB_WEBHOOK_SECRET);
+}

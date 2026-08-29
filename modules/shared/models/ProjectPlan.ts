@@ -15,6 +15,7 @@ export interface IProjectPlan extends Document {
     owner: string;
     repo: string;
     enabled: boolean;
+    webhookId?: number;
     lastSyncedAt?: Date;
     issueMap: Map<string, { issueNumber: number }>;
     milestoneMap?: Map<string, { number: number }>;
@@ -172,6 +173,7 @@ const ProjectPlanSchema = new Schema<IProjectPlan>(
         owner: String,
         repo: String,
         enabled: { type: Boolean, default: false },
+        webhookId: Number,
         lastSyncedAt: Date,
         issueMap: {
           type: Map,

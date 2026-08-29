@@ -129,16 +129,13 @@ jobs:
 
       - name: Validate deploy secrets
         env:
-          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          MONGO_INITDB_ROOT_PASSWORD: ${{ secrets.MONGO_INITDB_ROOT_PASSWORD }}
           SSH_HOST: ${{ secrets.SSH_HOST }}
           SSH_USER: ${{ secrets.SSH_USER }}
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         run: |
           missing=()
-          for name in AUTH_SECRET GROQ_API_KEY MONGO_INITDB_ROOT_PASSWORD SSH_HOST SSH_USER SSH_PRIVATE_KEY DEPLOY_PATH; do
+          for name in SSH_HOST SSH_USER SSH_PRIVATE_KEY DEPLOY_PATH; do
             if [ -z "${!name}" ]; then
               missing+=("$name")
             fi
@@ -147,43 +144,6 @@ jobs:
             echo "::error::Add these GitHub repository secrets: ${missing[*]}"
             exit 1
           fi
-
-      - name: Write production .env
-        env:
-          NEXTAUTH_URL: ${{ vars.NEXTAUTH_URL }}
-          AUTH_URL: ${{ vars.AUTH_URL }}
-          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
-          MONGO_INITDB_ROOT_USERNAME: ${{ vars.MONGO_INITDB_ROOT_USERNAME || 'gnosis' }}
-          MONGO_INITDB_ROOT_PASSWORD: ${{ secrets.MONGO_INITDB_ROOT_PASSWORD }}
-          MONGO_DB: gnosis
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          GITHUB_CLIENT_ID: ${{ secrets.GITHUB_CLIENT_ID }}
-          GITHUB_CLIENT_SECRET: ${{ secrets.GITHUB_CLIENT_SECRET }}
-          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
-        run: |
-          node <<'SCRIPT'
-          const env = {
-            IMAGE_TAG: "latest",
-            NEXTAUTH_URL: process.env.NEXTAUTH_URL,
-            AUTH_URL: process.env.AUTH_URL,
-            AUTH_TRUST_HOST: "true",
-            NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
-            AUTH_SECRET: process.env.AUTH_SECRET,
-            MONGO_INITDB_ROOT_USERNAME: process.env.MONGO_INITDB_ROOT_USERNAME,
-            MONGO_INITDB_ROOT_PASSWORD: process.env.MONGO_INITDB_ROOT_PASSWORD,
-            MONGO_DB: process.env.MONGO_DB,
-            GROQ_API_KEY: process.env.GROQ_API_KEY,
-            GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
-            GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
-            NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
-          };
-          const user = encodeURIComponent(env.MONGO_INITDB_ROOT_USERNAME);
-          const pass = encodeURIComponent(env.MONGO_INITDB_ROOT_PASSWORD);
-          env.MONGODB_URI = `mongodb://${user}:${pass}@mongo:27017/${env.MONGO_DB}?authSource=admin`;
-          const lines = Object.entries(env).map(([key, value]) => `${key}=${value}`);
-          require("node:fs").writeFileSync(".env", `${lines.join("\n")}\n`);
-          SCRIPT
 
       - name: Configure SSH key
         env:
@@ -202,17 +162,19 @@ jobs:
           fi
           ssh-keyscan -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
 
-      - name: Copy files to VPS
+      - name: Copy compose file to VPS
         env:
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         run: |
           scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes \
-            .env docker-compose.prod.yml \
+            docker-compose.prod.yml \
             "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${DEPLOY_PATH}/"
 
       - name: Pull and restart web
         env:
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         run: |
+          ssh -i ~/.ssh/deploy_key "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
+            "test -f '${DEPLOY_PATH}/.env' || { echo 'Missing .env on VPS — copy .env.prod to .env once'; exit 1; }"
           ssh -i ~/.ssh/deploy_key "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
             "cd '${DEPLOY_PATH}' && docker compose -f docker-compose.prod.yml pull web && docker compose -f docker-compose.prod.yml up -d --no-deps --force-recreate web"

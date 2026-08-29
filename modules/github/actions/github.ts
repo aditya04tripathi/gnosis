@@ -10,6 +10,11 @@ import {
 import { ensureMilestonesFromRoadmap } from "@/modules/project/lib/milestones-from-roadmap";
 import { isGitHubConfigured } from "@/modules/github/lib/github-config";
 import { getGitHubScopeStatus } from "@/modules/github/lib/github-scope-status";
+import {
+  deleteGitHubWebhook,
+  ensureGitHubWebhook,
+  removeGitHubWebhookForLinkedRepo,
+} from "@/modules/github/lib/github-webhooks";
 import { auth } from "@/modules/shared/lib/auth";
 import connectDB from "@/modules/shared/lib/db";
 import GitHubSyncJob from "@/modules/shared/models/GitHubSyncJob";
@@ -111,10 +116,43 @@ export async function linkGitHubRepository(
       trimmedRepo,
     );
 
+    const previousGithub = projectPlan.github;
+    if (
+      previousGithub?.webhookId &&
+      previousGithub.owner &&
+      previousGithub.repo &&
+      (previousGithub.owner !== repository.owner ||
+        previousGithub.repo !== repository.repo)
+    ) {
+      try {
+        await deleteGitHubWebhook(
+          octokit,
+          previousGithub.owner,
+          previousGithub.repo,
+          previousGithub.webhookId,
+        );
+      } catch (error) {
+        console.error("Failed to remove previous GitHub webhook:", error);
+      }
+    }
+
+    let webhookId: number | undefined;
+    try {
+      const registeredWebhookId = await ensureGitHubWebhook(
+        octokit,
+        repository.owner,
+        repository.repo,
+      );
+      webhookId = registeredWebhookId ?? undefined;
+    } catch (error) {
+      console.error("Failed to register GitHub webhook:", error);
+    }
+
     projectPlan.github = {
       owner: repository.owner,
       repo: repository.repo,
       enabled: true,
+      webhookId,
       lastSyncedAt: undefined,
       issueMap: projectPlan.github?.issueMap ?? new Map(),
       milestoneMap: projectPlan.github?.milestoneMap ?? new Map(),
@@ -161,6 +199,19 @@ export async function unlinkGitHubRepository(projectPlanId: string) {
     );
     if (!projectPlan) {
       return { error: "Project plan not found" };
+    }
+
+    if (projectPlan.github?.owner && projectPlan.github.repo) {
+      try {
+        const octokit = await getOctokitForUser(session.user.id);
+        await removeGitHubWebhookForLinkedRepo(octokit, {
+          owner: projectPlan.github.owner,
+          repo: projectPlan.github.repo,
+          webhookId: projectPlan.github.webhookId,
+        });
+      } catch (error) {
+        console.error("Failed to remove GitHub webhook:", error);
+      }
     }
 
     await GitHubSyncJob.deleteMany({
