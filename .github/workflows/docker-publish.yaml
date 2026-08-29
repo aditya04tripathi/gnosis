@@ -206,9 +206,9 @@ jobs:
             .env docker-compose.prod.yml \
             "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${DEPLOY_PATH}/"
 
-      - name: Pull and restart
+      - name: Pull and restart web
         env:
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         run: |
           ssh -i ~/.ssh/deploy_key "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
-            "cd '${DEPLOY_PATH}' && docker compose -f docker-compose.prod.yml pull && docker compose -f docker-compose.prod.yml up -d"
+            "cd '${DEPLOY_PATH}' && docker compose -f docker-compose.prod.yml pull web && docker compose -f docker-compose.prod.yml up -d --no-deps web"

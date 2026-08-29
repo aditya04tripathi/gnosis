@@ -177,8 +177,8 @@ Configuration is primarily handled through environment variables:
 
    ```bash
    cd ~/gnosis
-   docker compose -f docker-compose.prod.yml pull
-   docker compose -f docker-compose.prod.yml up -d
+   docker compose -f docker-compose.prod.yml pull web
+   docker compose -f docker-compose.prod.yml up -d --no-deps web
    ```
 
    Stack services: `web` (app) + `mongo` (internal only). Mongo has **no host port** — only containers on the compose network can reach it.
