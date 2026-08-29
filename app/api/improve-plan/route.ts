@@ -1,4 +1,3 @@
-import { type GroqLanguageModelChatOptions } from "@ai-sdk/groq";
 import {
   convertToModelMessages,
   isStepCount,
@@ -10,21 +9,15 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import {
   executeGetGithubStatus,
-  executeLinkGithubRepository,
   executeListGithubIssues,
-  executeSyncTaskToGithub,
-  executeSyncToGithub,
   getGitHubContextForAI,
-  linkGithubRepositorySchema,
-  syncTaskToGithubSchema,
 } from "@/modules/github/lib/ai-github-tools";
-import { getOctokitForUser } from "@/modules/github/lib/octokit";
-import { requestGitHubSync } from "@/modules/github/lib/sync-queue";
 import { FREE_SEARCHES_LIMIT } from "@/modules/shared/constants";
-import { getLanguageModel, getOllamaProviderOptions, useOllama } from "@/modules/shared/lib/ai-provider";
+import { getUserLanguageModel } from "@/modules/shared/lib/ai-provider";
 import { auth } from "@/modules/shared/lib/auth";
 import { getEffectiveSearchLimit, isDevUnlimited } from "@/modules/shared/lib/dev-mode";
 import connectDB from "@/modules/shared/lib/db";
+import { rateLimit } from "@/modules/shared/lib/rate-limit";
 import ProjectPlan from "@/modules/shared/models/ProjectPlan";
 import User from "@/modules/shared/models/User";
 import {
@@ -85,7 +78,7 @@ export async function POST(req: Request) {
 
   const { messages, projectPlanId } = body;
 
-  if (!projectPlanId || !messages?.length) {
+  if (!projectPlanId || !messages?.length || messages.length > 30 || JSON.stringify(messages).length > 50_000) {
     return Response.json(
       { error: "Missing projectPlanId or messages" },
       { status: 400 },
@@ -94,6 +87,9 @@ export async function POST(req: Request) {
 
   try {
     await connectDB();
+    if (!rateLimit(`ai:improve:${session.user.id}`, { maxRequests: 5, windowMs: 60_000 }).allowed) {
+      return Response.json({ error: "Too many AI requests. Please wait a minute and try again." }, { status: 429 });
+    }
 
     const user = await User.findById(session.user.id);
     if (!user) {
@@ -127,8 +123,16 @@ export async function POST(req: Request) {
       projectPlan,
     );
 
+    if (!isDevUnlimited()) {
+      const reserved = await User.findOneAndUpdate(
+        { _id: session.user.id, searchesUsed: { $lte: searchLimit - 0.5 } },
+        { $inc: { searchesUsed: 0.5 } },
+      );
+      if (!reserved) return Response.json({ error: "Insufficient credits. Please upgrade your plan." }, { status: 402 });
+    }
+
     const result = streamText({
-      model: getLanguageModel("fast"),
+      model: getUserLanguageModel(user, "fast"),
       system: `You are an expert project management consultant with the ability to edit project plans and interact with GitHub.
 
 ## Project plan
@@ -139,18 +143,14 @@ Use update_project_plan when the user asks to change, add, remove, or reorganize
 - After updating, briefly explain what changed
 
 ## GitHub
-You can manage GitHub integration with these tools:
+You can inspect GitHub integration with these tools:
 - get_github_status — check OAuth, account connection, and linked repository
-- link_github_repository — link a repo (creates it if missing)
-- sync_to_github — push milestones, tasks as issues, and sync the GitHub Project board
-- sync_task_to_github — push a single task by ID or title
 - list_github_issues — list issues in the linked repository
 
 GitHub rules:
 - If accountConnected is false, tell the user to connect GitHub from the project page before linking a repo
 - After plan updates, tasks auto-sync when syncEnabled is true
-- Proactively offer to link or sync when the user mentions GitHub, issues, or publishing tasks
-- Use the user's githubUsername as the default owner when linking unless they specify otherwise
+- Direct users to the GitHub integration panel for any action that changes GitHub.
 
 Current GitHub context:
 ${JSON.stringify(githubContext, null, 2)}
@@ -172,18 +172,6 @@ ${buildPlanSummary(existingPlan)}`,
             projectPlan.markModified("plan");
             await projectPlan.save();
 
-            if (projectPlan.github?.enabled) {
-              try {
-                await requestGitHubSync({
-                  projectPlanId,
-                  userId: session.user.id,
-                  type: "full",
-                });
-              } catch (error) {
-                console.error("GitHub sync after plan update failed:", error);
-              }
-            }
-
             revalidateProject(projectPlanId);
 
             return {
@@ -194,7 +182,7 @@ ${buildPlanSummary(existingPlan)}`,
                 (count, phase) => count + phase.tasks.length,
                 0,
               ),
-              githubSynced: projectPlan.github?.enabled ?? false,
+              githubSynced: false,
             };
           },
         }),
@@ -205,53 +193,6 @@ ${buildPlanSummary(existingPlan)}`,
           execute: async () =>
             executeGetGithubStatus(session.user.id, projectPlan),
         }),
-        link_github_repository: tool({
-          description:
-            "Link this project to a GitHub repository. Creates the repository if it does not exist.",
-          inputSchema: linkGithubRepositorySchema,
-          execute: async (input) => {
-            const result = await executeLinkGithubRepository(
-              session.user.id,
-              projectPlan,
-              input,
-            );
-            if (result.success) {
-              revalidateProject(projectPlanId);
-            }
-            return result;
-          },
-        }),
-        sync_to_github: tool({
-          description:
-            "Sync all project plan tasks to GitHub Issues in the linked repository.",
-          inputSchema: z.object({}),
-          execute: async () => {
-            const result = await executeSyncToGithub(
-              session.user.id,
-              projectPlan,
-            );
-            if (result.success) {
-              revalidateProject(projectPlanId);
-            }
-            return result;
-          },
-        }),
-        sync_task_to_github: tool({
-          description:
-            "Sync a single plan task to a GitHub Issue by task ID or title.",
-          inputSchema: syncTaskToGithubSchema,
-          execute: async (input) => {
-            const result = await executeSyncTaskToGithub(
-              session.user.id,
-              projectPlan,
-              input,
-            );
-            if (result.success) {
-              revalidateProject(projectPlanId);
-            }
-            return result;
-          },
-        }),
         list_github_issues: tool({
           description:
             "List GitHub Issues in the linked repository for this project.",
@@ -259,22 +200,6 @@ ${buildPlanSummary(existingPlan)}`,
           execute: async () =>
             executeListGithubIssues(session.user.id, projectPlan),
         }),
-      },
-      providerOptions: useOllama()
-        ? getOllamaProviderOptions("fast")
-        : {
-            groq: {
-              reasoningFormat: "parsed",
-              reasoningEffort: "default",
-            } satisfies GroqLanguageModelChatOptions,
-          },
-      onFinish: async () => {
-        if (!isDevUnlimited()) {
-          await User.updateOne(
-            { _id: session.user.id },
-            { $inc: { searchesUsed: 0.5 } },
-          );
-        }
       },
     });
 

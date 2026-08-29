@@ -11,6 +11,8 @@ import connectDB from "@/modules/shared/lib/db";
 import { rateLimit } from "@/modules/shared/lib/rate-limit";
 import ProjectPlanModel from "@/modules/shared/models/ProjectPlan";
 import ScrumBoard from "@/modules/shared/models/ScrumBoard";
+import ProjectIssue from "@/modules/shared/models/ProjectIssue";
+import GitHubSyncJob from "@/modules/shared/models/GitHubSyncJob";
 import User from "@/modules/shared/models/User";
 import Validation from "@/modules/shared/models/Validation";
 
@@ -21,6 +23,9 @@ export async function signUp(formData: FormData) {
 
   if (!email || !name || !password) {
     return { error: "All fields are required" };
+  }
+  if (!/^\S+@\S+\.\S+$/.test(email) || name.trim().length > 100) {
+    return { error: "Enter a valid email and name" };
   }
   if (!rateLimit(`auth:signup:${email.toLowerCase()}`, { maxRequests: 5, windowMs: 60_000 }).allowed) {
     return { error: "Too many attempts. Please wait a minute and try again." };
@@ -90,6 +95,9 @@ export async function signInAction(
     return { error: "Too many attempts. Please wait 15 minutes and try again." };
   }
 
+  if (!callbackUrl.startsWith("/") || callbackUrl.startsWith("//")) {
+    callbackUrl = "/dashboard";
+  }
   try {
     await signIn("credentials", {
       email,
@@ -124,10 +132,16 @@ export async function deleteAccount() {
   try {
     await connectDB();
 
-    await User.findOneAndDelete({ _id: session.user.id });
-    await Validation.deleteMany({ userId: session.user.id });
-    await ScrumBoard.deleteMany({ userId: session.user.id });
-    await ProjectPlanModel.deleteMany({ userId: session.user.id });
+    const projectPlans = await ProjectPlanModel.find({ userId: session.user.id }).select("_id").lean();
+    const projectPlanIds = projectPlans.map((projectPlan) => projectPlan._id);
+    await Promise.all([
+      ProjectIssue.deleteMany({ projectPlanId: { $in: projectPlanIds } }),
+      GitHubSyncJob.deleteMany({ projectPlanId: { $in: projectPlanIds } }),
+      ProjectPlanModel.deleteMany({ userId: session.user.id }),
+      User.findOneAndDelete({ _id: session.user.id }),
+      Validation.deleteMany({ userId: session.user.id }),
+      ScrumBoard.deleteMany({ userId: session.user.id }),
+    ]);
 
     revalidatePath("/");
     revalidatePath("/dashboard");

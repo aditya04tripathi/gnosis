@@ -12,6 +12,7 @@ import {
 } from "@/modules/shared/constants";
 import { auth } from "@/modules/shared/lib/auth";
 import { getEffectiveSearchLimit, isDevUnlimited } from "@/modules/shared/lib/dev-mode";
+import { getUserLanguageModel } from "@/modules/shared/lib/ai-provider";
 import connectDB from "@/modules/shared/lib/db";
 import {
   generateAlternativeIdeas,
@@ -85,7 +86,8 @@ export async function validateStartupIdea(idea: string) {
       };
     }
 
-    const validationResult = await validateIdea(idea);
+    const model = getUserLanguageModel(user, "structured");
+    const validationResult = await validateIdea(idea, model);
 
     user.searchesUsed += 1;
     // Set reset time to 2 days from now for free users
@@ -147,11 +149,15 @@ export async function generatePlan(validationId: string) {
       };
     }
 
-    const alternativeIdeas = await generateAlternativeIdeas(validation.idea);
+    const user = await User.findById(session.user.id);
+    if (!user) return { error: "User not found" };
+    const model = getUserLanguageModel(user, "structured");
+    const alternativeIdeas = await generateAlternativeIdeas(validation.idea, model);
 
     const plan = await generateProjectPlan(
       validation.idea,
       validation.validationResult,
+      model,
     );
 
     projectPlan = await ProjectPlan.create({

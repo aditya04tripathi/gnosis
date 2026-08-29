@@ -15,16 +15,16 @@ function getEncryptionKey(): Buffer {
   return crypto.createHash("sha256").update(secret).digest();
 }
 
-export function encryptApiKey(apiKey: string): string {
+export function encryptSecret(secret: string): string {
   const iv = crypto.randomBytes(IV_BYTES);
   const cipher = crypto.createCipheriv(ALGORITHM, getEncryptionKey(), iv);
-  const ciphertext = Buffer.concat([cipher.update(apiKey, "utf8"), cipher.final()]);
+  const ciphertext = Buffer.concat([cipher.update(secret, "utf8"), cipher.final()]);
   const authTag = cipher.getAuthTag();
 
   return [VERSION, iv.toString("base64url"), authTag.toString("base64url"), ciphertext.toString("base64url")].join(":");
 }
 
-export function decryptApiKey(encryptedValue: string): string {
+export function decryptSecret(encryptedValue: string): string {
   const [version, encodedIv, encodedTag, encodedCiphertext] = encryptedValue.split(":");
   if (version !== VERSION || !encodedIv || !encodedTag || !encodedCiphertext) {
     throw new Error("Invalid encrypted API key format");
@@ -41,6 +41,9 @@ export function decryptApiKey(encryptedValue: string): string {
     decipher.final(),
   ]).toString("utf8");
 }
+
+export const encryptApiKey = encryptSecret;
+export const decryptApiKey = decryptSecret;
 
 export type AIKeyProvider = "groq" | "openai" | "gemini" | "anthropic" | "custom";
 

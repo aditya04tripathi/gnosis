@@ -1,6 +1,10 @@
-import { groq } from "@ai-sdk/groq";
+import { createAnthropic } from "@ai-sdk/anthropic";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { createGroq, groq } from "@ai-sdk/groq";
+import { createOpenAI } from "@ai-sdk/openai";
 import type { LanguageModel } from "ai";
 import { createOllama } from "ollama-ai-provider-v2";
+import { decryptApiKey, type AIKeyProvider } from "@/modules/shared/lib/api-key-crypto";
 
 export const GROQ_STRUCTURED_MODEL = "openai/gpt-oss-20b";
 export const GROQ_CREATIVE_MODEL = "qwen/qwen3.8-27b";
@@ -70,4 +74,24 @@ export function getLanguageModel(role: AIModelRole = "structured"): LanguageMode
   }
 
   return groq(getGroqModelId(role));
+}
+
+export function getUserLanguageModel(
+  user: {
+    preferences?: { aiProvider?: AIKeyProvider | "ollama"; customBaseUrl?: string; customModel?: string; ollamaModel?: string };
+    apiKeys?: Partial<Record<AIKeyProvider, string | null>>;
+  },
+  role: AIModelRole = "structured",
+): LanguageModel {
+  const provider = user.preferences?.aiProvider || "groq";
+  if (provider === "ollama") return ollama(user.preferences?.ollamaModel || getOllamaModelId(role));
+  const encryptedKey = user.apiKeys?.[provider];
+  const apiKey = encryptedKey?.startsWith("v1:") ? decryptApiKey(encryptedKey) : undefined;
+  if (provider === "groq") return apiKey ? createGroq({ apiKey })(getGroqModelId(role)) : getLanguageModel(role);
+  if (!apiKey) throw new Error(`Connect a ${provider} API key before using it`);
+  if (provider === "openai") return createOpenAI({ apiKey })("gpt-4o-mini");
+  if (provider === "anthropic") return createAnthropic({ apiKey })("claude-3-5-haiku-latest");
+  if (provider === "gemini") return createGoogleGenerativeAI({ apiKey })("gemini-2.0-flash");
+  if (!user.preferences?.customBaseUrl || !user.preferences.customModel) throw new Error("Configure a custom endpoint and model before using it");
+  return createOpenAI({ apiKey, baseURL: user.preferences.customBaseUrl })(user.preferences.customModel);
 }

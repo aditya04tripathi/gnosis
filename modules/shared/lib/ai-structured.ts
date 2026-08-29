@@ -1,4 +1,5 @@
 import { generateText, Output } from "ai";
+import type { LanguageModel } from "ai";
 import type { ZodType } from "zod";
 import {
   getLanguageModel,
@@ -13,6 +14,7 @@ export async function generateStructuredObject<T>({
   schema,
   temperature = 0.3,
   maxOutputTokens,
+  model,
 }: {
   role: AIModelRole;
   system: string;
@@ -20,10 +22,11 @@ export async function generateStructuredObject<T>({
   schema: ZodType<T>;
   temperature?: number;
   maxOutputTokens?: number;
+  model?: LanguageModel;
 }): Promise<T> {
   try {
     const result = await generateText({
-      model: getLanguageModel(role),
+      model: model || getLanguageModel(role),
       system,
       prompt,
       temperature,
@@ -39,7 +42,7 @@ export async function generateStructuredObject<T>({
   }
 
   const { text } = await generateText({
-    model: getLanguageModel(role),
+    model: model || getLanguageModel(role),
     system: `${system}\n\nRespond with valid JSON only. No markdown fences, no comments, and no trailing commas.`,
     prompt,
     temperature,

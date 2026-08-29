@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { LanguageModel } from "ai";
 import { generateStructuredObject } from "@/modules/shared/lib/ai-structured";
 import { clipIdeaText } from "@/modules/shared/lib/groq-client";
 import type {
@@ -58,7 +59,7 @@ const alternativeIdeasSchema = z.object({
   ),
 });
 
-export async function validateIdea(idea: string): Promise<ValidationResult> {
+export async function validateIdea(idea: string, model?: LanguageModel): Promise<ValidationResult> {
   const trimmedIdea = clipIdeaText(idea);
   const prompt = `Analyze the following startup idea and provide a comprehensive validation:
 
@@ -75,6 +76,7 @@ Be thorough, realistic, and constructive in your analysis.`;
       schema: validationResultSchema,
       temperature: 0.5,
       maxOutputTokens: 4096,
+      model,
     });
   } catch (error) {
     console.error("Idea validation error:", error);
@@ -85,6 +87,7 @@ Be thorough, realistic, and constructive in your analysis.`;
 export async function generateProjectPlan(
   idea: string,
   validationResult: ValidationResult,
+  model?: LanguageModel,
 ): Promise<ProjectPlan> {
   const trimmedIdea = clipIdeaText(idea);
   const prompt = `Based on this startup idea and validation:
@@ -106,6 +109,7 @@ Create 4-6 phases covering: Research & Planning, MVP Development, Testing & Iter
       schema: projectPlanSchema,
       temperature: 0.5,
       maxOutputTokens: 8192,
+      model,
     });
   } catch (error) {
     console.error("Project plan generation error:", error);
@@ -115,6 +119,7 @@ Create 4-6 phases covering: Research & Planning, MVP Development, Testing & Iter
 
 export async function generateAlternativeIdeas(
   idea: string,
+  model?: LanguageModel,
 ): Promise<AlternativeIdea[]> {
   const trimmedIdea = clipIdeaText(idea);
   const prompt = `Generate 3-5 alternative startup ideas related to or inspired by this concept:
@@ -130,6 +135,7 @@ ${trimmedIdea}`;
       schema: alternativeIdeasSchema,
       temperature: 0.8,
       maxOutputTokens: 2048,
+      model,
     });
 
     return result.alternatives;

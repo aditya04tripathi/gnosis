@@ -1,12 +1,10 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { getGitHubConfig } from "@/modules/github/lib/github-config";
+import { parseOAuthCookie } from "@/modules/github/lib/oauth-state";
+import { encryptSecret } from "@/modules/shared/lib/api-key-crypto";
 import connectDB from "@/modules/shared/lib/db";
 import User from "@/modules/shared/models/User";
-
-interface OAuthState {
-  userId: string;
-  redirectTo: string;
-}
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -26,12 +24,12 @@ export async function GET(request: Request) {
     );
   }
 
-  let state: OAuthState;
-  try {
-    state = JSON.parse(
-      Buffer.from(stateParam, "base64url").toString("utf8"),
-    ) as OAuthState;
-  } catch {
+  const cookieStore = await cookies();
+  const state = parseOAuthCookie(
+    cookieStore.get("github-oauth-state")?.value,
+    stateParam,
+  );
+  if (!state) {
     return NextResponse.redirect(
       new URL("/dashboard?github=error", request.url),
     );
@@ -50,6 +48,7 @@ export async function GET(request: Request) {
           client_id: clientId,
           client_secret: clientSecret,
           code,
+          code_verifier: state.verifier,
           redirect_uri: `${appUrl}/api/github/callback`,
         }),
       },
@@ -78,8 +77,10 @@ export async function GET(request: Request) {
     }
 
     await connectDB();
-    await User.findByIdAndUpdate(state.userId, {
-      githubAccessToken: tokenData.access_token,
+    const session = await (await import("@/modules/shared/lib/auth")).auth();
+    if (!session?.user?.id) throw new Error("OAuth session expired");
+    await User.findByIdAndUpdate(session.user.id, {
+      githubAccessToken: encryptSecret(tokenData.access_token),
       githubUsername: githubUser.login,
       githubConnectedAt: new Date(),
       githubScopes: tokenData.scope?.split(",").map((s) => s.trim()).filter(Boolean) ?? [],
@@ -87,7 +88,9 @@ export async function GET(request: Request) {
 
     const redirectUrl = new URL(state.redirectTo, request.url);
     redirectUrl.searchParams.set("github", "connected");
-    return NextResponse.redirect(redirectUrl);
+    const response = NextResponse.redirect(redirectUrl);
+    response.cookies.delete("github-oauth-state");
+    return response;
   } catch (error) {
     console.error("GitHub OAuth callback error:", error);
     const redirectUrl = new URL(state.redirectTo || "/dashboard", request.url);

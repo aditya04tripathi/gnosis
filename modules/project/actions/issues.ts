@@ -3,6 +3,7 @@
 import { nanoid } from "nanoid";
 import mongoose from "mongoose";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 import type {
   IssueStatus,
   IssueType,
@@ -23,6 +24,22 @@ async function getOwnedPlan(projectPlanId: string, userId: string) {
   }
   return plan;
 }
+
+const issueInputSchema = z.object({
+  title: z.string().trim().min(1).max(200),
+  body: z.string().trim().max(20_000).optional(),
+  type: z.enum(["bug", "feature", "task", "epic", "chore", "docs", "spike"]),
+  priority: z.enum(["LOW", "MEDIUM", "HIGH"]).optional(),
+  labels: z.array(z.string().trim().min(1).max(50)).max(20).optional(),
+  assigneeEmail: z.string().email().max(254).optional(),
+  milestoneId: z.string().max(100).optional(),
+  phaseId: z.string().max(100).optional(),
+});
+
+const issueUpdateSchema = issueInputSchema.partial().omit({ type: true }).extend({
+  type: z.enum(["bug", "feature", "task", "epic", "chore", "docs", "spike"]).optional(),
+  status: z.enum(["open", "in_progress", "done", "closed"]).optional(),
+});
 
 function serializeIssue(issue: IProjectIssue): ProjectIssueData {
   return {
@@ -123,23 +140,28 @@ export async function createProjectIssue(
     return { error: "Project not found" };
   }
 
-  const nextNumber = (plan.issueCounter ?? 0) + 1;
-  plan.issueCounter = nextNumber;
-  await plan.save();
+  const parsed = issueInputSchema.safeParse(input);
+  if (!parsed.success) return { error: "Invalid issue input" };
+  const numberedPlan = await ProjectPlan.findOneAndUpdate(
+    { _id: projectPlanId, userId: session.user.id },
+    { $inc: { issueCounter: 1 } },
+    { new: true },
+  );
+  if (!numberedPlan) return { error: "Project not found" };
 
   const issue = await ProjectIssue.create({
     projectPlanId,
     userId: session.user.id,
-    number: nextNumber,
-    title: input.title.trim(),
-    body: input.body?.trim() ?? "",
-    type: input.type,
+    number: numberedPlan.issueCounter,
+    title: parsed.data.title,
+    body: parsed.data.body ?? "",
+    type: parsed.data.type,
     status: "open",
-    priority: input.priority ?? "MEDIUM",
-    labels: input.labels ?? [],
-    assigneeEmail: input.assigneeEmail,
-    milestoneId: input.milestoneId,
-    phaseId: input.phaseId,
+    priority: parsed.data.priority ?? "MEDIUM",
+    labels: parsed.data.labels ?? [],
+    assigneeEmail: parsed.data.assigneeEmail,
+    milestoneId: parsed.data.milestoneId,
+    phaseId: parsed.data.phaseId,
     comments: [],
   });
 
@@ -172,22 +194,24 @@ export async function updateProjectIssue(
     return { error: "Project not found" };
   }
 
+  const parsed = issueUpdateSchema.safeParse(updates);
+  if (!parsed.success) return { error: "Invalid issue update" };
   const issue = await ProjectIssue.findOne({ _id: issueId, projectPlanId });
   if (!issue) {
     return { error: "Issue not found" };
   }
 
-  if (updates.title !== undefined) issue.title = updates.title.trim();
-  if (updates.body !== undefined) issue.body = updates.body.trim();
-  if (updates.type !== undefined) issue.type = updates.type;
-  if (updates.status !== undefined) issue.status = updates.status;
-  if (updates.priority !== undefined) issue.priority = updates.priority;
-  if (updates.labels !== undefined) issue.labels = updates.labels;
-  if (updates.assigneeEmail !== undefined) {
-    issue.assigneeEmail = updates.assigneeEmail;
+  if (parsed.data.title !== undefined) issue.title = parsed.data.title;
+  if (parsed.data.body !== undefined) issue.body = parsed.data.body;
+  if (parsed.data.type !== undefined) issue.type = parsed.data.type;
+  if (parsed.data.status !== undefined) issue.status = parsed.data.status;
+  if (parsed.data.priority !== undefined) issue.priority = parsed.data.priority;
+  if (parsed.data.labels !== undefined) issue.labels = parsed.data.labels;
+  if (parsed.data.assigneeEmail !== undefined) {
+    issue.assigneeEmail = parsed.data.assigneeEmail;
   }
-  if (updates.milestoneId !== undefined) issue.milestoneId = updates.milestoneId;
-  if (updates.phaseId !== undefined) issue.phaseId = updates.phaseId;
+  if (parsed.data.milestoneId !== undefined) issue.milestoneId = parsed.data.milestoneId;
+  if (parsed.data.phaseId !== undefined) issue.phaseId = parsed.data.phaseId;
 
   await issue.save();
 
@@ -217,6 +241,7 @@ export async function addIssueComment(
 
   const commentId = nanoid();
   const commentBody = body.trim();
+  if (!commentBody || commentBody.length > 10_000) return { error: "Comments must be between 1 and 10,000 characters" };
 
   const comment = {
     id: commentId,
