@@ -149,7 +149,7 @@ Production runs on [Railway](https://railway.app) using the root `Dockerfile` an
 3. Copy variables from `.env.example` into Railway service variables.
 4. Set `NEXT_PUBLIC_API_URL` as a build-time variable.
 5. Point your custom domain (or use the Railway-generated URL) in `NEXTAUTH_URL`, `AUTH_URL`, and `NEXT_PUBLIC_API_URL`.
-6. For production observability, set `ENABLE_TRACING`, `OTEL_SERVICE_NAME`, and `OTEL_EXPORTER_OTLP_ENDPOINT` to the shared Observability stack OTLP collector.
+6. For production observability, set `ENABLE_TRACING=true`, `OTEL_SERVICE_NAME=gnosis`, and `OTEL_EXPORTER_OTLP_ENDPOINT=https://otel-collector.adityatripathi.dev`.
 
 ## Limitations and Assumptions
 
