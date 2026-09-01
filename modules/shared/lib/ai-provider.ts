@@ -64,7 +64,10 @@ function getServerGroqApiKey(): string {
   return apiKey;
 }
 
-function getGroqLanguageModel(role: AIModelRole, apiKey?: string): LanguageModel {
+function getGroqLanguageModel(
+  role: AIModelRole,
+  apiKey?: string,
+): LanguageModel {
   const resolvedKey = apiKey ?? getServerGroqApiKey();
   return createGroq({ apiKey: resolvedKey })(getGroqModelId(role));
 }

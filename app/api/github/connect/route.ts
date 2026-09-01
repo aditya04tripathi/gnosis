@@ -1,7 +1,15 @@
 import { NextResponse } from "next/server";
-import { buildAppRedirect, getGitHubConfig } from "@/modules/github/lib/github-config";
+import {
+  buildAppRedirect,
+  getGitHubConfig,
+} from "@/modules/github/lib/github-config";
 import { GITHUB_OAUTH_SCOPES } from "@/modules/github/lib/gnosis-attribution";
-import { codeChallenge, createGitHubOAuthState, createOAuthCookie, safeRedirectPath } from "@/modules/github/lib/oauth-state";
+import {
+  codeChallenge,
+  createGitHubOAuthState,
+  createOAuthCookie,
+  safeRedirectPath,
+} from "@/modules/github/lib/oauth-state";
 import { auth } from "@/modules/shared/lib/auth";
 
 export async function GET(request: Request) {
@@ -19,7 +27,9 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url);
-  const oauthState = createGitHubOAuthState(safeRedirectPath(searchParams.get("redirect")));
+  const oauthState = createGitHubOAuthState(
+    safeRedirectPath(searchParams.get("redirect")),
+  );
 
   const params = new URLSearchParams({
     client_id: clientId,

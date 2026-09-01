@@ -1,6 +1,13 @@
 "use client";
 
-import { Github, Link2, Loader2, RefreshCw, Trash2, Unlink } from "lucide-react";
+import {
+  Github,
+  Link2,
+  Loader2,
+  RefreshCw,
+  Trash2,
+  Unlink,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -138,9 +145,7 @@ export function GitHubSyncPanel({
         toast.error(result.error);
         return;
       }
-      toast.success(
-        "Repository linked. Starting two-way sync with GitHub.",
-      );
+      toast.success("Repository linked. Starting two-way sync with GitHub.");
       setSyncStatus({ status: "queued", stage: "Queued" });
       router.refresh();
     });
@@ -260,53 +265,48 @@ export function GitHubSyncPanel({
             Connect your GitHub account to sync a repository with this project.
           </p>
         ) : github?.owner && github.repo ? (
-          <>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                disabled={isPending || isSyncing}
-                onClick={handleSync}
-              >
-                {isSyncing ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <RefreshCw className="size-4" />
-                )}
-                {isSyncing ? "Syncing…" : "Sync"}
-              </Button>
-              <Button
-                disabled={isPending || isSyncing}
-                onClick={handleUnlink}
-                variant="outline"
-              >
-                <Unlink className="size-4" />
-                Unlink repo
-              </Button>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button disabled={isPending || isSyncing} variant="destructive">
-                    <Trash2 className="size-4" />
+          <div className="flex flex-wrap gap-2">
+            <Button disabled={isPending || isSyncing} onClick={handleSync}>
+              {isSyncing ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <RefreshCw className="size-4" />
+              )}
+              {isSyncing ? "Syncing…" : "Sync"}
+            </Button>
+            <Button
+              disabled={isPending || isSyncing}
+              onClick={handleUnlink}
+              variant="outline"
+            >
+              <Unlink className="size-4" />
+              Unlink repo
+            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button disabled={isPending || isSyncing} variant="destructive">
+                  <Trash2 className="size-4" />
+                  Delete project
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete this project?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This permanently removes the project, issues, board, and
+                    sync history from Gnosis. Your GitHub repository is not
+                    affected.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDeleteProject}>
                     Delete project
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete this project?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This permanently removes the project, issues, board,
-                      and sync history from Gnosis. Your GitHub repository
-                      is not affected.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDeleteProject}>
-                      Delete project
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </div>
-          </>
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         ) : (
           <>
             <div className="grid gap-3 sm:grid-cols-2">
@@ -331,7 +331,10 @@ export function GitHubSyncPanel({
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <Button disabled={isPending || !owner || !repo} onClick={handleLinkRepo}>
+              <Button
+                disabled={isPending || !owner || !repo}
+                onClick={handleLinkRepo}
+              >
                 <Link2 className="size-4" />
                 Link repository
               </Button>
@@ -347,7 +350,7 @@ export function GitHubSyncPanel({
                   <span className="font-medium">
                     {syncStatus?.status === "failed"
                       ? "Sync failed"
-                      : syncStatus?.stage ?? "Syncing"}
+                      : (syncStatus?.stage ?? "Syncing")}
                   </span>
                   {syncStatus?.progress?.total ? (
                     <span className="text-muted-foreground text-xs">

@@ -105,7 +105,9 @@ export async function deleteGitHubWebhook(
 
   await Promise.all(
     hooks
-      .filter((hook) => normalizeWebhookUrl(hook.config?.url) === normalizedTarget)
+      .filter(
+        (hook) => normalizeWebhookUrl(hook.config?.url) === normalizedTarget,
+      )
       .map((hook) =>
         octokit.rest.repos.deleteWebhook({
           owner,

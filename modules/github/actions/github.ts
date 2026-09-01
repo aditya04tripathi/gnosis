@@ -1,13 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getOctokitForUser } from "@/modules/github/lib/octokit";
-import { getGitHubRepository } from "@/modules/github/lib/repository";
-import {
-  getGitHubSyncStatus,
-  requestGitHubSync,
-} from "@/modules/github/lib/sync-queue";
-import { ensureMilestonesFromRoadmap } from "@/modules/project/lib/milestones-from-roadmap";
 import { isGitHubConfigured } from "@/modules/github/lib/github-config";
 import { getGitHubScopeStatus } from "@/modules/github/lib/github-scope-status";
 import {
@@ -15,6 +8,13 @@ import {
   ensureGitHubWebhook,
   removeGitHubWebhookForLinkedRepo,
 } from "@/modules/github/lib/github-webhooks";
+import { getOctokitForUser } from "@/modules/github/lib/octokit";
+import { getGitHubRepository } from "@/modules/github/lib/repository";
+import {
+  getGitHubSyncStatus,
+  requestGitHubSync,
+} from "@/modules/github/lib/sync-queue";
+import { ensureMilestonesFromRoadmap } from "@/modules/project/lib/milestones-from-roadmap";
 import { auth } from "@/modules/shared/lib/auth";
 import connectDB from "@/modules/shared/lib/db";
 import GitHubSyncJob from "@/modules/shared/models/GitHubSyncJob";
@@ -71,10 +71,7 @@ export async function getProjectGitHubSyncStatus(projectPlanId: string) {
     return { error: "Unauthorized" };
   }
 
-  const projectPlan = await getOwnedProjectPlan(
-    projectPlanId,
-    session.user.id,
-  );
+  const projectPlan = await getOwnedProjectPlan(projectPlanId, session.user.id);
   if (!projectPlan) {
     return { error: "Project plan not found" };
   }

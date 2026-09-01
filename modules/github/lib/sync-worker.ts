@@ -1,9 +1,7 @@
 import { getOctokitForUser } from "@/modules/github/lib/octokit";
 import { getGitHubRepository } from "@/modules/github/lib/repository";
-import {
-  syncGitHubToGnosis,
-} from "@/modules/github/lib/sync-inbound";
 import { syncProjectPlanToGitHub } from "@/modules/github/lib/sync";
+import { syncGitHubToGnosis } from "@/modules/github/lib/sync-inbound";
 import { updateProjectSyncStatus } from "@/modules/github/lib/sync-queue";
 import connectDB from "@/modules/shared/lib/db";
 import GitHubSyncJob, {

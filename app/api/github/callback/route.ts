@@ -1,6 +1,9 @@
-import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { buildAppRedirect, getGitHubConfig } from "@/modules/github/lib/github-config";
+import { NextResponse } from "next/server";
+import {
+  buildAppRedirect,
+  getGitHubConfig,
+} from "@/modules/github/lib/github-config";
 import { parseOAuthCookie } from "@/modules/github/lib/oauth-state";
 import { encryptSecret } from "@/modules/shared/lib/api-key-crypto";
 import connectDB from "@/modules/shared/lib/db";
@@ -79,7 +82,11 @@ export async function GET(request: Request) {
       githubAccessToken: encryptSecret(tokenData.access_token),
       githubUsername: githubUser.login,
       githubConnectedAt: new Date(),
-      githubScopes: tokenData.scope?.split(",").map((s) => s.trim()).filter(Boolean) ?? [],
+      githubScopes:
+        tokenData.scope
+          ?.split(",")
+          .map((s) => s.trim())
+          .filter(Boolean) ?? [],
     });
 
     const redirectUrl = buildAppRedirect(state.redirectTo);

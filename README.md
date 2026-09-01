@@ -82,10 +82,9 @@ The application follows a modular architecture to ensure scalability and maintai
    ```
 
    Local dev uses **Ollama** for AI (`AI_PROVIDER=ollama` in `.env.local`).
-   Production uses **Groq** (`GROQ_API_KEY` in `.env`).
+   Production uses **Groq** (`GROQ_API_KEY` on Railway).
 
    `.env.local` uses `127.0.0.1` for MongoDB (app on host, database in Docker).
-   Production `.env` uses `mongo` as the hostname (both services in Docker).
 
 4. **Run Local Dev (recommended)**
 
@@ -111,21 +110,12 @@ The application follows a modular architecture to ensure scalability and maintai
    Mounts your source into the container so file saves trigger hot reload.
    App: **http://localhost:3000**
 
-6. **Run Production-like Docker Stack**
-
-   ```bash
-   pnpm docker:up
-   ```
-
-   App: **http://localhost:49154** (built image, no hot reload)
-
 ### Dev modes compared
 
 | Command | App | Database | AI | Hot reload |
 |---------|-----|----------|----|------------|
 | `pnpm dev:local` | Host (:3000) | Docker Mongo | Ollama (local) | Yes |
 | `pnpm dev:docker` | Docker (:3000) | Docker Mongo | Ollama (host) | Yes (volumes) |
-| `pnpm docker:up` | Docker (:49154) | Docker Mongo | Groq | No (production build) |
 
 ---
 
@@ -152,89 +142,15 @@ Configuration is primarily handled through environment variables:
 
 ## Deployment
 
-### Production host
+Production runs on [Railway](https://railway.app) using the root `Dockerfile` and `railway.toml`.
 
-- **URL**: [https://gnosis.adityatripathi.dev](https://gnosis.adityatripathi.dev)
-- **Runtime**: Docker image from GHCR on a VPS
-- **Edge**: Cloudflare Tunnel (`cloudflared`) → `http://127.0.0.1:49154`
+1. Connect this repo to a Railway project.
+2. Add Railway's MongoDB plugin and set `MONGODB_URI=${{MongoDB.MONGO_URL}}`.
+3. Copy variables from `.env.example` into Railway service variables.
+4. Set `NEXT_PUBLIC_API_URL` as a build-time variable.
+5. Point your custom domain (or use the Railway-generated URL) in `NEXTAUTH_URL`, `AUTH_URL`, and `NEXT_PUBLIC_API_URL`.
 
-### VPS + Cloudflare Tunnel
-
-1. **One-time VPS setup** — create the deploy directory and ensure Docker can pull from GHCR (public image, or `docker login ghcr.io` with a `read:packages` PAT):
-
-   ```bash
-   mkdir -p ~/gnosis
-   ```
-
-2. **GitHub Actions deploy** — pushes to `main` build the image, then the workflow writes `.env` from repository secrets/variables and restarts the stack on the VPS.
-
-   **Repository secrets** (Settings → Secrets and variables → Actions → Secrets):
-
-   | Secret | Purpose |
-   |--------|---------|
-   | `AUTH_SECRET` | Auth.js session signing |
-   | `NEXTAUTH_SECRET` | Legacy alias (same value as `AUTH_SECRET`) |
-   | `GROQ_API_KEY` | Groq API |
-   | `MONGO_INITDB_ROOT_PASSWORD` | Mongo root password (must match existing VPS data volume) |
-   | `SSH_HOST` | VPS hostname or IP |
-   | `SSH_USER` | SSH user on the VPS |
-   | `SSH_PRIVATE_KEY` | Deploy key private half (see below) |
-   | `DEPLOY_PATH` | Absolute path on VPS, e.g. `/home/ubuntu/gnosis` |
-
-   **SSH key setup** (one-time):
-
-   ```bash
-   # On your machine — create a deploy key (no passphrase)
-   ssh-keygen -t ed25519 -f ~/.ssh/gnosis_deploy -N ""
-
-   # On the VPS — add the public key
-   cat ~/.ssh/gnosis_deploy.pub | ssh user@your-vps "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
-
-   # Copy the private key into GitHub → Settings → Secrets → SSH_PRIVATE_KEY
-   cat ~/.ssh/gnosis_deploy
-   ```
-
-   Paste the **entire** private key output, including `-----BEGIN OPENSSH PRIVATE KEY-----` and `-----END OPENSSH PRIVATE KEY-----`. Do not paste the `.pub` file.
-
-   **Repository variables** (already set):
-
-   | Variable | Value |
-   |----------|-------|
-   | `NEXTAUTH_URL` | `https://gnosis.adityatripathi.dev` |
-   | `AUTH_URL` | `https://gnosis.adityatripathi.dev` |
-   | `NEXT_PUBLIC_API_URL` | `https://gnosis.adityatripathi.dev` |
-   | `MONGO_INITDB_ROOT_USERNAME` | Optional, defaults to `gnosis` |
-
-   GitHub secrets are **not** baked into the Docker image — they are injected at deploy time into the VPS `.env` file.
-
-3. **Manual deploy** (if needed):
-
-   ```bash
-   cd ~/gnosis
-   docker compose -f docker-compose.prod.yml pull web
-   docker compose -f docker-compose.prod.yml up -d --no-deps --force-recreate web
-   ```
-
-   Stack services: `web` (app) + `mongo` (internal only). Mongo has **no host port** — only containers on the compose network can reach it.
-
-4. Point a Cloudflare Tunnel ingress at the bound port:
-
-   ```yaml
-   ingress:
-     - hostname: gnosis.adityatripathi.dev
-       service: http://127.0.0.1:49154
-     - service: http_status:404
-   ```
-
-3. Required production env vars (written by CI from secrets/variables above):
-
-- `NEXTAUTH_URL` / `AUTH_URL` → `https://gnosis.adityatripathi.dev`
-- `NEXTAUTH_SECRET` / `AUTH_SECRET`
-- `MONGO_INITDB_ROOT_USERNAME` / `MONGO_INITDB_ROOT_PASSWORD` / `MONGO_DB`
-- `GROQ_API_KEY`
-- `AUTH_TRUST_HOST=true` (already set for tunnel / proxy hosts)
-
-`MONGODB_URI` is composed automatically as `mongodb://…@mongo:27017/…` inside the stack. The compose file binds `127.0.0.1:49154` only for the app; Cloudflare Tunnel is the ingress. Mongo is not published outside Docker.
+The GitHub Actions workflow still builds and publishes a multi-arch Docker image to GHCR on push to `main`.
 
 ## Limitations and Assumptions
 

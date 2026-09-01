@@ -2,8 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { getOctokitForUser } from "@/modules/github/lib/octokit";
 import { removeGitHubWebhookForLinkedRepo } from "@/modules/github/lib/github-webhooks";
+import { getOctokitForUser } from "@/modules/github/lib/octokit";
 import { auth } from "@/modules/shared/lib/auth";
 import connectDB from "@/modules/shared/lib/db";
 import GitHubSyncJob from "@/modules/shared/models/GitHubSyncJob";

@@ -4,10 +4,14 @@ export const GITHUB_API_VERSION =
 export function getGitHubConfig() {
   const clientId = process.env.GITHUB_CLIENT_ID;
   const clientSecret = process.env.GITHUB_CLIENT_SECRET;
+  const railwayUrl = process.env.RAILWAY_PUBLIC_DOMAIN
+    ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`
+    : null;
   const appUrl =
     process.env.NEXTAUTH_URL ||
     process.env.AUTH_URL ||
     process.env.NEXT_PUBLIC_API_URL ||
+    railwayUrl ||
     "http://localhost:3000";
 
   return { clientId, clientSecret, appUrl };
