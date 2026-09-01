@@ -43,6 +43,13 @@ export function patchHttpServerMetrics() {
 			const res = args[1] as import("node:http").ServerResponse;
 			const start = Date.now();
 			const route = req.url?.split("?")[0] ?? "unknown";
+			if (
+				route === "/metrics" ||
+				route === "/api/metrics" ||
+				route.startsWith("/health")
+			) {
+				return originalEmit.apply(this, [event, ...args] as never);
+			}
 
 			res.on("finish", () => {
 				const labels = {
