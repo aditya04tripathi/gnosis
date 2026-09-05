@@ -44,7 +44,6 @@ The application follows a modular architecture to ensure scalability and maintai
   - `profile/`: User profile and settings management
   - `shared/`: Shared utilities, components, models, and constants
 - **`components/ui/`**: Reusable low-level UI components (Shadcn)
-- **`lib/`**: Shared utilities and configurations (DB connection, AI clients)
 
 ## Setup and Installation
 
@@ -52,7 +51,7 @@ The application follows a modular architecture to ensure scalability and maintai
 
 - Node.js 22+
 - pnpm
-- MongoDB Instance (Local or Atlas)
+- MongoDB (local install, Atlas, or any reachable instance)
 - Groq API Key ([Get one here](https://console.groq.com/))
 
 ### Steps
@@ -72,54 +71,22 @@ The application follows a modular architecture to ensure scalability and maintai
 
 3. **Configure Environment**
 
-   For **local dev with hot reload + Docker MongoDB**:
-
    ```bash
    cp .env.local.example .env.local
-   # Edit .env.local — generate AUTH_SECRET; ensure Ollama is running locally
+   # Edit .env.local — set MONGODB_URI to your MongoDB instance
    openssl rand -base64 32
-   ollama pull llama3.2:1b
    ```
 
-   Local dev uses **Ollama** for AI (`AI_PROVIDER=ollama` in `.env.local`).
-   Production uses **Groq** (`GROQ_API_KEY` on Railway).
+   Point `MONGODB_URI` at an external MongoDB (local daemon, Atlas, etc.).
+   Local AI via Ollama is optional (`AI_PROVIDER=ollama`); production typically uses Groq (`GROQ_API_KEY`).
 
-   `.env.local` uses `127.0.0.1` for MongoDB (app on host, database in Docker).
-
-4. **Run Local Dev (recommended)**
+4. **Run the app**
 
    ```bash
-   pnpm dev:local
+   pnpm dev
    ```
 
-   This starts MongoDB in Docker, waits until it's healthy, then runs `next dev` on
-   **http://localhost:3000** with hot reload.
-
-   Stop MongoDB when done:
-
-   ```bash
-   pnpm dev:local:down
-   ```
-
-5. **Run Full Stack in Docker (hot reload in container)**
-
-   ```bash
-   pnpm dev:docker
-   ```
-
-   Mounts your source into the container so file saves trigger hot reload.
    App: **http://localhost:3000**
-
-### Dev modes compared
-
-| Command | App | Database | AI | Hot reload |
-|---------|-----|----------|----|------------|
-| `pnpm dev:local` | Host (:3000) | Docker Mongo | Ollama (local) | Yes |
-| `pnpm dev:docker` | Docker (:3000) | Docker Mongo | Ollama (host) | Yes (volumes) |
-
----
-
-Legacy: plain `pnpm dev` still works if MongoDB is already running and `.env.local` is set.
 
 ## Usage
 
@@ -142,14 +109,13 @@ Configuration is primarily handled through environment variables:
 
 ## Deployment
 
-Production runs on [Railway](https://railway.app) using the root `Dockerfile` and `railway.toml`.
+Production runs on [Railway](https://railway.app) via Railpack (`railway.toml`).
 
 1. Connect this repo to a Railway project.
 2. Add Railway's MongoDB plugin and set `MONGODB_URI=${{MongoDB.MONGO_URL}}`.
 3. Copy variables from `.env.example` into Railway service variables.
 4. Set `NEXT_PUBLIC_API_URL` as a build-time variable.
 5. Point your custom domain (or use the Railway-generated URL) in `NEXTAUTH_URL`, `AUTH_URL`, and `NEXT_PUBLIC_API_URL`.
-6. For production observability, set `ENABLE_TRACING=true`, `OTEL_SERVICE_NAME=gnosis`, and `OTEL_EXPORTER_OTLP_ENDPOINT=https://otel-collector.adityatripathi.dev`.
 
 ## Limitations and Assumptions
 
