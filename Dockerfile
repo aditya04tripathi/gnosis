@@ -5,10 +5,8 @@ FROM node:22-alpine AS base
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Enable pnpm via corepack
-ENV PNPM_HOME="/pnpm"
-ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable
+# Install pinned pnpm version matching lockfile
+RUN npm install -g pnpm@10.17.0
 
 # --- Dependencies stage ---
 FROM base AS deps
