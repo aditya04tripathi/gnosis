@@ -48,13 +48,19 @@ export function PricingView({
         body: JSON.stringify({ plan: planKey }),
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to start checkout");
+      let data: any = null;
+      try {
+        data = await response.json();
+      } catch {
+        const text = await response.text().catch(() => "");
+        throw new Error(text || `Server returned ${response.status} ${response.statusText}`);
       }
 
-      if (data.url) {
+      if (!response.ok) {
+        throw new Error(data?.error || "Failed to start checkout");
+      }
+
+      if (data?.url) {
         window.location.href = data.url;
       } else {
         toast.error("Checkout URL was not returned by Stripe");
@@ -75,17 +81,24 @@ export function PricingView({
       const response = await fetch("/api/stripe/portal", {
         method: "POST",
       });
-      const data = await response.json();
+
+      let data: any = null;
+      try {
+        data = await response.json();
+      } catch {
+        const text = await response.text().catch(() => "");
+        throw new Error(text || `Server returned ${response.status} ${response.statusText}`);
+      }
 
       if (!response.ok) {
-        if (data.redirectUrl) {
+        if (data?.redirectUrl) {
           router.push(data.redirectUrl);
           return;
         }
-        throw new Error(data.error || "Failed to access billing portal");
+        throw new Error(data?.error || "Failed to access billing portal");
       }
 
-      if (data.url) {
+      if (data?.url) {
         window.location.href = data.url;
       }
     } catch (error) {

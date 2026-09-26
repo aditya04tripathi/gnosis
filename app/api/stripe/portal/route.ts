@@ -4,14 +4,35 @@ import { auth } from "@/modules/shared/lib/auth";
 import connectDB from "@/modules/shared/lib/db";
 import User from "@/modules/shared/models/User";
 
-const stripe = process.env.STRIPE_SECRET_KEY
-  ? new Stripe(process.env.STRIPE_SECRET_KEY)
-  : null;
+function getStripe() {
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+  if (!secretKey) return null;
+  return new Stripe(secretKey);
+}
 
 export async function POST(_request: Request) {
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+  if (!secretKey) {
+    return NextResponse.json(
+      { error: "Stripe is not configured. Missing STRIPE_SECRET_KEY." },
+      { status: 503 },
+    );
+  }
+
+  if (secretKey.startsWith("pk_")) {
+    return NextResponse.json(
+      {
+        error:
+          "Invalid STRIPE_SECRET_KEY: A publishable key (pk_...) was provided instead of a secret key (sk_... or rk_...).",
+      },
+      { status: 500 },
+    );
+  }
+
+  const stripe = getStripe();
   if (!stripe) {
     return NextResponse.json(
-      { error: "Stripe is not configured" },
+      { error: "Failed to initialize Stripe client" },
       { status: 503 },
     );
   }
@@ -34,6 +55,21 @@ export async function POST(_request: Request) {
     "http://localhost:3000";
 
   let customerId = user.stripeCustomerId;
+
+  if (customerId) {
+    try {
+      const retrieved = await stripe.customers.retrieve(customerId);
+      if ("deleted" in retrieved && retrieved.deleted) {
+        customerId = undefined;
+        user.stripeCustomerId = undefined;
+        await user.save();
+      }
+    } catch {
+      customerId = undefined;
+      user.stripeCustomerId = undefined;
+      await user.save();
+    }
+  }
 
   if (!customerId) {
     // Try to find customer by email in Stripe
