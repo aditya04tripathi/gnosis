@@ -112,7 +112,7 @@ export async function POST(request: Request) {
             : session.subscription?.id;
 
         if (userId && plan) {
-          if (plan === "monthly") {
+          if (plan === "monthly" || plan === "pro_monthly") {
             await User.findByIdAndUpdate(userId, {
               subscriptionTier: "MONTHLY",
               searchesResetAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
@@ -121,11 +121,22 @@ export async function POST(request: Request) {
                 ? { stripeSubscriptionId: subscriptionId }
                 : {}),
             });
-          } else if (plan === "yearly") {
+          } else if (plan === "yearly" || plan === "pro_yearly") {
             await User.findByIdAndUpdate(userId, {
               subscriptionTier: "YEARLY",
               searchesResetAt: new Date(
                 Date.now() + 365 * 24 * 60 * 60 * 1000,
+              ),
+              ...(customerId ? { stripeCustomerId: customerId } : {}),
+              ...(subscriptionId
+                ? { stripeSubscriptionId: subscriptionId }
+                : {}),
+            });
+          } else if (plan.startsWith("ultra")) {
+            await User.findByIdAndUpdate(userId, {
+              subscriptionTier: "ULTRA",
+              searchesResetAt: new Date(
+                Date.now() + (plan.includes("yearly") ? 365 : 30) * 24 * 60 * 60 * 1000,
               ),
               ...(customerId ? { stripeCustomerId: customerId } : {}),
               ...(subscriptionId
@@ -152,10 +163,19 @@ export async function POST(request: Request) {
         const priceId = subscription.items.data[0]?.price.id;
         const interval =
           subscription.items.data[0]?.price.recurring?.interval;
-        const tier =
-          priceId === process.env.STRIPE_PRICE_YEARLY || interval === "year"
-            ? "YEARLY"
-            : "MONTHLY";
+        
+        let tier: "FREE" | "MONTHLY" | "YEARLY" | "ULTRA" = "MONTHLY";
+        if (
+          priceId === process.env.STRIPE_PRICE_ULTRA_MONTHLY ||
+          priceId === process.env.STRIPE_PRICE_ULTRA_YEARLY
+        ) {
+          tier = "ULTRA";
+        } else if (
+          priceId === process.env.STRIPE_PRICE_YEARLY ||
+          interval === "year"
+        ) {
+          tier = "YEARLY";
+        }
 
         await User.findOneAndUpdate(
           {

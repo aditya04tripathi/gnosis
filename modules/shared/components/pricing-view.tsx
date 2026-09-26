@@ -21,7 +21,7 @@ import {
 } from "@/modules/shared/constants";
 
 interface PricingViewProps {
-  currentTier?: "FREE" | "MONTHLY" | "YEARLY";
+  currentTier?: "FREE" | "MONTHLY" | "YEARLY" | "ULTRA";
   isAuthenticated?: boolean;
 }
 
@@ -34,7 +34,9 @@ export function PricingView({
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const handleCheckout = async (planKey: "monthly" | "yearly" | "credits_10") => {
+  const handleCheckout = async (
+    planKey: "monthly" | "yearly" | "ultra_monthly" | "ultra_yearly" | "credits_10",
+  ) => {
     if (!isAuthenticated) {
       router.push(`/auth/signup?plan=${planKey}`);
       return;
@@ -112,13 +114,13 @@ export function PricingView({
   };
 
   const freePlan = SUBSCRIPTION_PLANS.FREE;
-  const monthlyPlan = SUBSCRIPTION_PLANS.MONTHLY;
-  const yearlyPlan = SUBSCRIPTION_PLANS.YEARLY;
+  const proPlan = SUBSCRIPTION_PLANS.MONTHLY;
+  const ultraPlan = SUBSCRIPTION_PLANS.ULTRA;
 
   const faqs = [
     {
       q: "How do validation limits work?",
-      a: "The Free plan provides 1 comprehensive AI idea validation every 2 days. The Pro Monthly plan grants 50 validations per billing month, and the Pro Annual plan provides unlimited validations.",
+      a: "The Free plan provides 1 comprehensive AI idea validation every 2 days. The Pro plan provides 50 validations per month (or unlimited on Annual), and the Ultra tier provides completely uncapped validations with zero cooldowns and priority queueing.",
     },
     {
       q: "Can I cancel or change my plan anytime?",
@@ -126,13 +128,16 @@ export function PricingView({
     },
     {
       q: "How does GitHub integration work with each tier?",
-      a: "Free tier users can manually link repositories and export plans. Pro and Annual users unlock full bi-directional synchronization, automated issue and milestone generation, and instant webhook updates.",
+      a: "Free tier users can manually link repositories. Pro and Ultra users unlock full bi-directional synchronization, automated issue and milestone generation, and instant webhook updates.",
     },
     {
       q: "Do purchased validation credits expire?",
       a: "No. Booster credits purchased through our 10-Validation pack never expire and are consumed after your subscription allotment.",
     },
   ];
+
+  const isProUser = currentTier === "MONTHLY" || currentTier === "YEARLY";
+  const isUltraUser = currentTier === "ULTRA";
 
   return (
     <div className="flex flex-col gap-12 py-4">
@@ -236,34 +241,44 @@ export function PricingView({
           </CardFooter>
         </Card>
 
-        {/* Tier 2: Pro Monthly */}
+        {/* Tier 2: Pro */}
         <Card
           className={`flex flex-col justify-between relative transition-all border-primary/50 shadow-md shadow-primary/5 ${
-            currentTier === "MONTHLY" ? "ring-2 ring-primary" : ""
+            isProUser ? "ring-2 ring-primary" : ""
           }`}
         >
           <div className="absolute -top-3 left-1/2 -translate-x-1/2">
             <span className="bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow">
-              {monthlyPlan.badge}
+              {proPlan.badge}
             </span>
           </div>
 
           <div>
             <CardHeader className="pb-4 pt-6">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-xl font-bold">{monthlyPlan.name}</CardTitle>
-                {currentTier === "MONTHLY" && (
+                <CardTitle className="text-xl font-bold">Pro</CardTitle>
+                {isProUser && (
                   <Badge className="bg-primary text-primary-foreground font-medium">
                     Current Plan
                   </Badge>
                 )}
               </div>
               <CardDescription className="min-h-[40px] text-xs mt-1">
-                {monthlyPlan.description}
+                {proPlan.description}
               </CardDescription>
               <div className="mt-4 flex items-baseline gap-1">
-                <span className="text-4xl font-extrabold">{monthlyPlan.price}</span>
-                <span className="text-xs text-muted-foreground">/ month</span>
+                <span className="text-4xl font-extrabold">
+                  {billingCycle === "monthly" ? "$19" : "$190"}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {billingCycle === "monthly" ? (
+                    "/ month"
+                  ) : (
+                    <span>
+                      / year <span className="text-emerald-500 font-semibold">($15.83/mo)</span>
+                    </span>
+                  )}
+                </span>
               </div>
             </CardHeader>
             <CardContent className="space-y-4 pt-2">
@@ -271,7 +286,7 @@ export function PricingView({
                 Everything in Free, plus
               </div>
               <ul className="space-y-2.5 text-sm">
-                {monthlyPlan.features.map((feature, i) => (
+                {proPlan.features.map((feature, i) => (
                   <li key={i} className="flex items-start gap-2.5">
                     <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                     <span className="text-foreground">{feature}</span>
@@ -281,7 +296,7 @@ export function PricingView({
             </CardContent>
           </div>
           <CardFooter className="pt-4 border-t border-border/40">
-            {currentTier === "MONTHLY" ? (
+            {isProUser ? (
               <Button
                 variant="outline"
                 className="w-full"
@@ -296,49 +311,59 @@ export function PricingView({
             ) : (
               <Button
                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
-                onClick={() => handleCheckout("monthly")}
-                disabled={loadingPlan === "monthly"}
+                onClick={() =>
+                  handleCheckout(billingCycle === "monthly" ? "monthly" : "yearly")
+                }
+                disabled={loadingPlan === "monthly" || loadingPlan === "yearly"}
               >
-                {loadingPlan === "monthly" ? (
+                {loadingPlan === "monthly" || loadingPlan === "yearly" ? (
                   <Loader2 className="w-4 h-4 animate-spin mr-2" />
                 ) : (
                   <Zap className="w-4 h-4 mr-2" />
                 )}
-                {monthlyPlan.cta}
+                {billingCycle === "monthly" ? "Upgrade to Pro" : "Get Pro Annual"}
               </Button>
             )}
           </CardFooter>
         </Card>
 
-        {/* Tier 3: Pro Annual */}
+        {/* Tier 3: Ultra */}
         <Card
           className={`flex flex-col justify-between relative transition-all border-border/80 ${
-            currentTier === "YEARLY" ? "ring-2 ring-primary" : ""
+            isUltraUser ? "ring-2 ring-purple-500" : ""
           }`}
         >
           <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-            <span className="bg-emerald-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow">
-              {yearlyPlan.badge}
+            <span className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow">
+              {ultraPlan.badge}
             </span>
           </div>
 
           <div>
             <CardHeader className="pb-4 pt-6">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-xl font-bold">{yearlyPlan.name}</CardTitle>
-                {currentTier === "YEARLY" && (
-                  <Badge className="bg-emerald-600 text-white font-medium">
+                <CardTitle className="text-xl font-bold">{ultraPlan.name}</CardTitle>
+                {isUltraUser && (
+                  <Badge className="bg-purple-600 text-white font-medium">
                     Current Plan
                   </Badge>
                 )}
               </div>
               <CardDescription className="min-h-[40px] text-xs mt-1">
-                {yearlyPlan.description}
+                {ultraPlan.description}
               </CardDescription>
               <div className="mt-4 flex items-baseline gap-1">
-                <span className="text-4xl font-extrabold">{yearlyPlan.price}</span>
+                <span className="text-4xl font-extrabold">
+                  {billingCycle === "monthly" ? "$49" : "$490"}
+                </span>
                 <span className="text-xs text-muted-foreground">
-                  / year <span className="text-emerald-500 font-semibold">($15.83/mo)</span>
+                  {billingCycle === "monthly" ? (
+                    "/ month"
+                  ) : (
+                    <span>
+                      / year <span className="text-emerald-500 font-semibold">($40.83/mo)</span>
+                    </span>
+                  )}
                 </span>
               </div>
             </CardHeader>
@@ -347,9 +372,9 @@ export function PricingView({
                 All Pro features, plus
               </div>
               <ul className="space-y-2.5 text-sm">
-                {yearlyPlan.features.map((feature, i) => (
+                {ultraPlan.features.map((feature, i) => (
                   <li key={i} className="flex items-start gap-2.5">
-                    <Check className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                    <Check className="h-4 w-4 text-purple-500 shrink-0 mt-0.5" />
                     <span className="text-foreground">{feature}</span>
                   </li>
                 ))}
@@ -357,7 +382,7 @@ export function PricingView({
             </CardContent>
           </div>
           <CardFooter className="pt-4 border-t border-border/40">
-            {currentTier === "YEARLY" ? (
+            {isUltraUser ? (
               <Button
                 variant="outline"
                 className="w-full"
@@ -372,16 +397,22 @@ export function PricingView({
             ) : (
               <Button
                 variant="default"
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
-                onClick={() => handleCheckout("yearly")}
-                disabled={loadingPlan === "yearly"}
+                className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold"
+                onClick={() =>
+                  handleCheckout(
+                    billingCycle === "monthly" ? "ultra_monthly" : "ultra_yearly",
+                  )
+                }
+                disabled={
+                  loadingPlan === "ultra_monthly" || loadingPlan === "ultra_yearly"
+                }
               >
-                {loadingPlan === "yearly" ? (
+                {loadingPlan === "ultra_monthly" || loadingPlan === "ultra_yearly" ? (
                   <Loader2 className="w-4 h-4 animate-spin mr-2" />
                 ) : (
                   <Sparkles className="w-4 h-4 mr-2" />
                 )}
-                {yearlyPlan.cta}
+                {billingCycle === "monthly" ? "Upgrade to Ultra" : "Get Ultra Annual"}
               </Button>
             )}
           </CardFooter>

@@ -86,15 +86,23 @@ export default async function DashboardPage(props: DashboardPageProps) {
               ? completedSession.subscription
               : completedSession.subscription?.id;
 
-          if (plan === "monthly") {
+          if (plan === "monthly" || plan === "pro_monthly") {
             user.subscriptionTier = "MONTHLY";
             user.searchesResetAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
             if (customerId) user.stripeCustomerId = customerId;
             if (subscriptionId) user.stripeSubscriptionId = subscriptionId;
             await user.save();
-          } else if (plan === "yearly") {
+          } else if (plan === "yearly" || plan === "pro_yearly") {
             user.subscriptionTier = "YEARLY";
             user.searchesResetAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+            if (customerId) user.stripeCustomerId = customerId;
+            if (subscriptionId) user.stripeSubscriptionId = subscriptionId;
+            await user.save();
+          } else if (plan?.startsWith("ultra")) {
+            user.subscriptionTier = "ULTRA";
+            user.searchesResetAt = new Date(
+              Date.now() + (plan.includes("yearly") ? 365 : 30) * 24 * 60 * 60 * 1000
+            );
             if (customerId) user.stripeCustomerId = customerId;
             if (subscriptionId) user.stripeSubscriptionId = subscriptionId;
             await user.save();

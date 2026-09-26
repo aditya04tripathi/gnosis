@@ -50,7 +50,7 @@ interface ProfileSettingsProps {
     _id: string;
     name: string;
     email: string;
-    subscriptionTier?: "FREE" | "MONTHLY" | "YEARLY";
+    subscriptionTier?: "FREE" | "MONTHLY" | "YEARLY" | "ULTRA";
     stripeCustomerId?: string;
     stripeSubscriptionId?: string;
     searchesUsed?: number;

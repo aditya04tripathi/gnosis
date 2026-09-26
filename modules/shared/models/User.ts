@@ -54,7 +54,7 @@ const UserSchema = new Schema<IUser>(
     },
     subscriptionTier: {
       type: String,
-      enum: ["FREE", "MONTHLY", "YEARLY"],
+      enum: ["FREE", "MONTHLY", "YEARLY", "ULTRA"],
       default: "FREE",
     },
     searchesUsed: {

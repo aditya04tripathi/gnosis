@@ -75,7 +75,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (session.user) {
         session.user.id = (token.userId as string) || "";
         session.user.subscriptionTier =
-          (token.subscriptionTier as "FREE" | "MONTHLY" | "YEARLY") || "FREE";
+          (token.subscriptionTier as "FREE" | "MONTHLY" | "YEARLY" | "ULTRA") || "FREE";
         session.user.searchesUsed = token.searchesUsed as number;
       }
       return session;

@@ -14,6 +14,11 @@ function getPriceMap(): Record<string, string | undefined> {
   return {
     monthly: process.env.STRIPE_PRICE_MONTHLY,
     yearly: process.env.STRIPE_PRICE_YEARLY,
+    pro_monthly: process.env.STRIPE_PRICE_MONTHLY,
+    pro_yearly: process.env.STRIPE_PRICE_YEARLY,
+    ultra: process.env.STRIPE_PRICE_ULTRA_MONTHLY,
+    ultra_monthly: process.env.STRIPE_PRICE_ULTRA_MONTHLY,
+    ultra_yearly: process.env.STRIPE_PRICE_ULTRA_YEARLY,
     credits_10: process.env.STRIPE_PRICE_CREDITS_10,
   };
 }

@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 
 export default async function PricingPage() {
   const session = await auth();
-  let currentTier: "FREE" | "MONTHLY" | "YEARLY" = "FREE";
+  let currentTier: "FREE" | "MONTHLY" | "YEARLY" | "ULTRA" = "FREE";
 
   if (session?.user?.id) {
     try {

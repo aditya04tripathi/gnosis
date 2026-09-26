@@ -65,6 +65,27 @@ export const SUBSCRIPTION_PLANS = {
     highlighted: false,
     cta: "Get Pro Annual",
   },
+  ULTRA: {
+    id: "ultra",
+    tier: "ULTRA" as const,
+    name: "Ultra",
+    price: "$49",
+    period: "per month",
+    priceAmount: 49,
+    searchesPerMonth: Infinity,
+    description: "Autonomous roadmap execution and maximum intelligence for elite software engineers.",
+    badge: "Maximum Power",
+    features: [
+      "Unlimited AI validations with zero cooldowns",
+      "Autonomous roadmap execution & GitHub issue generator",
+      "Full Multi-Model AI Access + BYOK & Custom Base URLs",
+      "Full codebase repository scaffolding & PR generation",
+      "Interactive SCRUM board with automated sprint planning",
+      "24/7 VIP founder support & priority compute queue",
+    ],
+    highlighted: false,
+    cta: "Upgrade to Ultra",
+  },
 } as const;
 
 export const CREDITS_PACK = {
@@ -78,13 +99,14 @@ export const CREDITS_PACK = {
 export type PlanKey = keyof typeof SUBSCRIPTION_PLANS;
 
 export function getPlanForTier(tier?: string) {
+  if (tier === "ULTRA") return SUBSCRIPTION_PLANS.ULTRA;
   if (tier === "YEARLY") return SUBSCRIPTION_PLANS.YEARLY;
   if (tier === "MONTHLY") return SUBSCRIPTION_PLANS.MONTHLY;
   return SUBSCRIPTION_PLANS.FREE;
 }
 
 export function getSearchLimitForTier(tier?: string): number {
-  if (tier === "YEARLY") return Infinity;
+  if (tier === "ULTRA" || tier === "YEARLY") return Infinity;
   if (tier === "MONTHLY") return MONTHLY_SEARCHES_LIMIT;
   return FREE_SEARCHES_LIMIT;
 }
