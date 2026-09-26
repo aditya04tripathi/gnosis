@@ -5,7 +5,7 @@ export interface ValidationResult {
   strengths: string[];
   weaknesses: string[];
   suggestions: string[];
-  recommendedTier: "MONTHLY" | "YEARLY";
+  recommendedTier: "MONTHLY" | "YEARLY" | "ULTRA";
   marketAnalysis: string;
   competition: string[];
   targetAudience: string;
