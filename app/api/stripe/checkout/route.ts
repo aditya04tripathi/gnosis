@@ -42,18 +42,33 @@ export async function POST(request: Request) {
   const appUrl =
     process.env.NEXTAUTH_URL ||
     process.env.AUTH_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
     "http://localhost:3000";
 
+  const isSubscription = !plan.startsWith("credits");
+
   const checkoutSession = await stripe.checkout.sessions.create({
-    mode: plan.startsWith("credits") ? "payment" : "subscription",
-    customer_email: user.email,
+    mode: isSubscription ? "subscription" : "payment",
+    customer: user.stripeCustomerId || undefined,
+    customer_email: user.stripeCustomerId ? undefined : user.email,
     line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${appUrl}/dashboard?checkout=success`,
+    allow_promotion_codes: true,
+    billing_address_collection: "auto",
+    success_url: `${appUrl}/dashboard?checkout=success&plan=${plan}`,
     cancel_url: `${appUrl}/pricing?checkout=cancelled`,
     metadata: {
       userId: session.user.id,
+      userEmail: user.email,
       plan,
     },
+    subscription_data: isSubscription
+      ? {
+          metadata: {
+            userId: session.user.id,
+            plan,
+          },
+        }
+      : undefined,
   });
 
   return NextResponse.json({ url: checkoutSession.url });

@@ -1,67 +1,47 @@
 import type { Metadata } from "next";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/modules/shared/components/ui/card";
-import {
-  APP_INFO,
-  METADATA,
-  SUBSCRIPTION_PLANS,
-} from "@/modules/shared/constants";
+import { PricingView } from "@/modules/shared/components/pricing-view";
+import { APP_INFO, METADATA } from "@/modules/shared/constants";
+import { auth } from "@/modules/shared/lib/auth";
+import connectDB from "@/modules/shared/lib/db";
+import User from "@/modules/shared/models/User";
 
 export const metadata: Metadata = {
   ...METADATA.default,
-  title: `Pricing | ${APP_INFO.name}`,
-  description: "Free plan available for startup validation",
+  title: `Pricing & Plans | ${APP_INFO.name}`,
+  description:
+    "Choose the right plan to validate ideas, generate actionable roadmaps, and sync directly with GitHub.",
   openGraph: {
     ...METADATA.default.openGraph,
-    title: `Pricing | ${APP_INFO.name}`,
-    description: "Free plan available for startup validation",
+    title: `Pricing & Plans | ${APP_INFO.name}`,
+    description:
+      "Choose the right plan to validate ideas, generate actionable roadmaps, and sync directly with GitHub.",
   },
 };
 
-export default function PricingPage() {
-  const plan = SUBSCRIPTION_PLANS.FREE;
+export default async function PricingPage() {
+  const session = await auth();
+  let currentTier: "FREE" | "MONTHLY" | "YEARLY" = "FREE";
+
+  if (session?.user?.id) {
+    try {
+      await connectDB();
+      const user = await User.findById(session.user.id).select("subscriptionTier").lean();
+      if (user?.subscriptionTier) {
+        currentTier = user.subscriptionTier;
+      }
+    } catch (error) {
+      console.error("Failed to load user tier in PricingPage:", error);
+    }
+  }
 
   return (
     <div className="flex h-full flex-col">
       <main className="flex-1">
-        <div className="container mx-auto flex flex-col gap-8 py-8">
-          <div className="flex flex-col gap-4">
-            <div>
-              <h1>Pricing</h1>
-              <p className="text-muted-foreground">
-                Simple, transparent pricing for everyone
-              </p>
-            </div>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-1 max-w-2xl mx-auto">
-            <Card>
-              <CardHeader>
-                <CardTitle>{plan.name} Plan</CardTitle>
-                <CardDescription>
-                  Perfect for getting started with startup validation
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="text-3xl font-bold">Free</div>
-                  <ul className="space-y-2">
-                    {plan.features.map((feature, index) => (
-                      <li key={index} className="flex items-start gap-2">
-                        <span className="text-primary">✓</span>
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+        <div className="container mx-auto px-4 py-8">
+          <PricingView
+            currentTier={currentTier}
+            isAuthenticated={Boolean(session?.user)}
+          />
         </div>
       </main>
     </div>

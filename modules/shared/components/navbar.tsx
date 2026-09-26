@@ -1,4 +1,4 @@
-import { Home, User } from "lucide-react";
+import { CreditCard, Home, User, Zap } from "lucide-react";
 import Link from "next/link";
 import { APP_INFO } from "@/modules/shared/constants";
 import { auth } from "@/modules/shared/lib/auth";
@@ -65,9 +65,21 @@ export async function Navbar() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
+                    <Link href="/usage">
+                      <Zap className="mr-2 h-4 w-4" />
+                      Usage & Quotas
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
                     <Link href="/profile">
                       <User className="mr-2 h-4 w-4" />
-                      Profile
+                      Profile & Billing
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/pricing">
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      Pricing & Plans
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />

@@ -27,6 +27,8 @@ export interface IUser extends Document {
   githubUsername?: string;
   githubConnectedAt?: Date;
   githubScopes?: string[];
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -105,6 +107,8 @@ const UserSchema = new Schema<IUser>(
     githubUsername: { type: String, default: null },
     githubConnectedAt: { type: Date, default: null },
     githubScopes: { type: [String], default: [] },
+    stripeCustomerId: { type: String, default: null, index: true },
+    stripeSubscriptionId: { type: String, default: null, index: true },
   },
   {
     timestamps: true,

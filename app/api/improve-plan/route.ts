@@ -12,7 +12,10 @@ import {
   executeListGithubIssues,
   getGitHubContextForAI,
 } from "@/modules/github/lib/ai-github-tools";
-import { FREE_SEARCHES_LIMIT } from "@/modules/shared/constants";
+import {
+  FREE_SEARCHES_LIMIT,
+  getSearchLimitForTier,
+} from "@/modules/shared/constants";
 import { getUserLanguageModel } from "@/modules/shared/lib/ai-provider";
 import { auth } from "@/modules/shared/lib/auth";
 import connectDB from "@/modules/shared/lib/db";
@@ -115,11 +118,12 @@ export async function POST(req: Request) {
     // Validate the user's selected provider before any usage is reserved.
     const model = getUserLanguageModel(user, "fast");
 
-    const searchLimit = getEffectiveSearchLimit(FREE_SEARCHES_LIMIT);
+    const tierLimit = getSearchLimitForTier(user.subscriptionTier);
+    const searchLimit = getEffectiveSearchLimit(tierLimit);
     const searchesRemaining =
-      user.subscriptionTier === "FREE"
-        ? searchLimit - user.searchesUsed
-        : Number.POSITIVE_INFINITY;
+      user.subscriptionTier === "YEARLY"
+        ? Number.POSITIVE_INFINITY
+        : searchLimit - user.searchesUsed;
 
     if (!isDevUnlimited() && searchesRemaining < 0.5) {
       return Response.json(
@@ -145,11 +149,10 @@ export async function POST(req: Request) {
       projectPlan,
     );
 
-    if (!isDevUnlimited() && user.subscriptionTier === "FREE") {
+    if (!isDevUnlimited() && user.subscriptionTier !== "YEARLY") {
       const reserved = await User.findOneAndUpdate(
         {
           _id: session.user.id,
-          subscriptionTier: "FREE",
           searchesUsed: { $lte: searchLimit - 0.5 },
         },
         { $inc: { searchesUsed: 0.5 } },

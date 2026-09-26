@@ -94,20 +94,114 @@ export async function POST(request: Request) {
   }
 
   try {
-    if (event.type === "checkout.session.completed") {
+    if (
+      event.type === "checkout.session.completed" ||
+      event.type === "checkout.session.async_payment_succeeded"
+    ) {
       const session = event.data.object as Stripe.Checkout.Session;
-      const userId = session.metadata?.userId;
-      const plan = session.metadata?.plan;
+      if (session.payment_status === "paid") {
+        const userId = session.metadata?.userId;
+        const plan = session.metadata?.plan;
+        const customerId =
+          typeof session.customer === "string"
+            ? session.customer
+            : session.customer?.id;
+        const subscriptionId =
+          typeof session.subscription === "string"
+            ? session.subscription
+            : session.subscription?.id;
 
-      if (userId && plan) {
-        if (plan === "monthly") {
-          await User.findByIdAndUpdate(userId, { subscriptionTier: "MONTHLY" });
-        } else if (plan === "yearly") {
-          await User.findByIdAndUpdate(userId, { subscriptionTier: "YEARLY" });
-        } else if (plan === "credits_10") {
-          await User.findByIdAndUpdate(userId, { $inc: { searchesUsed: -10 } });
+        if (userId && plan) {
+          if (plan === "monthly") {
+            await User.findByIdAndUpdate(userId, {
+              subscriptionTier: "MONTHLY",
+              searchesResetAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+              ...(customerId ? { stripeCustomerId: customerId } : {}),
+              ...(subscriptionId
+                ? { stripeSubscriptionId: subscriptionId }
+                : {}),
+            });
+          } else if (plan === "yearly") {
+            await User.findByIdAndUpdate(userId, {
+              subscriptionTier: "YEARLY",
+              searchesResetAt: new Date(
+                Date.now() + 365 * 24 * 60 * 60 * 1000,
+              ),
+              ...(customerId ? { stripeCustomerId: customerId } : {}),
+              ...(subscriptionId
+                ? { stripeSubscriptionId: subscriptionId }
+                : {}),
+            });
+          } else if (plan === "credits_10") {
+            await User.findByIdAndUpdate(userId, {
+              $inc: { searchesUsed: -10 },
+              ...(customerId ? { stripeCustomerId: customerId } : {}),
+            });
+          }
         }
       }
+    } else if (event.type === "customer.subscription.updated") {
+      const subscription = event.data.object as Stripe.Subscription;
+      const customerId =
+        typeof subscription.customer === "string"
+          ? subscription.customer
+          : subscription.customer?.id;
+      const status = subscription.status;
+
+      if (status === "active" || status === "trialing") {
+        const priceId = subscription.items.data[0]?.price.id;
+        const interval =
+          subscription.items.data[0]?.price.recurring?.interval;
+        const tier =
+          priceId === process.env.STRIPE_PRICE_YEARLY || interval === "year"
+            ? "YEARLY"
+            : "MONTHLY";
+
+        await User.findOneAndUpdate(
+          {
+            $or: [
+              { stripeSubscriptionId: subscription.id },
+              { stripeCustomerId: customerId },
+            ],
+          },
+          {
+            subscriptionTier: tier,
+            stripeSubscriptionId: subscription.id,
+            stripeCustomerId: customerId,
+          },
+        );
+      } else if (status === "canceled" || status === "unpaid") {
+        await User.findOneAndUpdate(
+          {
+            $or: [
+              { stripeSubscriptionId: subscription.id },
+              { stripeCustomerId: customerId },
+            ],
+          },
+          {
+            subscriptionTier: "FREE",
+            stripeSubscriptionId: null,
+          },
+        );
+      }
+    } else if (event.type === "customer.subscription.deleted") {
+      const subscription = event.data.object as Stripe.Subscription;
+      const customerId =
+        typeof subscription.customer === "string"
+          ? subscription.customer
+          : subscription.customer?.id;
+      await User.findOneAndUpdate(
+        {
+          $or: [
+            { stripeSubscriptionId: subscription.id },
+            { stripeCustomerId: customerId },
+          ],
+        },
+        {
+          subscriptionTier: "FREE",
+          stripeSubscriptionId: null,
+        },
+      );
     }
 
     await ProcessedStripeEvent.updateOne(

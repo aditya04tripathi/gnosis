@@ -52,15 +52,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     maxAge: 7 * 24 * 60 * 60,
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.userId = user.id;
+      }
+      if (user || trigger === "update") {
         try {
           await connectDB();
-          const dbUser = await User.findById(user.id);
-          if (dbUser) {
-            token.subscriptionTier = dbUser.subscriptionTier;
-            token.searchesUsed = dbUser.searchesUsed;
+          const targetId = user?.id || (token.userId as string);
+          if (targetId) {
+            const dbUser = await User.findById(targetId);
+            if (dbUser) {
+              token.subscriptionTier = dbUser.subscriptionTier;
+              token.searchesUsed = dbUser.searchesUsed;
+            }
           }
         } catch (error) {
           console.error("[auth] jwt user enrichment failed:", error);

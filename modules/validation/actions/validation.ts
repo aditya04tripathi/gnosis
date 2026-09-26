@@ -9,6 +9,8 @@ import {
   RATE_LIMIT,
   SUBSCRIPTION_PLANS,
   VALIDATE,
+  getPlanForTier,
+  getSearchLimitForTier,
 } from "@/modules/shared/constants";
 import { auth } from "@/modules/shared/lib/auth";
 import { getEffectiveSearchLimit, isDevUnlimited } from "@/modules/shared/lib/dev-mode";
@@ -45,29 +47,36 @@ export async function validateStartupIdea(idea: string) {
       return { error: "User not found" };
     }
 
-    const plan = SUBSCRIPTION_PLANS.FREE;
+    const plan = getPlanForTier(user.subscriptionTier);
     const now = new Date();
 
     if (now > user.searchesResetAt) {
       user.searchesUsed = 0;
+      const resetDays =
+        user.subscriptionTier === "YEARLY"
+          ? 365
+          : user.subscriptionTier === "MONTHLY"
+            ? 30
+            : 2;
       user.searchesResetAt = new Date(
-        now.getTime() + 2 * 24 * 60 * 60 * 1000, // 2 days
+        now.getTime() + resetDays * 24 * 60 * 60 * 1000,
       );
       await user.save();
     }
 
-    const searchLimit = getEffectiveSearchLimit(FREE_SEARCHES_LIMIT);
+    const tierLimit = getSearchLimitForTier(user.subscriptionTier);
+    const searchLimit = getEffectiveSearchLimit(tierLimit);
 
     if (
       !isDevUnlimited() &&
-      user.subscriptionTier === "FREE" &&
+      user.subscriptionTier !== "YEARLY" &&
       user.searchesUsed >= searchLimit
     ) {
       const timeUntilReset = user.searchesResetAt.getTime() - now.getTime();
       const hoursUntilReset = Math.ceil(timeUntilReset / (1000 * 60 * 60));
       const daysUntilReset = Math.floor(timeUntilReset / (1000 * 60 * 60 * 24));
 
-      let resetMessage = "Free plan limit reached";
+      let resetMessage = `${plan.name} limit reached`;
       if (daysUntilReset >= 1) {
         resetMessage += `. Next validation available in ${daysUntilReset} day${
           daysUntilReset !== 1 ? "s" : ""
@@ -90,10 +99,10 @@ export async function validateStartupIdea(idea: string) {
     const validationResult = await validateIdea(idea, model);
 
     user.searchesUsed += 1;
-    // Set reset time to 2 days from now for free users
-    if (user.subscriptionTier === "FREE") {
+    // Set reset time for free users if not set
+    if (!user.searchesResetAt) {
       user.searchesResetAt = new Date(
-        now.getTime() + 2 * 24 * 60 * 60 * 1000, // 2 days
+        now.getTime() + 2 * 24 * 60 * 60 * 1000,
       );
     }
     await user.save();

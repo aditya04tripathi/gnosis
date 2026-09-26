@@ -14,7 +14,10 @@ import {
   DASHBOARD,
   FREE_SEARCHES_LIMIT,
   METADATA,
+  MONTHLY_SEARCHES_LIMIT,
   SUBSCRIPTION_PLANS,
+  getPlanForTier,
+  getSearchLimitForTier,
 } from "@/modules/shared/constants";
 import { auth } from "@/modules/shared/lib/auth";
 import connectDB from "@/modules/shared/lib/db";
@@ -55,8 +58,12 @@ export default async function DashboardPage() {
     .limit(10)
     .lean();
 
-  const plan = SUBSCRIPTION_PLANS.FREE;
-  const searchesRemaining = Math.max(0, plan.searchesPerMonth - searchesUsed);
+  const plan = getPlanForTier(user.subscriptionTier);
+  const searchLimit = getSearchLimitForTier(user.subscriptionTier);
+  const searchesRemaining =
+    searchLimit === Infinity
+      ? "Unlimited"
+      : Math.max(0, searchLimit - searchesUsed);
 
   return (
     <div className="flex h-full flex-col">
@@ -85,9 +92,11 @@ export default async function DashboardPage() {
               <CardContent>
                 <div className="text-2xl font-bold">{searchesRemaining}</div>
                 <p className="text-xs text-muted-foreground">
-                  {user.subscriptionTier === "FREE"
-                    ? DASHBOARD.stats.ofFreeSearches(FREE_SEARCHES_LIMIT)
-                    : DASHBOARD.stats.ofMonthlySearches(plan.searchesPerMonth)}
+                  {user.subscriptionTier === "YEARLY"
+                    ? "Unlimited validations on Annual"
+                    : user.subscriptionTier === "MONTHLY"
+                      ? DASHBOARD.stats.ofMonthlySearches(MONTHLY_SEARCHES_LIMIT)
+                      : DASHBOARD.stats.ofFreeSearches(FREE_SEARCHES_LIMIT)}
                 </p>
               </CardContent>
             </Card>
@@ -111,12 +120,19 @@ export default async function DashboardPage() {
               <CardContent>
                 <div className="text-2xl font-bold">{plan.name}</div>
                 <p className="text-xs text-muted-foreground">
-                  {user.subscriptionTier === "FREE" && (
+                  {user.subscriptionTier === "FREE" ? (
                     <Link
                       href="/pricing"
                       className="text-primary hover:underline"
                     >
                       {DASHBOARD.stats.upgradeText}
+                    </Link>
+                  ) : (
+                    <Link
+                      href="/profile"
+                      className="text-primary hover:underline"
+                    >
+                      Manage subscription & billing
                     </Link>
                   )}
                 </p>

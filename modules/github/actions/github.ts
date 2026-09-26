@@ -352,3 +352,30 @@ export async function pushMilestonesToGitHub(
     console.error("Pull from GitHub after milestone change error:", error);
   }
 }
+
+export async function disconnectGitHubAccount() {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { error: "Unauthorized" };
+  }
+
+  try {
+    await connectDB();
+    await User.findByIdAndUpdate(session.user.id, {
+      $set: {
+        githubAccessToken: null,
+        githubUsername: null,
+        githubConnectedAt: null,
+        githubScopes: [],
+      },
+    });
+
+    revalidatePath("/profile");
+    revalidatePath("/dashboard");
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to disconnect GitHub account:", error);
+    return { error: "Failed to disconnect GitHub account" };
+  }
+}
+
