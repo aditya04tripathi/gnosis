@@ -113,24 +113,7 @@ export APP_PORT="${ASSIGNED_PORT}"
 export IMAGE_TAG="${IMAGE_TAG}"
 
 # ------------------------------------------------------------------------------
-# 3. Pull and deploy pre-built container
-# ------------------------------------------------------------------------------
-echo "📦 Pulling latest pre-built container image..."
-docker compose -f "${COMPOSE_FILE}" pull app || {
-    echo "⚠️  Note: If GHCR image is private, run: echo \$GHCR_TOKEN | docker login ghcr.io -u <username> --password-stdin"
-}
-
-echo "🚢 Launching services..."
-docker compose -f "${COMPOSE_FILE}" up -d --remove-orphans
-
-# ------------------------------------------------------------------------------
-# 4. Storage cleanup (Crucial for constrained root partitions e.g. 15GB)
-# ------------------------------------------------------------------------------
-echo "🧹 Pruning unused dangling images to preserve disk space..."
-docker image prune -f >/dev/null 2>&1 || true
-
-# ------------------------------------------------------------------------------
-# 5. Global Nginx Reverse Proxy Configuration (/root/nginx.conf/)
+# 3. Global Nginx Reverse Proxy Configuration (/root/nginx.conf/)
 # ------------------------------------------------------------------------------
 NGINX_ROOT_DIR="/root/nginx.conf"
 mkdir -p "${NGINX_ROOT_DIR}"
@@ -162,7 +145,7 @@ if [ -f "${NGINX_MAIN_CONF}" ]; then
     fi
 fi
 
-# Write per-app configuration file
+# Write per-app configuration file: /root/nginx.conf/<appname>.conf
 NGINX_APP_CONF="${NGINX_ROOT_DIR}/${APP_NAME}.conf"
 DOMAIN="${SERVER_DOMAIN:-gnosis.adityatripathi.dev}"
 echo "🌐 Writing Nginx configuration at ${NGINX_APP_CONF} for ${DOMAIN} (Port ${ASSIGNED_PORT})..."
@@ -211,6 +194,23 @@ if command -v nginx >/dev/null 2>&1; then
         echo "⚠️  Nginx config test failed. Please check ${NGINX_APP_CONF} and /etc/nginx/nginx.conf"
     fi
 fi
+
+# ------------------------------------------------------------------------------
+# 4. Pull and deploy pre-built container
+# ------------------------------------------------------------------------------
+echo "📦 Pulling latest pre-built container image..."
+docker compose -f "${COMPOSE_FILE}" pull app || {
+    echo "⚠️  Note: If GHCR image is private, run: echo \$GHCR_TOKEN | docker login ghcr.io -u <username> --password-stdin"
+}
+
+echo "🚢 Launching services..."
+docker compose -f "${COMPOSE_FILE}" up -d --remove-orphans
+
+# ------------------------------------------------------------------------------
+# 5. Storage cleanup (Crucial for constrained root partitions e.g. 15GB)
+# ------------------------------------------------------------------------------
+echo "🧹 Pruning unused dangling images to preserve disk space..."
+docker image prune -f >/dev/null 2>&1 || true
 
 # ------------------------------------------------------------------------------
 # 5. Service verification
