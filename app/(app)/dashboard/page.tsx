@@ -1,7 +1,8 @@
-import { FileText, FolderKanban, Plus, TrendingUp, Zap } from "lucide-react";
+import { CheckCircle2, FileText, FolderKanban, Plus, TrendingUp, Zap } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import Stripe from "stripe";
 import { Button } from "@/modules/shared/components/ui/button";
 import {
   Card,
@@ -27,7 +28,16 @@ import Validation from "@/modules/shared/models/Validation";
 
 export const metadata: Metadata = METADATA.pages.dashboard;
 
-export default async function DashboardPage() {
+interface DashboardPageProps {
+  searchParams?: Promise<{
+    checkout?: string;
+    plan?: string;
+    session_id?: string;
+  }>;
+}
+
+export default async function DashboardPage(props: DashboardPageProps) {
+  const searchParams = props.searchParams ? await props.searchParams : {};
   const session = await auth();
   if (!session?.user) {
     redirect("/auth/signin");
@@ -35,9 +45,69 @@ export default async function DashboardPage() {
 
   await connectDB();
 
-  const user = await User.findById(session.user.id).lean();
+  let user = await User.findById(session.user.id);
   if (!user) {
     redirect("/auth/signin");
+  }
+
+  // Fallback reconciliation for Stripe checkout if webhook was missed/delayed
+  if (searchParams.checkout === "success") {
+    try {
+      const secretKey = process.env.STRIPE_SECRET_KEY;
+      if (secretKey && !secretKey.startsWith("pk_")) {
+        const stripe = new Stripe(secretKey);
+        let completedSession: Stripe.Checkout.Session | null = null;
+
+        if (searchParams.session_id) {
+          completedSession = await stripe.checkout.sessions.retrieve(
+            searchParams.session_id,
+            { expand: ["subscription"] }
+          );
+        } else {
+          const recent = await stripe.checkout.sessions.list({ limit: 5 });
+          completedSession =
+            recent.data.find(
+              (s) =>
+                s.payment_status === "paid" &&
+                (s.metadata?.userId === user._id.toString() ||
+                  s.customer_email === user.email ||
+                  s.customer_details?.email === user.email)
+            ) || null;
+        }
+
+        if (completedSession && completedSession.payment_status === "paid") {
+          const plan = completedSession.metadata?.plan || searchParams.plan;
+          const customerId =
+            typeof completedSession.customer === "string"
+              ? completedSession.customer
+              : completedSession.customer?.id;
+          const subscriptionId =
+            typeof completedSession.subscription === "string"
+              ? completedSession.subscription
+              : completedSession.subscription?.id;
+
+          if (plan === "monthly") {
+            user.subscriptionTier = "MONTHLY";
+            user.searchesResetAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+            if (customerId) user.stripeCustomerId = customerId;
+            if (subscriptionId) user.stripeSubscriptionId = subscriptionId;
+            await user.save();
+          } else if (plan === "yearly") {
+            user.subscriptionTier = "YEARLY";
+            user.searchesResetAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+            if (customerId) user.stripeCustomerId = customerId;
+            if (subscriptionId) user.stripeSubscriptionId = subscriptionId;
+            await user.save();
+          } else if (plan === "credits_10") {
+            user.searchesUsed = Math.max(0, (user.searchesUsed || 0) - 10);
+            if (customerId) user.stripeCustomerId = customerId;
+            await user.save();
+          }
+        }
+      }
+    } catch (err) {
+      console.error("[dashboard] Failed to reconcile Stripe session:", err);
+    }
   }
 
   const now = new Date();
@@ -69,6 +139,23 @@ export default async function DashboardPage() {
     <div className="flex h-full flex-col">
       <main className="flex-1">
         <div className="container mx-auto flex flex-col gap-8">
+          {searchParams.checkout === "success" && (
+            <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-emerald-400 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                <div>
+                  <p className="font-semibold text-sm">Payment successful! Your subscription is now active.</p>
+                  <p className="text-xs text-muted-foreground">
+                    You are now on the <span className="font-semibold text-foreground">{plan.name}</span> tier with unlocked limits and GitHub integration.
+                  </p>
+                </div>
+              </div>
+              <Button asChild size="sm" variant="outline" className="border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10 shrink-0">
+                <Link href="/validate">Start Validating</Link>
+              </Button>
+            </div>
+          )}
+
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1>{DASHBOARD.title}</h1>

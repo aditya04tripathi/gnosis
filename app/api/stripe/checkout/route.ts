@@ -97,7 +97,7 @@ export async function POST(request: Request) {
       line_items: [{ price: priceId, quantity: 1 }],
       allow_promotion_codes: true,
       billing_address_collection: "auto",
-      success_url: `${appUrl}/dashboard?checkout=success&plan=${plan}`,
+      success_url: `${appUrl}/dashboard?checkout=success&plan=${plan}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/pricing?checkout=cancelled`,
       metadata: {
         userId: session.user.id,

@@ -262,7 +262,7 @@ export function PricingView({
                 {monthlyPlan.description}
               </CardDescription>
               <div className="mt-4 flex items-baseline gap-1">
-                <span className="text-4xl font-extrabold">$29</span>
+                <span className="text-4xl font-extrabold">{monthlyPlan.price}</span>
                 <span className="text-xs text-muted-foreground">/ month</span>
               </div>
             </CardHeader>
@@ -336,9 +336,9 @@ export function PricingView({
                 {yearlyPlan.description}
               </CardDescription>
               <div className="mt-4 flex items-baseline gap-1">
-                <span className="text-4xl font-extrabold">$290</span>
+                <span className="text-4xl font-extrabold">{yearlyPlan.price}</span>
                 <span className="text-xs text-muted-foreground">
-                  / year <span className="text-emerald-500 font-semibold">($24/mo)</span>
+                  / year <span className="text-emerald-500 font-semibold">($15.83/mo)</span>
                 </span>
               </div>
             </CardHeader>

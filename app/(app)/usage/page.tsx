@@ -45,8 +45,7 @@ export default async function UsagePage() {
 
   const currentTier = user.subscriptionTier || "FREE";
   const plan = getPlanForTier(currentTier);
-  const tierLimit = getSearchLimitForTier(currentTier);
-  const limit = getEffectiveSearchLimit(tierLimit);
+  const limit = getSearchLimitForTier(currentTier);
 
   const used = user.searchesUsed || 0;
   const remaining = limit === Infinity ? Infinity : Math.max(0, limit - used);
@@ -115,14 +114,14 @@ export default async function UsagePage() {
                   {limit === Infinity ? (
                     <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-3 text-xs text-emerald-500 flex items-center gap-2">
                       <Sparkles className="w-4 h-4 shrink-0" />
-                      <span>You have unlimited validations included on your Pro Annual plan.</span>
+                      <span>You have unlimited validations included on your {plan.name} plan.</span>
                     </div>
                   ) : (
                     <div className="space-y-2">
                       <Progress value={percentage} className="h-2.5" />
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
                         <span>0 validations</span>
-                        <span>{limit} limit</span>
+                        <span>{limit} monthly limit</span>
                       </div>
                     </div>
                   )}
