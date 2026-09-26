@@ -6,6 +6,18 @@
       "sourceType": "github",
       "skillPath": "skills/ai-elements/SKILL.md",
       "computedHash": "6d7ccc65b98adb04d6c47632746dbfea55528903de9b027f6b39b80983d5aa55"
+    },
+    "stripe-best-practices": {
+      "source": "stripe/ai",
+      "sourceType": "github",
+      "skillPath": "skills/stripe-best-practices/SKILL.md",
+      "computedHash": "e9a13a7c87c67701153ab993815e64ce1af8c92702ce036bb89ac8e467f16a85"
+    },
+    "stripe-docs": {
+      "source": "stripe/ai",
+      "sourceType": "github",
+      "skillPath": "skills/stripe-docs/SKILL.md",
+      "computedHash": "ee4a51d34f11386fe6c9f991d5b2d32da69c851124a78a01403412bcf87e73d7"
     }
   }
 }
