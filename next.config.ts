@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   images: {
     maximumDiskCacheSize: 50 * 1024 * 1024,
     remotePatterns: [

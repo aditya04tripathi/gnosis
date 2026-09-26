@@ -1,0 +1,51 @@
+services:
+  app:
+    image: ${IMAGE_NAME:-ghcr.io/aditya04tripathi/gnosis}:${IMAGE_TAG:-latest}
+    container_name: gnosis-app
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    env_file:
+      - .env
+    environment:
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+      - MONGODB_URI=${MONGODB_URI:-mongodb://mongo:27017/gnosis}
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - gnosis-net
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  mongo:
+    image: mongo:7.0
+    container_name: gnosis-mongo
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - gnosis-net
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  mongo_data:
+    driver: local
+
+networks:
+  gnosis-net:
+    driver: bridge
